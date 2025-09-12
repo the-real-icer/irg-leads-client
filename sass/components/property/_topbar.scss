@@ -1,0 +1,158 @@
+.property__topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: center;
+    padding: .5rem 0;
+    border-bottom: 1px solid;
+
+    @media (max-width: 1200px) {
+        padding: .5rem 0;
+    }
+
+    @media (max-width: 700px) {
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    &__address {
+        &__address {
+            font-size: 1.6rem;
+            font-weight: 600;
+
+            @media (max-width: 1600px) {
+                font-size: 1.4rem;
+            }
+        }
+
+        &__city {
+            font-size: 1.4rem;
+            color: #757575;
+            font-weight: 500;
+
+            @media (max-width: 1600px) {
+                font-size: 1.2rem;
+            }
+        }
+    }
+
+
+
+    &__status {
+
+        @media (max-width: 700px) {
+            margin-bottom: 1rem;
+        }
+
+        &__status {
+            font-size: 1.2rem;
+            font-weight: 600;
+
+            @media (max-width: 1600px) {
+                font-size: 1rem;
+            }
+
+            &__active {
+                color: #4caf50;
+            }
+
+            &__coming_soon {
+                color: #f79d16;
+            }
+
+            &__active_under_contract {
+                color: #4caf50;
+            }
+
+            &__pending {
+                color: #ff5252;
+            }
+        }
+    }
+
+    &__stats {
+        display: flex;
+        flex-direction: column;
+    }
+
+    &__items {
+        display: flex;
+
+        &__item {
+            display: flex;
+            flex-direction: column;
+            padding: 0 1rem;
+            border-right: 1px solid #757575;
+
+            @media (max-width: 700px) {
+                padding: 0 .5rem;
+            }
+
+            &:last-of-type {
+                border-right: none;
+            }
+        }
+    }
+
+    &__detail {
+        font-size: 1.6rem;
+        font-weight: 600;
+
+        @media (max-width: 1600px) {
+            font-size: 1.3rem;
+        }
+
+        // @media (max-width: 700px) {
+        //     font-size: 1.5rem;
+        // }
+    }
+
+    &__label {
+        font-size: 1.3rem;
+        color: #757575;
+
+        @media (max-width: 1600px) {
+            font-size: 1.1rem;
+        }
+    }
+
+    &__time {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color:#2196F3;
+
+        @media (max-width: 1600px) {
+            font-size: 1rem;
+        }
+    }
+
+    &__actions {
+        display: flex;
+
+        @media (max-width: 1000px) {
+            flex-direction: column;
+        }
+
+        @media (max-width: 700px) {
+            flex-direction: row;
+            margin-top: 1rem;
+        }
+    }
+
+    &__dropdown {
+        font-size: 1.5rem;
+
+        &__panel {
+            font-size: 1.5rem;
+        }
+
+        &__item {
+            font-size: 1.5rem;
+        }
+
+        &__label {
+            font-size: 1.5rem;
+            font-weight: 500;
+        }
+    }
+}

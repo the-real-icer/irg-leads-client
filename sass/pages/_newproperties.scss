@@ -1,0 +1,15 @@
+.new__properties {
+
+    &__container {
+        max-height: calc(100vh - 60px);
+        overflow-y: scroll;
+        display: flex;
+        flex-direction: column;
+        padding: 1rem 0;
+        @media (max-width: 1200px) {
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+    }
+}

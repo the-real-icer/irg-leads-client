@@ -1,0 +1,151 @@
+.SrchRsltsCntnt {
+    &__Container {
+        display: flex;
+        flex-wrap: nowrap;
+        position: absolute;
+        // top: 75px;
+        right: 0px;
+        bottom: 0px;
+        left: 0px;
+        top: 60px;
+
+    
+    }
+
+    &__Right {
+        width: 39%;
+        margin-left: 0.75rem;
+        box-shadow: -6px 10px 10px 1px rgba(0, 0, 0, 0.5);
+        background: inherit;
+        z-index: 4;
+        overflow-y: scroll;
+
+        @media (max-width: 1800px) {
+            width: 43%;
+        }
+
+        @media (max-width: 1600px) {
+            width: 47%;
+        }
+
+        @media (max-width: 1400px) {
+            width: 50%;
+        }
+
+        @media (max-width: 1300px) {
+            width: 53%;
+        }
+
+        @media (max-width: 1200px) {
+            width: 41%;
+        }
+
+        @media (max-width: 1000px) {
+            width: 38%;
+        }
+
+        @media (max-width: 850px) {
+            width: 43%;
+        }
+
+        @media (max-width: 700px) {
+            width: 100%;
+            // margin-top: 3rem;
+            margin-left: 0;
+        }
+    }
+
+    //IF You have LocalPlace Buttons Subtract 3%
+    &__Left {
+        width: calc(63% - 35px);
+        // margin: 1rem 0 1rem 1rem;
+        
+        @media (max-width: 1800px) {
+            width: calc(59% - 35px);
+        }
+
+        @media (max-width: 1600px) {
+            width: calc(55% - 20px);
+        }
+
+        @media (max-width: 1400px) {
+            width: calc(52% - 20px);
+        }
+
+        @media (max-width: 1300px) {
+            width: calc(49% - 20px);
+        }
+
+        @media (max-width: 1200px) {
+            width: calc(61% - 20px);
+        }
+
+        @media (max-width: 1000px) {
+            width: calc(64% - 20px);
+        }
+
+        @media (max-width: 850px) {
+            width: calc(59% - 20px);
+        }
+
+        @media (max-width: 700px) {
+            display: none;
+        }
+    }
+
+    &__Map {
+        border-radius: 8px;
+        touch-action: manipulation;
+        transform: translate3d(0px, 0px, 0px);
+        -webkit-transform: translate3d(0px, 0px, 0px);
+        mask-image: radial-gradient(white, black);
+        -webkit-mask-image: -webkit-radial-gradient(white, black);
+        display: flex;        
+        flex: 1 1 0%;
+        margin-left: .5rem;
+
+        &_user {
+            height: calc(100% - 102px);
+
+            @media (max-width: 900px) {
+                height: calc(100% - 95px);
+            }
+        }
+
+        &_no_user {
+            height: calc(100% - 110px);
+        }
+        
+        &__Loading {
+            position: absolute;
+            left: 0;
+            right: 0;
+            z-index: 100000;
+        }
+
+        &-Container {
+            box-sizing: inherit;
+            border-radius: 4px;
+            flex: 1 1 0%;
+            overflow: hidden;
+        }
+
+        &-Map {
+            height: 100%;
+            width: 100%;
+            position: absolute !important;
+            bottom: 0;
+            left: 0px;
+
+            @media (max-width: 550px) {
+                display: none;
+            }
+        }
+    }
+}
+
+.SearchPage__Button {
+    position: fixed;
+    bottom: 10px;
+    left: 90px;
+}

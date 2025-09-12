@@ -1,0 +1,75 @@
+.property__page {
+    padding-bottom: 40px;
+    max-height: calc(100vh - 60px);
+    overflow-y: scroll;
+    
+
+    &__container {
+        // width: 90rem;
+        margin: 0 auto;
+        max-width: 1200px;
+        margin: 0 auto;
+
+        @media (max-width: 1600px) {
+            max-width: 900px;
+        }
+    
+        @media (max-width: 1300px) {
+            max-width: 700px;
+        }
+    
+        // @media (max-width: 1200px) {
+        //     width: 85rem;
+        // }
+
+        // @media (max-width: 1100px) {
+        //     width: 80rem;
+        // }
+
+        // @media (max-width: 1000px) {
+        //     width: 75rem;
+        // }
+
+        // @media (max-width: 900px) {
+        //     width: 70rem;
+        // }
+
+        @media (max-width: 800px) {
+            width: 60rem;
+        }
+
+        @media (max-width: 700px) {
+            width: 50rem;
+        }
+
+        @media (max-width: 600px) {
+            width: 45rem;
+        }
+
+        @media (max-width: 500px) {
+            width: 40rem;
+        }
+
+        @media (max-width: 450px) {
+            width: 35rem;
+        }
+
+        @media (max-width: 400px) {
+            width: 30rem;
+        }
+    }
+
+    &__features__question {
+        display: flex;
+        padding: 2rem 0;
+        margin-top: 4.5rem;
+        border-top: 1px solid;
+        border-bottom: 1px solid;
+
+        @media (max-width: 1000px) {
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+    }
+}

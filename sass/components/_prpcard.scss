@@ -1,0 +1,94 @@
+.PrpCard {
+    display: block;
+    margin: 0.5rem;
+    width: 18rem;
+    height: 21rem;
+    border-radius: 0.25rem;
+    overflow: hidden;
+    box-shadow: 0 3px 7px 0 rgba(0, 0, 0, 0.2);
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    transition: all 150ms ease-in;
+    cursor: pointer;
+
+    &-light {
+        &:hover {
+            box-shadow: -5px 4px 8px 1px rgba(0, 0, 0, 0.88);
+            z-index: 20;
+        }
+    }
+
+    &-dark {
+        background: #343434;
+
+        &:hover {
+            box-shadow: -5px 4px 8px 1px rgba(117, 117, 117, 0.7);
+            z-index: 20;
+        }
+    }
+
+
+
+    & a:link,
+    & a:visited {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    & a:hover,
+    & a:active {
+        color: inherit;
+    }
+
+    &__Img {
+        height: 14rem;
+        width: 18rem;
+        border-top-left-radius: 0.25rem;
+        border-top-right-radius: 0.25rem;
+        z-index: 20;
+    }
+
+
+    &__Icon {
+        height: 2rem;
+        width: 2rem;
+        position: relative;
+        right: -15.5rem;
+        top: .5rem;
+        cursor: pointer;
+
+        &__not {
+            transition: all 200ms;
+            color: #fff;
+
+            &:hover {
+                color: #FF2222;
+            }
+        }
+
+        &__is {
+            color: #FF2222;
+        }
+    }
+
+    &__Vitals {
+        display: flex;
+        flex-direction: column;
+        padding: 0.5rem;
+        font-size: 1rem;
+    }
+
+    &__Price {
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin-bottom: .3rem;
+    }
+
+    &__Address {
+        font-size: 1.1rem;
+        margin-top: 0.3rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}

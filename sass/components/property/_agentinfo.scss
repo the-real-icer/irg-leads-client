@@ -1,0 +1,20 @@
+.agent__info {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    border-radius: 5px;
+    border: 1px solid black;
+    width: 45rem;
+    font-size: 1.3rem;
+    font-weight: 400;
+    text-align: center;
+
+    @media (max-width: 1000px) {
+        width: 45rem;
+    }
+
+    @media (max-width: 700px) {
+        width: 35rem;
+    }
+}

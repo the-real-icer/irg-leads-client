@@ -1,0 +1,18 @@
+export const lotSizeFilterValues = [
+    { value: '0.25', label: '.25 Acres' },
+    { value: '0.5', label: '.5 Acres' },
+    { value: '0.75', label: '.75 Acres' },
+    { value: '1', label: '1 Acre' },
+    { value: '1.25', label: '1.25 Acres' },
+    { value: '1.5', label: '1.5 Acres' },
+    { value: '1.75', label: '1.75 Acres' },
+    { value: '2', label: '2 Acres' },
+    { value: '2.5', label: '2.5 Acres' },
+    { value: '3', label: '3 Acres' },
+    { value: '3.5', label: '3.5 Acres' },
+    { value: '4', label: '4 Acres' },
+    { value: '4.5', label: '4.5 Acres' },
+    { value: '5', label: '5 Acres' },
+    { value: '10', label: '10 Acres' },
+    { value: '20', label: '20 Acres' },
+];

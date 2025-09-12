@@ -1,0 +1,55 @@
+
+.login__page {
+    background: url(https://ice-realty-group.s3-us-west-1.amazonaws.com/images/Coronado-Bridge-From-South.jpg);
+    background-repeat: no-repeat;
+    background-size: cover;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    &__form {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        height: 20rem;
+        width: 32rem;
+        border-radius: 5px;
+        background: #fff;
+        box-shadow: -5px 4px 8px 1px rgba(0, 0, 0, 0.88);
+
+
+        &__logo {
+            height: 5rem;
+            margin-top: 4rem;
+            margin-bottom: 5rem;
+        }
+
+        &__form {
+            // margin-top: 3rem;
+            // width: 80%;
+            display: flex;
+            justify-content: center;
+        }
+
+        &__label {
+            font-size: 1.65rem;
+            font-weight: 600;
+        }
+
+        &__input {
+            font-size: 1.8rem !important;
+        }
+
+        &__btn {
+            font-size: 1.8rem !important;
+            margin-top: 3rem !important;
+        }
+    }
+}

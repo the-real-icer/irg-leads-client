@@ -1,0 +1,44 @@
+.SearchMap__InfoWindow {
+    &-Body {
+        height: 26rem;
+        width: 24rem;
+        cursor: pointer;
+
+        &-light {
+            background: white;
+        }
+
+        &-dark {
+            background: black;
+            color: white;
+        }
+    }
+
+    &-Head {
+        height: 17rem;
+        width: 24rem;
+        border-top-left-radius: 0.5rem;
+        border-top-right-radius: 0.5rem;
+        margin-bottom: .5rem;
+    }
+
+    &-Text {
+        padding-left: .5rem;
+    }
+
+    &-Address {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-bottom: .8rem;
+    }
+
+    &-Price {
+        font-size: 1.6rem;
+        margin-bottom: .7rem;
+    }
+
+    &-Stats {
+        font-size: 1.5rem;
+    }
+}

@@ -1,0 +1,123 @@
+.property__features {
+    display: flex;
+    width: 60%;
+    flex-direction: column;
+    justify-content: space-between;
+
+    @media (max-width: 1000px) {
+        width: 100%;
+    }
+
+    &__primary {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 1rem;
+
+        @media (max-width: 1000px) {
+            width: 75%;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 900px) {
+            width: 85%;
+        }
+
+        @media (max-width: 750px) {
+            width: 95%;
+        }
+
+        @media (max-width: 500px) {
+            flex-direction: column;
+        }
+
+        &__title {
+            font-size: 2rem;
+            font-weight: 600;
+            margin: 1rem 0;
+            text-align: center;
+        }
+
+        &__column {
+            display: flex;
+            width: 50%;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-content: flex-start;
+            min-height: 18rem;
+            border-right: 1px solid;
+
+            @media (max-width: 1200px) {
+                min-height: 15rem;
+            }
+
+            @media (max-width: 500px) {
+                width: 85%;
+                border-right: none;
+                min-height: 0;
+            }
+
+            &:last-of-type {
+                border-right: none;
+            }
+        }
+    }
+
+    &__description {
+        font-size: 1.4rem;
+        text-align: center;
+        padding-right: 1.5rem;
+
+        @media (max-width: 1000px) {
+            font-size: 1.8rem;
+        }
+    }
+
+    &__agent {
+        font-size: 1.32rem;
+        color: #757575;
+        text-align: center;
+        
+
+        @media (max-width: 1200px) {
+            font-size: 1.5rem;
+        }
+
+        &__container {
+            padding: 0 1.5rem;
+            margin: 1rem 0;
+        }
+    }
+
+    &__time {
+        font-size: 1.5rem;
+        color: #757575;
+        text-align: center;
+
+        @media (max-width: 1200px) {
+            font-size: 1.4rem;
+        }
+
+    }
+
+    &__feature {
+        display: flex;
+        justify-content: space-between;
+        padding: .5rem 2rem;
+
+        @media (max-width: 1100px) {
+            padding: 0.5rem 1rem;
+        }
+
+        &__item {
+            font-size: 1.3rem;
+            font-weight: 500;
+        }
+
+        &__label {
+            font-size: 1.3rem;
+            color: #757575;
+            font-weight: 500;
+        }
+    }
+}
