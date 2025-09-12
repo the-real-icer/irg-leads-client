@@ -14,7 +14,7 @@ const dev = process.env.NODE_ENV !== 'production';
 const app = next({ dev });
 const nextHandler = app.getRequestHandler();
 
-const allowedOrigin = process.env.ALLOWED_ORIGIN || 'http://localhost:4000';
+const allowedOrigin = process.env.NEXT_PUBLIC_ALLOWED_ORIGIN || 'http://localhost:4000';
 
 // Validate ALLOWED_ORIGIN
 if (!allowedOrigin) {
