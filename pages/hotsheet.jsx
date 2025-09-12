@@ -1,6 +1,5 @@
 // React
 import { useEffect, useCallback } from 'react';
-// import PropTypes from 'prop-types';
 import dynamic from 'next/dynamic';
 // Redux
 import { useSelector, useDispatch } from 'react-redux';
@@ -195,13 +194,10 @@ const Hotsheet = () => {
                         </h3>
                     </div>
                     <div className="hotsheet__homes">
-                        {hotsheet.initialHomes.length === 0 ? (
-                            <p>{hotsheet.fetchingHomes ? 'Loading...' : 'No homes found'}</p>
-                        ) : (
+                        {hotsheet.initialHomes.length > 0 &&
                             hotsheet.initialHomes.map((home) => (
                                 <PrpCard key={home._id} property={home} />
-                            ))
-                        )}
+                            ))}
                     </div>
                 </div>
             </div>
