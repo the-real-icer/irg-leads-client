@@ -1,13 +1,16 @@
 // React
-import { useEffect } from 'react';
-
+import { useEffect, useCallback } from 'react';
+// import PropTypes from 'prop-types';
+import dynamic from 'next/dynamic';
 // Redux
 import { useSelector, useDispatch } from 'react-redux';
 
 // IRG Components
 import MainLayout from '../components/layout/MainLayout';
 import PrpCard from '../components/prpCard/PrpCard';
-import HotsheetDropdown from '../components/Hotsheet/HotsheetDropdown';
+const HotsheetDropdown = dynamic(() => import('../components/Hotsheet/HotsheetDropdown'), {
+    ssr: false,
+});
 
 // IRG API - HOOKS - INFO - UTILS
 import {
@@ -29,157 +32,103 @@ const Hotsheet = () => {
     // _____________________Hooks_____________________\\
     const dispatch = useDispatch();
 
-    // Get Homes based on Updated Parameters
+    // Default parameters
+    const defaultParams = {
+        days: 3,
+        limit: 100,
+        county: 'san-diego',
+        city: '',
+        hood: '',
+        zip: '',
+    };
+
+    // Fetch homes with current parameters
+    const fetchHomes = useCallback(
+        (params) => {
+            dispatch(fetchHotsheetHomes(params));
+        },
+        [dispatch],
+    );
+
+    // Event handlers
+    const onCityChange = useCallback(
+        (e) => {
+            const value = e.value?.name || 'Select A City';
+            dispatch(changeCity(value));
+            dispatch(fetchingHomes(true));
+        },
+        [dispatch],
+    );
+
+    const onZipChange = useCallback(
+        (e) => {
+            const value = e.value?.name || 'Select A Zipcode';
+            dispatch(changeZipcode(value));
+            dispatch(fetchingHomes(true));
+        },
+        [dispatch],
+    );
+
+    const onHoodChange = useCallback(
+        (e) => {
+            const value = e.value?.name || 'Select A Neighborhood';
+            dispatch(changeNeighborhood(value));
+            dispatch(fetchingHomes(true));
+        },
+        [dispatch],
+    );
+
+    const onDaysChange = useCallback(
+        (e) => {
+            const value = e.value?.name || '# of Days Back';
+            dispatch(changeDaysBack(value));
+            dispatch(fetchingHomes(true));
+        },
+        [dispatch],
+    );
+
+    const onLimitChange = useCallback(
+        (e) => {
+            const value = e.value?.name || '# of Homes';
+            dispatch(changeLimit(value));
+            dispatch(fetchingHomes(true));
+        },
+        [dispatch],
+    );
+
+    const onCountyChange = useCallback(
+        (e) => {
+            const value = e.value?.name || 'Select A County';
+            dispatch(changeCounty(value));
+            dispatch(fetchingHomes(true));
+        },
+        [dispatch],
+    );
+
+    // Fetch homes on mount and when parameters change
     useEffect(() => {
-        let days = 3;
-        let limit = 100;
-        const city = hotsheet.city.toLowerCase().replace(/\s/g, '-');
-        const neighborhood = hotsheet.neighborhood.toLowerCase().replace(/\s/g, '-');
-        const county = hotsheet.county.toLowerCase().replace(/\s/g, '-');
+        const params = {
+            days: hotsheet.daysBack !== '# of Days Back' ? hotsheet.daysBack : defaultParams.days,
+            limit: hotsheet.limit !== '# of Homes' ? hotsheet.limit : defaultParams.limit,
+            county:
+                hotsheet.county !== 'Select A County'
+                    ? hotsheet.county.toLowerCase().replace(/\s/g, '-')
+                    : defaultParams.county,
+            city:
+                hotsheet.city !== 'Select A City'
+                    ? hotsheet.city.toLowerCase().replace(/\s/g, '-')
+                    : '',
+            hood:
+                hotsheet.neighborhood !== 'Select A Neighborhood'
+                    ? hotsheet.neighborhood.toLowerCase().replace(/\s/g, '-')
+                    : '',
+            zip: hotsheet.zipcode !== 'Select A Zipcode' ? hotsheet.zipcode : '',
+        };
 
-        // check if Days Back is seletected
-        if (hotsheet.daysBack !== '# of Days Back') {
-            days = hotsheet.daysBack;
+        if (hotsheet.fetchingHomes || !hotsheet.initialHomes.length) {
+            fetchHomes(params);
         }
-
-        // Check if limit is selected
-        if (hotsheet.limit !== '# of Homes') {
-            limit = hotsheet.limit;
-        }
-
-        // Check if city is selected
-        if (hotsheet.city !== 'Select A City' && hotsheet.fetchingHomes) {
-            dispatch(fetchHotsheetHomes({ days, limit, city, county: '', hood: '', zip: '' }));
-        }
-
-        // Check if County is Selected
-        if (hotsheet.county !== 'Select A County' && hotsheet.fetchingHomes) {
-            dispatch(fetchHotsheetHomes({ days, limit, county, city: '', hood: '', zip: '' }));
-        }
-
-        // Check if Neighborhood is selected
-        if (hotsheet.neighborhood !== 'Select A Neighborhood' && hotsheet.fetchingHomes) {
-            dispatch(
-                fetchHotsheetHomes({
-                    days,
-                    limit,
-                    city: '',
-                    county: '',
-                    hood: neighborhood,
-                    zip: '',
-                })
-            );
-        }
-
-        // Check if Zipcode is Selected
-        if (hotsheet.zipcode !== 'Select A Zipcode' && hotsheet.fetchingHomes) {
-            dispatch(
-                fetchHotsheetHomes({
-                    days,
-                    limit,
-                    city: '',
-                    county: '',
-                    hood: '',
-                    zip: hotsheet.zipcode,
-                })
-            );
-        }
-    }, [hotsheet, dispatch]);
-
-    // UseEffect to handle edge case of filter reset
-    useEffect(() => {
-        let days = 3;
-        let limit = 100;
-
-        // check if Days Back is seletected
-        if (hotsheet.daysBack !== '# of Days Back') {
-            days = hotsheet.daysBack;
-        }
-
-        // Check if limit is selected
-        if (hotsheet.limit !== '# of Homes') {
-            limit = hotsheet.limit;
-        }
-
-        if (
-            hotsheet.city === 'Select A City' &&
-            hotsheet.county === 'Select A County' &&
-            hotsheet.neighborhood === 'Select A Neighborhood' &&
-            hotsheet.zipcode === 'Select A Zipcode' &&
-            hotsheet.fetchingHomes
-        ) {
-            dispatch(
-                fetchHotsheetHomes({
-                    days,
-                    limit,
-                    city: '',
-                    county: 'san-diego',
-                    hood: '',
-                    zip: '',
-                })
-            );
-        }
-    }, [hotsheet, dispatch]);
-
-    const onCityChange = (e) => {
-        if (e.value) {
-            dispatch(changeCity(e.value.name));
-            dispatch(fetchingHomes(true));
-        } else {
-            dispatch(changeCity('Select A City'));
-            dispatch(fetchingHomes(true));
-        }
-    };
-
-    const onZipChange = (e) => {
-        if (e.value) {
-            dispatch(changeZipcode(e.value.name));
-            dispatch(fetchingHomes(true));
-        } else {
-            dispatch(changeZipcode('Select A Zipcode'));
-            dispatch(fetchingHomes(true));
-        }
-    };
-
-    const onHoodChange = (e) => {
-        if (e.value) {
-            dispatch(changeNeighborhood(e.value.name));
-            dispatch(fetchingHomes(true));
-        } else {
-            dispatch(changeNeighborhood('Select A Neighborhood'));
-            dispatch(fetchingHomes(true));
-        }
-    };
-
-    const onDaysChange = (e) => {
-        if (e.value) {
-            dispatch(changeDaysBack(e.value.name));
-            dispatch(fetchingHomes(true));
-        } else {
-            dispatch(changeDaysBack('# of Days Back'));
-            dispatch(fetchingHomes(true));
-        }
-    };
-
-    const onLimitChange = (e) => {
-        if (e.value) {
-            dispatch(changeLimit(e.value.name));
-            dispatch(fetchingHomes(true));
-        } else {
-            dispatch(changeLimit('# of Homes'));
-            dispatch(fetchingHomes(true));
-        }
-    };
-
-    const onCountyChange = (e) => {
-        if (e.value) {
-            dispatch(changeCounty(e.value.name));
-            dispatch(fetchingHomes(true));
-        } else {
-            dispatch(changeCounty('Select A County'));
-            dispatch(fetchingHomes(true));
-        }
-    };
+    }, [hotsheet, fetchHomes, defaultParams.limit, defaultParams.days, defaultParams.county]);
 
     const numDaysBack = [
         { name: 1 },
@@ -246,10 +195,13 @@ const Hotsheet = () => {
                         </h3>
                     </div>
                     <div className="hotsheet__homes">
-                        {hotsheet.initialHomes.length > 0 &&
+                        {hotsheet.initialHomes.length === 0 ? (
+                            <p>{hotsheet.fetchingHomes ? 'Loading...' : 'No homes found'}</p>
+                        ) : (
                             hotsheet.initialHomes.map((home) => (
                                 <PrpCard key={home._id} property={home} />
-                            ))}
+                            ))
+                        )}
                     </div>
                 </div>
             </div>
