@@ -6,9 +6,7 @@ import { useSelector, useDispatch } from 'react-redux';
 
 // Third Party Components
 import showToast from '../utils/showToast';
-// import './react-dom-polyfill';
-// import cogoToast from 'cogo-toast';
-// import { Button } from 'primereact/button';
+import { Button } from 'primereact/button';;
 
 // IRG Components
 import MainLayout from '../components/layout/MainLayout';
@@ -59,10 +57,7 @@ const NewProperties = () => {
     const [showDialog, setShowDialog] = useState(false);
     const [selectedHome, setSelectedHome] = useState(null);
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-    // New state for toggling duplicate visibility
     const [hideDuplicates, setHideDuplicates] = useState(false);
-    // // State for "City='OTHER'""
-    // const [filterCityOther, setFilterCityOther] = useState(false);
 
     // _____________________Hooks_____________________\\
     const dispatch = useDispatch();
@@ -71,10 +66,6 @@ const NewProperties = () => {
     const toggleHideDuplicates = () => {
         setHideDuplicates((prev) => !prev);
     };
-
-    // const toggleFilterCityOther = () => {
-    //     setFilterCityOther((prev) => !prev);
-    // };
 
     const handleEditClick = (property) => {
         setSelectedHome(property);
@@ -264,7 +255,6 @@ const NewProperties = () => {
         () =>
             newProperties
                 .filter((property) => !hideDuplicates || !property.is_duplicate_property)
-                // .filter((property) => !filterCityOther || property.city === 'OTHER')
                 .map((property) => (
                     <NewPropertyCard
                         key={property._id}
@@ -286,9 +276,7 @@ const NewProperties = () => {
             handleSearch,
             handleOffMarketSubmit,
             handleUnDuplicate,
-            // ,
-            // filterCityOther
-        ], // Add hideDuplicates & city=OTHER to dependency array
+        ], 
     );
 
     //Function to update the count of properties based on if "Hide Duplicates" is clicked
@@ -323,37 +311,19 @@ const NewProperties = () => {
                 badGeoCode={formData.badGeoCode}
             />
             <div className="new__properties">
-                <div className="new__properties__container">
-                    <h1 style={{ marginLeft: '1rem' }}>New Properties</h1>
-                    <h3 style={{ marginLeft: '1rem', marginBottom: '1rem' }}>
+                <div className='new__properties__header'>
+<h1 style={{ marginLeft: '1rem' }}>New Properties</h1>
+                    <h3 style={{ marginLeft: '1rem', marginBottom: '.25rem' }}>
                         {visiblePropertiesCount} homes to approve
                     </h3>
-                    <button
-                        onClick={toggleHideDuplicates}
-                        style={{
-                            padding: '0.5rem 1rem',
-                            backgroundColor: hideDuplicates ? '#4CAF50' : '#f44336',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                        }}
-                    >
-                        {hideDuplicates ? 'Show Duplicates' : 'Hide Duplicates'}
-                    </button>
-                    {/* <button
-                        onClick={toggleFilterCityOther}
-                        style={{
-                            padding: '0.5rem 1rem',
-                            backgroundColor: filterCityOther ? '#4CAF50' : '#f44336',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                        }}
-                    >
-                        {filterCityOther ? 'Show All Cities' : "City = 'OTHER'"}
-                    </button> */}
+                    <Button
+                    label={hideDuplicates ? 'Show Duplicates' : 'Hide Duplicates'}
+                    className="p-button-danger new__properties__duplicates__button"
+                    onClick={toggleHideDuplicates}
+                    style={{ backgroundColor: hideDuplicates ? '#4CAF50' : '#f44336' }}
+                />
+                </div>
+                <div className="new__properties__container">
                     {newProperties.length === 0 ? (
                         <p>No new properties to review.</p>
                     ) : (
