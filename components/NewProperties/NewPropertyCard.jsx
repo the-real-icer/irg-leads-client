@@ -8,9 +8,10 @@ const NewPropertyCard = ({
     property,
     handleApproveClick,
     handleEditClick,
-    handleCopy,
+    handleCopyMLS,
     handleSearch,
     handleUnDuplicate,
+    handleCopyAddress,
     // setShowConfirmDialog,
     handleOffMarketSubmit,
 }) => {
@@ -77,12 +78,24 @@ const NewPropertyCard = ({
                     </div>
                 </Link>
                 <div className="new_property_card_btns">
+                    <Button 
+                        label="Copy Address"
+                        className="p-button-info"
+                        onClick={() => handleCopyAddress(property)}
+                        style={{
+                            // marginRight: '.7rem',
+                            fontSize: '1.1rem',
+                            fontWeight: '500',
+                        }}
+                    />
+                </div>
+                <div className="new_property_card_btns">
                     <Button
                         label="Copy MLS #"
-                        onClick={() => handleCopy(property.mls_number)}
+                        onClick={() => handleCopyMLS(property.mls_number)}
                         className="p-button-help"
                         style={{
-                            marginRight: '.7rem',
+                            // marginRight: '.7rem',
                             fontSize: '1.1rem',
                             fontWeight: '500',
                             marginBottom: '.5rem',
@@ -92,7 +105,7 @@ const NewPropertyCard = ({
                         label="OFF MARKET"
                         className="p-button-danger"
                         style={{
-                            marginRight: '.7rem',
+                            // marginRight: '.7rem',
                             marginBottom: '.5rem',
                             fontSize: '1.1rem',
                             fontWeight: '500',
@@ -106,7 +119,7 @@ const NewPropertyCard = ({
                         onClick={() => handleSearch(properUrl)}
                         className="p-button-warning"
                         style={{
-                            marginRight: '.7rem',
+                            // marginRight: '.7rem',
                             fontSize: '1.1rem',
                             fontWeight: '500',
                             marginBottom: '.5rem',
@@ -116,7 +129,7 @@ const NewPropertyCard = ({
                         label="UN-Duplicate"
                         className="p-button-success"
                         style={{
-                            marginRight: '.7rem',
+                            // marginRight: '.7rem',
                             marginBottom: '.5rem',
                             fontSize: '1.1rem',
                             fontWeight: '500',
@@ -174,9 +187,10 @@ NewPropertyCard.propTypes = {
     }).isRequired,
     handleApproveClick: PropTypes.func.isRequired,
     handleEditClick: PropTypes.func.isRequired,
-    handleCopy: PropTypes.func.isRequired,
+    handleCopyMLS: PropTypes.func.isRequired,
     handleSearch: PropTypes.func.isRequired,
     handleUnDuplicate: PropTypes.func.isRequired,
+    handleCopyAddress: PropTypes.func.isRequired,
     // setShowConfirmDialog: PropTypes.func.isRequired,
     handleOffMarketSubmit: PropTypes.func.isRequired,
 };

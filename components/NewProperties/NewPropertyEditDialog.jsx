@@ -167,6 +167,12 @@ const NewPropertyEditDialog = (props) => {
                     type="submit"
                     style={{ fontSize: '1.05rem', marginTop: '1.5rem' }}
                 />
+                <Button
+                    label="Cancel"
+                    className="p-button-danger"
+                    onClick={() => handleDialogClose()}
+                    style={{ fontSize: '1.05rem', marginTop: '1.5rem' }}
+                />
             </form>
         </Dialog>
     );

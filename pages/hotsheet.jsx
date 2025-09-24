@@ -1,5 +1,5 @@
 // React
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import dynamic from 'next/dynamic';
 // Redux
 import { useSelector, useDispatch } from 'react-redux';
@@ -23,37 +23,36 @@ import {
     fetchingHomes,
 } from '../store/actions/hotsheet';
 
-    // Default parameters
-    const defaultParams = {
-        days: 3,
-        limit: 100,
-        county: 'san-diego',
-        city: '',
-        hood: '',
-        zip: '',
-    };
+// Define default parameters outside the component
+const defaultParams = {
+    days: 3,
+    limit: 100,
+    county: 'san-diego',
+    city: '',
+    hood: '',
+    zip: '',
+};
 
 const Hotsheet = () => {
     // __________________Redux State______________________\\
-    const { county, city, neighborhood, zipcode, daysBack, limit, initialHomes } =
+    const { county, city, neighborhood, zipcode, daysBack, limit, initialHomes, fetchingHomes, error } =
         useSelector((state) => state.hotsheet);
     const irgAreas = useSelector((state) => state.irgAreas);
 
     // _____________________Hooks_____________________\\
     const dispatch = useDispatch();
-
-
+    const hasFetchedInitial = useRef(false); // Track initial fetch
 
     // Fetch homes with current parameters
     const fetchHomes = useCallback(
-        (params) => {
-            console.log('Fetching homes with params:', params) // eslint-disable-line
+        (params, source) => {
+            console.log(`Fetching homes from ${source} with params:`, params);
             dispatch(fetchHotsheetHomes(params));
         },
         [dispatch],
     );
 
- // Helper to format string parameters
+    // Helper to format string parameters
     const formatStringParam = (value, defaultValue = '') => {
         if (!value || value.startsWith('Select') || value === '# of Days Back' || value === '# of Homes') {
             return defaultValue;
@@ -66,125 +65,145 @@ const Hotsheet = () => {
         if (!value || value === '# of Days Back' || value === '# of Homes') {
             return defaultValue;
         }
-        return Number(value) || defaultValue; // Ensure numeric value
+        return Number(value) || defaultValue;
     };
 
-    // Event handlers
+    // Event handlers with change check to prevent unnecessary fetches
     const onCityChange = useCallback(
         (e) => {
             const value = e.value?.name || '';
-            dispatch(changeCity(value));
-            const params = {
-                ...defaultParams,
-                county: formatStringParam(county, defaultParams.county),
-                city: formatStringParam(value),
-                hood: formatStringParam(neighborhood),
-                zip: formatStringParam(zipcode),
-                days: formatNumericParam(daysBack, defaultParams.days),
-                limit: formatNumericParam(limit, defaultParams.limit),
-            };
-            fetchHomes(params);
+            if (value !== city) {
+                dispatch(changeCity(value));
+                const params = {
+                    ...defaultParams,
+                    county: formatStringParam(county, defaultParams.county),
+                    city: formatStringParam(value),
+                    hood: formatStringParam(neighborhood),
+                    zip: formatStringParam(zipcode),
+                    days: formatNumericParam(daysBack, defaultParams.days),
+                    limit: formatNumericParam(limit, defaultParams.limit),
+                };
+                fetchHomes(params, 'onCityChange');
+            }
         },
-        [dispatch, fetchHomes, county, neighborhood, zipcode, daysBack, limit],
+        [dispatch, fetchHomes, county, neighborhood, zipcode, daysBack, limit, city],
     );
 
     const onZipChange = useCallback(
         (e) => {
             const value = e.value?.name || '';
-            dispatch(changeZipcode(value));
-            const params = {
-                ...defaultParams,
-                county: formatStringParam(county, defaultParams.county),
-                city: formatStringParam(city),
-                hood: formatStringParam(neighborhood),
-                zip: formatStringParam(value),
-                days: formatNumericParam(daysBack, defaultParams.days),
-                limit: formatNumericParam(limit, defaultParams.limit),
-            };
-            fetchHomes(params);
+            if (value !== zipcode) {
+                dispatch(changeZipcode(value));
+                const params = {
+                    ...defaultParams,
+                    county: formatStringParam(county, defaultParams.county),
+                    city: formatStringParam(city),
+                    hood: formatStringParam(neighborhood),
+                    zip: formatStringParam(value),
+                    days: formatNumericParam(daysBack, defaultParams.days),
+                    limit: formatNumericParam(limit, defaultParams.limit),
+                };
+                fetchHomes(params, 'onZipChange');
+            }
         },
-        [dispatch, fetchHomes, county, city, neighborhood, daysBack, limit],
+        [dispatch, fetchHomes, county, city, neighborhood, daysBack, limit, zipcode],
     );
 
     const onHoodChange = useCallback(
         (e) => {
             const value = e.value?.name || '';
-            dispatch(changeNeighborhood(value));
-            const params = {
-                ...defaultParams,
-                county: formatStringParam(county, defaultParams.county),
-                city: formatStringParam(city),
-                hood: formatStringParam(value),
-                zip: formatStringParam(zipcode),
-                days: formatNumericParam(daysBack, defaultParams.days),
-                limit: formatNumericParam(limit, defaultParams.limit),
-            };
-            fetchHomes(params);
+            if (value !== neighborhood) {
+                dispatch(changeNeighborhood(value));
+                const params = {
+                    ...defaultParams,
+                    county: formatStringParam(county, defaultParams.county),
+                    city: formatStringParam(city),
+                    hood: formatStringParam(value),
+                    zip: formatStringParam(zipcode),
+                    days: formatNumericParam(daysBack, defaultParams.days),
+                    limit: formatNumericParam(limit, defaultParams.limit),
+                };
+                fetchHomes(params, 'onHoodChange');
+            }
         },
-        [dispatch, fetchHomes, county, city, zipcode, daysBack, limit],
+        [dispatch, fetchHomes, county, city, zipcode, daysBack, limit, neighborhood],
     );
 
     const onDaysChange = useCallback(
         (e) => {
-            const value = e.value?.name ?? defaultParams.days; // Use ?? to handle null/undefined
-            dispatch(changeDaysBack(value));
-            const params = {
-                ...defaultParams,
-                county: formatStringParam(county, defaultParams.county),
-                city: formatStringParam(city),
-                hood: formatStringParam(neighborhood),
-                zip: formatStringParam(zipcode),
-                days: formatNumericParam(value, defaultParams.days),
-                limit: formatNumericParam(limit, defaultParams.limit),
-            };
-            fetchHomes(params);
+            const value = String(e.value?.name ?? defaultParams.days);
+            if (value !== String(daysBack)) {
+                dispatch(changeDaysBack(Number(value) || defaultParams.days));
+                const params = {
+                    ...defaultParams,
+                    county: formatStringParam(county, defaultParams.county),
+                    city: formatStringParam(city),
+                    hood: formatStringParam(neighborhood),
+                    zip: formatStringParam(zipcode),
+                    days: formatNumericParam(value, defaultParams.days),
+                    limit: formatNumericParam(limit, defaultParams.limit),
+                };
+                fetchHomes(params, 'onDaysChange');
+            }
         },
-        [dispatch, fetchHomes, county, city, neighborhood, zipcode, limit],
+        [dispatch, fetchHomes, county, city, neighborhood, zipcode, limit, daysBack],
     );
 
     const onLimitChange = useCallback(
         (e) => {
-            const value = e.value?.name ?? defaultParams.limit; // Use ?? to handle null/undefined
-            dispatch(changeLimit(value));
-            const params = {
-                ...defaultParams,
-                county: formatStringParam(county, defaultParams.county),
-                city: formatStringParam(city),
-                hood: formatStringParam(neighborhood),
-                zip: formatStringParam(zipcode),
-                days: formatNumericParam(daysBack, defaultParams.days),
-                limit: formatNumericParam(value, defaultParams.limit),
-            };
-            fetchHomes(params);
+            const value = String(e.value?.name ?? defaultParams.limit);
+            if (value !== String(limit)) {
+                dispatch(changeLimit(Number(value) || defaultParams.limit));
+                const params = {
+                    ...defaultParams,
+                    county: formatStringParam(county, defaultParams.county),
+                    city: formatStringParam(city),
+                    hood: formatStringParam(neighborhood),
+                    zip: formatStringParam(zipcode),
+                    days: formatNumericParam(daysBack, defaultParams.days),
+                    limit: formatNumericParam(value, defaultParams.limit),
+                };
+                fetchHomes(params, 'onLimitChange');
+            }
         },
-        [dispatch, fetchHomes, county, city, neighborhood, zipcode, daysBack],
+        [dispatch, fetchHomes, county, city, neighborhood, zipcode, daysBack, limit],
     );
 
     const onCountyChange = useCallback(
         (e) => {
             const value = e.value?.name || '';
-            dispatch(changeCounty(value));
-            const params = {
-                ...defaultParams,
-                county: formatStringParam(value, defaultParams.county),
-                city: formatStringParam(city),
-                hood: formatStringParam(neighborhood),
-                zip: formatStringParam(zipcode),
-                days: formatNumericParam(daysBack, defaultParams.days),
-                limit: formatNumericParam(limit, defaultParams.limit),
-            };
-            fetchHomes(params);
+            if (value !== county) {
+                dispatch(changeCounty(value));
+                const params = {
+                    ...defaultParams,
+                    county: formatStringParam(value, defaultParams.county),
+                    city: formatStringParam(city),
+                    hood: formatStringParam(neighborhood),
+                    zip: formatStringParam(zipcode),
+                    days: formatNumericParam(daysBack, defaultParams.days),
+                    limit: formatNumericParam(limit, defaultParams.limit),
+                };
+                fetchHomes(params, 'onCountyChange');
+            }
         },
-        [dispatch, fetchHomes, city, neighborhood, zipcode, daysBack, limit],
+        [dispatch, fetchHomes, city, neighborhood, zipcode, daysBack, limit, county],
     );
 
     // Fetch homes on mount
     useEffect(() => {
-        // Only fetch if initialHomes is empty to avoid redundant requests
-        if (!initialHomes.length && !fetchingHomes) {
-            fetchHomes(defaultParams);
+        if (!hasFetchedInitial.current && !initialHomes.length && !fetchingHomes) {
+            console.log('Initial fetch triggered');
+            fetchHomes(defaultParams, 'initial');
+            hasFetchedInitial.current = true;
         }
     }, [fetchHomes, initialHomes.length, fetchingHomes]);
+
+    // Debug state changes
+    useEffect(() => {
+        console.log('initialHomes:', initialHomes);
+        console.log('fetchingHomes:', fetchingHomes);
+        console.log('error:', error);
+    }, [initialHomes, fetchingHomes, error]);
 
     const numDaysBack = [
         { name: 1 },
@@ -250,11 +269,18 @@ const Hotsheet = () => {
                             {initialHomes.length} Homes On Market
                         </h3>
                     </div>
-                    <div className="hotsheet__homes">
-                        {initialHomes.length > 0 &&
+                    <div className="hotsheet__homes" style={{ minHeight: '200px' }}>
+                        {fetchingHomes ? (
+                            <p>Loading homes...</p>
+                        ) : error ? (
+                            <p>Error fetching homes: {error}</p>
+                        ) : initialHomes.length > 0 ? (
                             initialHomes.map((home) => (
                                 <PrpCard key={home._id} property={home} />
-                            ))}
+                            ))
+                        ) : (
+                            <p>No homes found.</p>
+                        )}
                     </div>
                 </div>
             </div>

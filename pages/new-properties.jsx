@@ -223,12 +223,20 @@ const NewProperties = () => {
         [isLoggedIn], // Dependencies
     );
 
-    const handleCopy = (text) => {
-        // eslint-disable-next-line
+    const handleCopyMLS = (text) => {
         navigator.clipboard
             .writeText(text)
             .then(() => showToast('info', text, 'Text Copied!', 'bottom-left'));
     };
+
+    const handleCopyAddress = (property) => {
+        const { address, city, state, zip_code } = property;        
+        const txt = `${address}, ${city}, ${state} ${zip_code}`
+        navigator.clipboard
+            .writeText(txt)
+            .then(() => showToast('info', txt, 'Text Copied!', 'bottom-left'));
+
+    }
 
     const handleOffMarketSubmit = useCallback(
         async (url) => {
@@ -263,7 +271,8 @@ const NewProperties = () => {
                         property={property}
                         handleEditClick={handleEditClick}
                         handleApproveClick={handleApproveClick}
-                        handleCopy={handleCopy}
+                        handleCopyMLS={handleCopyMLS}
+                        handleCopyAddress={handleCopyAddress}
                         handleUnDuplicate={handleUnDuplicate}
                         handleSearch={handleSearch}
                         setShowConfirmDialog={setShowConfirmDialog}

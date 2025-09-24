@@ -31,6 +31,7 @@ export default [
                 window: true,
                 console: true,
                 process: true,
+                navigator: true
             },
         },
         plugins: {

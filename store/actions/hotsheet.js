@@ -1,5 +1,6 @@
 import {
     FETCH_HOTSHEET_HOMES,
+    FETCH_HOTSHEET_HOMES_ERROR,
     CHANGE_COUNTY,
     CHANGE_CITY,
     CHANGE_ZIPCODE,
@@ -15,12 +16,20 @@ import IrgApi from '../../assets/irgApi';
 export function fetchHotsheetHomes({ days, city, hood, zip, limit, county }) {
     return async function fetchHotsheetHomesThunk(dispatch) {
         try {
+            dispatch(fetchingHomes(true)); // Set loading state
             const response = await IrgApi.get(
                 `/mlsproperties/hotsheet?days=${days}&city=${city}&hood=${hood}&zip=${zip}&limit=${limit}&county=${county}`
             );
-            dispatch({ type: FETCH_HOTSHEET_HOMES, payload: response.data.data });
+            // Log response for debugging
+            console.log('Server response:', response.data);
+            // Ensure payload is an array
+            const homes = Array.isArray(response.data.data) ? response.data.data : [];
+            dispatch({ type: FETCH_HOTSHEET_HOMES, payload: homes });
         } catch (error) {
-            console.error(error.message); // eslint-disable-line
+            console.error('Fetch homes error:', error.message);
+            dispatch({ type: FETCH_HOTSHEET_HOMES_ERROR, payload: error.message });
+        } finally {
+            dispatch(fetchingHomes(false)); // Reset loading state
         }
     };
 }
