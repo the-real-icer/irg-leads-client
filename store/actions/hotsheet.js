@@ -23,7 +23,7 @@ export function fetchHotsheetHomes({ days, city, hood, zip, limit, county }) {
             // Log response for debugging
             console.log('Server response:', response.data);
             // Ensure payload is an array
-            const homes = Array.isArray(response.data.data) ? response.data.data : [];
+            const homes = Array.isArray(response.data.data.properties) ? response.data.data.properties : [];
             dispatch({ type: FETCH_HOTSHEET_HOMES, payload: homes });
         } catch (error) {
             console.error('Fetch homes error:', error.message);

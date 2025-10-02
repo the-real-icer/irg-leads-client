@@ -20,7 +20,7 @@ import {
     changeZipcode,
     changeDaysBack,
     changeLimit,
-    fetchingHomes,
+    // fetchingHomes,
 } from '../store/actions/hotsheet';
 
 // Define default parameters outside the component
@@ -51,6 +51,16 @@ const Hotsheet = () => {
         },
         [dispatch],
     );
+
+      // Fetch homes on mount
+    useEffect(() => {
+        if (!hasFetchedInitial.current && !initialHomes.length && !fetchingHomes) {
+            console.log('Initial fetch triggered');
+            fetchHomes(defaultParams, 'initial');
+            console.log('initialHomes:', initialHomes);
+            hasFetchedInitial.current = true;
+        }
+    }, []);
 
     // Helper to format string parameters
     const formatStringParam = (value, defaultValue = '') => {
@@ -189,21 +199,14 @@ const Hotsheet = () => {
         [dispatch, fetchHomes, city, neighborhood, zipcode, daysBack, limit, county],
     );
 
-    // Fetch homes on mount
-    useEffect(() => {
-        if (!hasFetchedInitial.current && !initialHomes.length && !fetchingHomes) {
-            console.log('Initial fetch triggered');
-            fetchHomes(defaultParams, 'initial');
-            hasFetchedInitial.current = true;
-        }
-    }, [fetchHomes, initialHomes.length, fetchingHomes]);
+  
 
-    // Debug state changes
-    useEffect(() => {
-        console.log('initialHomes:', initialHomes);
-        console.log('fetchingHomes:', fetchingHomes);
-        console.log('error:', error);
-    }, [initialHomes, fetchingHomes, error]);
+    // // Debug state changes
+    // useEffect(() => {
+    //     console.log('initialHomes:', initialHomes);
+    //     console.log('fetchingHomes:', fetchingHomes);
+    //     console.log('error:', error);
+    // }, [initialHomes, fetchingHomes, error]);
 
     const numDaysBack = [
         { name: 1 },
