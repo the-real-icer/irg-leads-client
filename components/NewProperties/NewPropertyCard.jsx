@@ -14,6 +14,7 @@ const NewPropertyCard = ({
     handleCopyAddress,
     // setShowConfirmDialog,
     handleOffMarketSubmit,
+    handleOpenMapDialog
 }) => {
     let goodImage = '';
 
@@ -78,6 +79,17 @@ const NewPropertyCard = ({
                     </div>
                 </Link>
                 <div className="new_property_card_btns">
+                    <Button 
+                        label="Show Map"
+                        className="p-button-secondary"
+                        onClick={() => handleOpenMapDialog(property)}
+                        style={{
+                            // marginRight: '.7rem',
+                            fontSize: '1.1rem',
+                            fontWeight: '500',
+                            marginBottom: '.5rem',
+                        }}
+                    />
                     <Button 
                         label="Copy Address"
                         className="p-button-info"
@@ -193,6 +205,7 @@ NewPropertyCard.propTypes = {
     handleCopyAddress: PropTypes.func.isRequired,
     // setShowConfirmDialog: PropTypes.func.isRequired,
     handleOffMarketSubmit: PropTypes.func.isRequired,
+    handleOpenMapDialog: PropTypes.func.isRequired,
 };
 
 export default NewPropertyCard;

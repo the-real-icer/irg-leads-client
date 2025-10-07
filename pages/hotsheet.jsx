@@ -1,5 +1,5 @@
 // React
-import { useEffect, useCallback, useRef } from 'react';
+import { useEffect, useCallback, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 // Redux
 import { useSelector, useDispatch } from 'react-redux';
@@ -7,9 +7,13 @@ import { useSelector, useDispatch } from 'react-redux';
 // IRG Components
 import MainLayout from '../components/layout/MainLayout';
 import PrpCard from '../components/prpCard/PrpCard';
+import MapDialog from '@/components/Shared/MapDialog';
 const HotsheetDropdown = dynamic(() => import('../components/Hotsheet/HotsheetDropdown'), {
     ssr: false,
 });
+// const HotSheetMapDialog = dynamic(() => import('../components/Hotsheet/HotSheetMapDialog'), {
+//     ssr: false,
+// });
 
 // IRG API - HOOKS - INFO - UTILS
 import {
@@ -39,9 +43,25 @@ const Hotsheet = () => {
         useSelector((state) => state.hotsheet);
     const irgAreas = useSelector((state) => state.irgAreas);
 
+    // ________________Component State_________________\\
+    const [showMapDialog, setShowMapDialog] = useState(false);
+    const [selectedProperty, setSelectedProperty] = useState({})
+
     // _____________________Hooks_____________________\\
     const dispatch = useDispatch();
     const hasFetchedInitial = useRef(false); // Track initial fetch
+
+    // Open Map Dialog
+    const handleOpenMapDialog = (property) => {
+        setShowMapDialog(true);
+        setSelectedProperty(property)
+    }
+
+    // Close Map Dialog
+    const handleCloseMapDialog = () => {
+        setShowMapDialog(false);
+        setSelectedProperty({})
+    }
 
     // Fetch homes with current parameters
     const fetchHomes = useCallback(
@@ -199,8 +219,6 @@ const Hotsheet = () => {
         [dispatch, fetchHomes, city, neighborhood, zipcode, daysBack, limit, county],
     );
 
-  
-
     // // Debug state changes
     // useEffect(() => {
     //     console.log('initialHomes:', initialHomes);
@@ -235,6 +253,11 @@ const Hotsheet = () => {
 
     return (
         <MainLayout>
+            <MapDialog 
+                showMapDialog={showMapDialog}
+                handleCloseMapDialog={handleCloseMapDialog}
+                property={selectedProperty}
+            />
             <div className="hotsheet">
                 <div className="hotsheet__container">
                     <div className="hotsheet__filters">
@@ -279,7 +302,7 @@ const Hotsheet = () => {
                             <p>Error fetching homes: {error}</p>
                         ) : initialHomes.length > 0 ? (
                             initialHomes.map((home) => (
-                                <PrpCard key={home._id} property={home} />
+                                <PrpCard key={home._id} property={home} handleOpenMapDialog={handleOpenMapDialog} />
                             ))
                         ) : (
                             <p>No homes found.</p>

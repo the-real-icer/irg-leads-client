@@ -8,11 +8,12 @@ import { useSelector, useDispatch } from 'react-redux';
 
 import { MdAdd, MdClear } from 'react-icons/md';
 import find from 'lodash.find';
-import showToast from '../../utils/showToast';
+import { Button } from 'primereact/button';
 
+import showToast from '../../utils/showToast';
 import { addSelectedHome, removeSelectedHome } from '../../store/actions';
 
-const PrpCard = ({ property }) => {
+const PrpCard = ({ property, handleOpenMapDialog }) => {
     // __________________Redux State______________________\\
     const selectedHomes = useSelector((state) => state.selectedHomes);
 
@@ -75,6 +76,27 @@ const PrpCard = ({ property }) => {
                     </div>
                 </div>
             </Link>
+            <Button 
+                label="Off Market"
+                className="p-button-warning"
+                // onClick={() => handleCopyAddress(property)}
+                style={{
+                    marginRight: '.7rem',
+                    marginLeft: '.7rem',
+                    fontSize: '1.1rem',
+                    fontWeight: '500',
+                }}
+            />
+            <Button 
+                label="Show Map"
+                className="p-button-info"
+                onClick={() => handleOpenMapDialog(property)}
+                style={{
+                    // marginRight: '.7rem',
+                    fontSize: '1.1rem',
+                    fontWeight: '500',
+                }}
+            />
         </div>
     );
 };
@@ -95,6 +117,7 @@ PrpCard.propTypes = {
         mls_number: PropTypes.string.isRequired,
         zip_code: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
     }).isRequired,
+    handleOpenMapDialog: PropTypes.func.isRequired
 };
 
 export default PrpCard;

@@ -74,7 +74,7 @@ const PrimaryFeatures = ({ property }) => {
                             <span className="property__features__feature__item">Yes</span>
                         </div>
                     )}
-                    {property.cooling_y_n && property.cooling.includes('CA') && (
+                    {property.cooling_y_n && property.cooling && property.cooling.length > 0 && property.cooling.includes('CA') && (
                         <div className="property__features__feature">
                             <span className="property__features__feature__label">
                                 Air Conditioning:

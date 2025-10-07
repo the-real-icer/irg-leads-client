@@ -13,6 +13,7 @@ import MainLayout from '../components/layout/MainLayout';
 import NewPropertyCard from '../components/NewProperties/NewPropertyCard';
 import NewPropertyEditDialog from '../components/NewProperties/NewPropertyEditDialog';
 import ConfirmOffMarketDialog from '../components/NewProperties/ConfirmOffMarketDialog';
+import MapDialog from '@/components/Shared/MapDialog';
 
 // IRG API - HOOKS - INFO - UTILS
 import IrgApi from '../assets/irgApi';
@@ -58,6 +59,7 @@ const NewProperties = () => {
     const [selectedHome, setSelectedHome] = useState(null);
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
     const [hideDuplicates, setHideDuplicates] = useState(false);
+    const [showMapDialog, setShowMapDialog] = useState(false);
 
     // _____________________Hooks_____________________\\
     const dispatch = useDispatch();
@@ -66,6 +68,18 @@ const NewProperties = () => {
     const toggleHideDuplicates = () => {
         setHideDuplicates((prev) => !prev);
     };
+
+    // Open Map Dialog
+    const handleOpenMapDialog = (property) => {
+        setShowMapDialog(true);
+        setSelectedHome(property)
+    }
+
+    // Close Map Dialog
+    const handleCloseMapDialog = () => {
+        setShowMapDialog(false);
+        setSelectedHome(null)
+    }
 
     const handleEditClick = (property) => {
         setSelectedHome(property);
@@ -267,6 +281,7 @@ const NewProperties = () => {
                         handleSearch={handleSearch}
                         setShowConfirmDialog={setShowConfirmDialog}
                         handleOffMarketSubmit={handleOffMarketSubmit}
+                        handleOpenMapDialog={handleOpenMapDialog}
                     />
                 )),
         [
@@ -287,6 +302,11 @@ const NewProperties = () => {
 
     return (
         <MainLayout>
+            <MapDialog 
+                showMapDialog={showMapDialog}
+                handleCloseMapDialog={handleCloseMapDialog}
+                property={selectedHome}
+            />
             <ConfirmOffMarketDialog
                 showConfirmDialog={showConfirmDialog}
                 setShowConfirmDialog={setShowConfirmDialog}
