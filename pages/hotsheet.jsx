@@ -66,7 +66,7 @@ const Hotsheet = () => {
     // Fetch homes with current parameters
     const fetchHomes = useCallback(
         (params, source) => {
-            console.log(`Fetching homes from ${source} with params:`, params);
+            console.log(`Fetching homes from ${source} with params:`, params); // eslint-disable-line
             dispatch(fetchHotsheetHomes(params));
         },
         [dispatch],
@@ -75,12 +75,12 @@ const Hotsheet = () => {
       // Fetch homes on mount
     useEffect(() => {
         if (!hasFetchedInitial.current && !initialHomes.length && !fetchingHomes) {
-            console.log('Initial fetch triggered');
+            // console.log('Initial fetch triggered');
             fetchHomes(defaultParams, 'initial');
-            console.log('initialHomes:', initialHomes);
+            // console.log('initialHomes:', initialHomes);
             hasFetchedInitial.current = true;
         }
-    }, []);
+    }, []);  // eslint-disable-line
 
     // Helper to format string parameters
     const formatStringParam = (value, defaultValue = '') => {

@@ -51,22 +51,22 @@ const MainLayout = (props) => {
 
     // ________________________________useEffect to get Irg Areas_____________\\
     useEffect(() => {
-        const irgAreasTimer = setTimeout(() => {
+        const irgAreasTimer = setTimeout(() => { //eslint-disable-line
             if (irgAreas.City.length === 0) {
                 dispatch(fetchIrgAreas());
             }
         }, 1500);
-        return () => clearTimeout(irgAreasTimer);
+        return () => clearTimeout(irgAreasTimer); //eslint-disable-line
     }, []); //eslint-disable-line
 
     // ________________________________useEffect to get New Properties_____________\\
     useEffect(() => {
-        const newPropertiesTimer = setTimeout(() => {
+        const newPropertiesTimer = setTimeout(() => { //eslint-disable-line
             if (newProperties.length === 0) {
                 dispatch(fetchNewProperties(isLoggedIn));
             }
         }, 1000);
-        return () => clearTimeout(newPropertiesTimer);
+        return () => clearTimeout(newPropertiesTimer); //eslint-disable-line
     }, []); //eslint-disable-line
 
     // useInterval to check for new homes every 1 minute
@@ -77,12 +77,12 @@ const MainLayout = (props) => {
     // ________________________________useEffect to get New All Addresses_____________\\
     // useEffect for loading irgAreas and Addresses
     useEffect(() => {
-        const getIrgAddresses = setTimeout(() => {
+        const getIrgAddresses = setTimeout(() => { //eslint-disable-line
             if (irgAreas.Addresses.length === 0) {
                 dispatch(fetchAllAddresses());
             }
         }, 1000);
-        return () => clearTimeout(getIrgAddresses);
+        return () => clearTimeout(getIrgAddresses); //eslint-disable-line
     }, []); // eslint-disable-line
 
     // ________________________Hotsheet Functions_______________\\

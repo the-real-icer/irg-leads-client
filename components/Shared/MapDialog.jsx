@@ -61,7 +61,9 @@ const MapDialog = ({ showMapDialog, handleCloseMapDialog, property }) => {
     )
 }
 
-MapDialog.PropTypes = {
+export default MapDialog;
+
+MapDialog.propTypes = {
     showMapDialog: PropTypes.bool.isRequired,
     handleCloseMapDialog: PropTypes.func.isRequired,
     property: PropTypes.shape({
@@ -71,5 +73,3 @@ MapDialog.PropTypes = {
         }).isRequired,
     }).isRequired
 }
-
-export default MapDialog;

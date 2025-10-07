@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 
 // Redux
 import { useDispatch } from 'react-redux';
@@ -84,6 +85,23 @@ const SearchFilter = ({ options }) => {
             panelClassName={`Search__Filters-Select__Panel Search__Filters-Select__Panel-${options.theme}`}
         />
     );
+};
+
+SearchFilter.propTypes = {
+    options: PropTypes.shape({
+        placeholder: PropTypes.string.isRequired,
+        searchFilter: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+        defaultValueforFilter: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+        values: PropTypes.arrayOf(
+            PropTypes.shape({
+                value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+                label: PropTypes.string.isRequired,
+            })
+        ).isRequired,
+        theme: PropTypes.string.isRequired,
+        reduxFunction: PropTypes.func.isRequired,
+        reducerFunction: PropTypes.func,
+    }).isRequired,
 };
 
 export default SearchFilter;

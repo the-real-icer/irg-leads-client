@@ -35,8 +35,8 @@ const Index = () => {
 
         try {
             window.localStorage.setItem('googleCredential', JSON.stringify(response.credential));
-            console.log('Google response received:', response); // Debug: Confirm Google auth succeeds
-            console.log('Making API call to backend...'); // Debug: Before API
+            // console.log('Google response received:', response); // Debug: Confirm Google auth succeedss
+            // console.log('Making API call to backend...'); // Debug: Before API
             const res = await IrgApi.post(
                 '/auth/google-login',
                 { credential: response.credential, clientId: response.clientId },
@@ -44,7 +44,7 @@ const Index = () => {
                     headers: { 'Content-Type': 'application/json' },
                 },
             );
-            console.log('API response:', res); // Debug: After API
+            // console.log('API response:', res); // Debug: After API
             const { token } = res.data;
             const agent = res.data.data.user;
 

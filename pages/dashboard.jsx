@@ -6,6 +6,9 @@ import MainLayout from '../components/layout/MainLayout';
 import RecentListings from '../components/Dashboard/RecentListings';
 // import NewsStories from '../components/Dashboard/NewStories';
 
+const style = 'border-bottom-1 md:border-right-1 md:border-bottom-none surface-border flex-auto p-3'
+const style2 = 'w-3rem h-3rem flex align-items-center justify-content-center bg-blue-100 border-circle mr-3 flex-shrink-0'; // eslint-disable-line
+
 const Dashboard = () => (
     <MainLayout>
         <div
@@ -16,7 +19,7 @@ const Dashboard = () => (
                 <div className="grid">
                     <div className="col-12">
                         <div className="surface-card shadow-2 border-round flex p-3 flex-column md:flex-row">
-                            <div className="border-bottom-1 md:border-right-1 md:border-bottom-none surface-border flex-auto p-3">
+                            <div className={style}>
                                 <div className="flex align-items-center mb-3">
                                     <i className="pi pi-dollar text-blue-500 text-xl mr-2"></i>
                                     <span className="text-500 font-medium">YTD. Volume</span>
@@ -25,7 +28,7 @@ const Dashboard = () => (
                                     152 New
                                 </span>
                             </div>
-                            <div className="border-bottom-1 md:border-right-1 md:border-bottom-none surface-border flex-auto p-3">
+                            <div className={style}>
                                 <div className="flex align-items-center mb-3">
                                     <i className="pi pi-shopping-cart text-orange-500 text-xl mr-2"></i>
                                     <span className="text-500 font-medium">
@@ -36,7 +39,7 @@ const Dashboard = () => (
                                     $1500
                                 </span>
                             </div>
-                            <div className="border-bottom-1 md:border-right-1 md:border-bottom-none surface-border flex-auto p-3">
+                            <div className={style}>
                                 <div className="flex align-items-center mb-3">
                                     <i className="pi pi-briefcase text-cyan-500 text-xl mr-2"></i>
                                     <span className="text-500 font-medium">Customers</span>
@@ -74,7 +77,7 @@ const Dashboard = () => (
                             <span className="block text-600 font-medium mb-3">TODAY</span>
                             <ul className="p-0 mx-0 mt-0 mb-4 list-none">
                                 <li className="flex align-items-center py-2 border-bottom-1 surface-border">
-                                    <div className="w-3rem h-3rem flex align-items-center justify-content-center bg-blue-100 border-circle mr-3 flex-shrink-0">
+                                    <div className={style2}>
                                         {/* <img
                                                 src={stories[1].urlToImage}
                                                 alt="windows"
@@ -104,7 +107,7 @@ const Dashboard = () => (
                             <span className="block text-600 font-medium mb-3">YESTERDAY</span>
                             <ul className="p-0 m-0 list-none">
                                 <li className="flex align-items-center py-2 border-bottom-1 surface-border">
-                                    <div className="w-3rem h-3rem flex align-items-center justify-content-center bg-blue-100 border-circle mr-3 flex-shrink-0">
+                                    <div className={style2}>
                                         <i className="pi pi-dollar text-xl text-blue-500"></i>
                                     </div>
                                     <span className="text-900 line-height-3">

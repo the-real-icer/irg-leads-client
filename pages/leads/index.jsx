@@ -107,10 +107,10 @@ const Leads = () => {
 
     const phoneBodyTemplate = (rowData) => {
         const formatPhoneNumber = (phoneNumberString) => {
-            const cleaned = ('' + phoneNumberString).replace(/\D/g, ''); // eslint-disable-line
+            const cleaned = ('' + phoneNumberString).replace(/\D/g, ''); 
             const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
             if (match) {
-                return '(' + match[1] + ') ' + match[2] + '-' + match[3]; // eslint-disable-line
+                return '(' + match[1] + ') ' + match[2] + '-' + match[3];
             }
             return null;
         };

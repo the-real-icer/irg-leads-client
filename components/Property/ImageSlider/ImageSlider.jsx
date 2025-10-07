@@ -1,6 +1,6 @@
 // React
 import React from 'react';
-// import PropTypes from 'prop-types';
+import PropTypes from 'prop-types';
 
 // Third Party Components
 import Slider from 'react-slick';
@@ -51,7 +51,7 @@ class PropertyImageSlider extends React.Component {
 
             propertyImages = [cleanURL];
 
-            // eslint-disable-next-line
+             
             for (let i = 0; i < this.props.property.pic_count; i++) {
                 const j = i + 1;
                 propertyImages.push(
@@ -123,10 +123,18 @@ class PropertyImageSlider extends React.Component {
     }
 }
 
-// PropertyImageSlider.propTypes = {
-//     property: PropTypes.shape({
-//         liting_pics: PropTypes.shape([]).isRequired,
-//     }).isRequired,
-// };
+PropertyImageSlider.propTypes = {
+    property: PropTypes.shape({
+    listing_pictures: PropTypes.arrayOf(
+    PropTypes.shape({
+        media_url: PropTypes.string.isRequired,
+    })
+    ),
+    listing_pics: PropTypes.string,
+    pic_count: PropTypes.number,
+    address: PropTypes.string,
+    }).isRequired,
+    theme: PropTypes.oneOf(['light', 'dark']).isRequired,
+};
 
 export default PropertyImageSlider;

@@ -2,7 +2,7 @@ import { toast } from 'react-toastify';
 
 const showToast = (type, message, heading, position = 'top-left') => {
     if (!['success', 'error', 'info', 'warn', 'warning'].includes(type)) {
-        console.error(`Invalid toast type: ${type}`);
+        console.error(`Invalid toast type: ${type}`); // eslint-disable-line
         return;
     }
 

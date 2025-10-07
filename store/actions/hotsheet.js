@@ -14,19 +14,19 @@ import IrgApi from '../../assets/irgApi';
 
 // Fetch HotSheet Homes
 export function fetchHotsheetHomes({ days, city, hood, zip, limit, county }) {
+    const params = `days=${days}&city=${city}&hood=${hood}&zip=${zip}&limit=${limit}&county=${county}`;
+
     return async function fetchHotsheetHomesThunk(dispatch) {
         try {
             dispatch(fetchingHomes(true)); // Set loading state
             const response = await IrgApi.get(
-                `/mlsproperties/hotsheet?days=${days}&city=${city}&hood=${hood}&zip=${zip}&limit=${limit}&county=${county}`
+                `/mlsproperties/hotsheet?${params}`
             );
-            // Log response for debugging
-            console.log('Server response:', response.data);
             // Ensure payload is an array
             const homes = Array.isArray(response.data.data.properties) ? response.data.data.properties : [];
             dispatch({ type: FETCH_HOTSHEET_HOMES, payload: homes });
         } catch (error) {
-            console.error('Fetch homes error:', error.message);
+            console.error('Fetch homes error:', error.message); // eslint-disable-line
             dispatch({ type: FETCH_HOTSHEET_HOMES_ERROR, payload: error.message });
         } finally {
             dispatch(fetchingHomes(false)); // Reset loading state

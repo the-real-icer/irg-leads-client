@@ -18,7 +18,7 @@ const allowedOrigin = process.env.NEXT_PUBLIC_ALLOWED_ORIGIN || 'http://localhos
 
 // Validate ALLOWED_ORIGIN
 if (!allowedOrigin) {
-    console.error('ALLOWED_ORIGIN is not defined in .env');
+    console.error('ALLOWED_ORIGIN is not defined in .env'); // eslint-disable-line
     process.exit(1);
 }
 
@@ -74,11 +74,11 @@ app.prepare()
         });
 
         server.listen(port, () => {
-            console.log(`> Server ready on http://localhost:${port}`);
-            console.log(`> CORS allowed for: ${allowedOrigin}`);
+            console.log(`> Server ready on http://localhost:${port}`); // eslint-disable-line
+            console.log(`> CORS allowed for: ${allowedOrigin}`); // eslint-disable-line
         });
     })
     .catch((err) => {
-        console.error('Failed to start server:', err.stack);
+        console.error('Failed to start server:', err.stack); // eslint-disable-line
         process.exit(1);
     });
