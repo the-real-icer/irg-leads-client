@@ -42,61 +42,53 @@ const PrpCard = ({ property, handleOpenMapDialog }) => {
 
     return (
         <div className="PrpCard">
-            {!isSelected ? (
-                <MdAdd className="PrpCard__Icon PrpCard__Icon__not" onClick={addHome} />
-            ) : (
-                <MdClear className="PrpCard__Icon PrpCard__Icon__is" onClick={removeHome} />
-            )}
             <Link href={linkAddress} passHref>
-                <div style={{ marginTop: '-3.4rem' }}>
+                <div className="PrpCard__ImgContainer">
+                    {!isSelected ? (
+                        <MdAdd className="PrpCard__Icon PrpCard__Icon__not" onClick={addHome} />
+                    ) : (
+                        <MdClear className="PrpCard__Icon PrpCard__Icon__is" onClick={removeHome} />
+                    )}
                     <img
                         src={goodImage}
                         alt={`${property.address} - ${property.city} Home for Sale`}
                         className="PrpCard__Img PrpCard__Img__Main"
-                        height="288"
                     />
-                    <div className="PrpCard__Vitals">
-                        <div className="PrpCard__Price">{property?.price}</div>
-                        <div>
-                            <span>
-                                {property?.bedrooms} {property?.bedrooms === 1 ? 'Bed' : 'Beds'}
-                                &nbsp;&nbsp;&#124;&nbsp;&nbsp;
-                            </span>
-                            <span>
-                                {property?.bathrooms} {property?.bathrooms === 1 ? 'Bath' : 'Baths'}
-                                &nbsp;&nbsp;&#124;&nbsp;&nbsp;
-                            </span>
-                            <span>{property?.sqft} SqFt</span>
-                        </div>
-                        <div className="PrpCard__Address">
-                            {property?.address}
-                            {property?.unit_number && ` #${property?.unit_number}`},{' '}
-                            {property?.city}, CA {property?.zip_code}
-                        </div>
+                </div>
+            </Link>
+            <Link href={linkAddress} passHref>
+                <div className="PrpCard__Vitals">
+                    <div className="PrpCard__Price">{property?.price}</div>
+                    <div className="PrpCard__Details">
+                        <span>
+                            {property?.bedrooms} {property?.bedrooms === 1 ? 'Bed' : 'Beds'}
+                        </span>
+                        <span className="divider">|</span>
+                        <span>
+                            {property?.bathrooms} {property?.bathrooms === 1 ? 'Bath' : 'Baths'}
+                        </span>
+                        <span className="divider">|</span>
+                        <span>{property?.sqft} SqFt</span>
+                    </div>
+                    <div className="PrpCard__Address">
+                        {property?.address}
+                        {property?.unit_number && ` #${property?.unit_number}`},{' '}
+                        {property?.city}, CA {property?.zip_code}
                     </div>
                 </div>
             </Link>
-            <Button 
-                label="Off Market"
-                className="p-button-warning"
-                // onClick={() => handleCopyAddress(property)}
-                style={{
-                    marginRight: '.7rem',
-                    marginLeft: '.7rem',
-                    fontSize: '1.1rem',
-                    fontWeight: '500',
-                }}
-            />
-            <Button 
-                label="Show Map"
-                className="p-button-info"
-                onClick={() => handleOpenMapDialog(property)}
-                style={{
-                    // marginRight: '.7rem',
-                    fontSize: '1.1rem',
-                    fontWeight: '500',
-                }}
-            />
+            <div className="PrpCard__Actions">
+                <Button
+                    label="Off Market"
+                    className="p-button-warning"
+                    // onClick={() => handleOffMarket(property)}
+                />
+                <Button
+                    label="Show Map"
+                    className="p-button-info"
+                    onClick={() => handleOpenMapDialog(property)}
+                />
+            </div>
         </div>
     );
 };

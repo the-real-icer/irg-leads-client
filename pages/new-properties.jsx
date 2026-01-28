@@ -60,6 +60,7 @@ const NewProperties = () => {
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
     const [hideDuplicates, setHideDuplicates] = useState(false);
     const [showMapDialog, setShowMapDialog] = useState(false);
+    const [processingDuplicates, setProcessingDuplicates] = useState(false);
 
     // _____________________Hooks_____________________\\
     const dispatch = useDispatch();
@@ -264,6 +265,53 @@ const NewProperties = () => {
         [isLoggedIn, setShowConfirmDialog], // Dependencies
     );
 
+    const handleTryDuplicates = useCallback(async () => {
+        setProcessingDuplicates(true);
+        showToast('info', 'Starting duplicate processing...', 'Processing', 'top-right');
+
+        let successCount = 0;
+        let failureCount = 0;
+        const totalProperties = newProperties.length;
+
+        // Process properties sequentially
+        for (const property of newProperties) {
+            try {
+                // eslint-disable-next-line no-await-in-loop
+                const res = await IrgApi.post(
+                    '/mlsproperties/unduplicate-property',
+                    {
+                        propertyUrl: property.property_url,
+                        mlsId: property.mls_number,
+                    },
+                    {
+                        headers: {
+                            Authorization: `Bearer ${isLoggedIn}`,
+                            'Content-Type': 'application/json',
+                        },
+                    },
+                );
+
+                if (res.data.status === 'success') {
+                    successCount++;
+                    dispatch(updateNewProperty(res.data.data));
+                } else {
+                    failureCount++;
+                }
+            } catch {
+                failureCount++;
+                // Continue to next property on error
+            }
+        }
+
+        setProcessingDuplicates(false);
+        showToast(
+            'success',
+            `Processed ${totalProperties} properties. Success: ${successCount}, Failed: ${failureCount}`,
+            'Batch Complete',
+            'top-right',
+        );
+    }, [newProperties, isLoggedIn, dispatch]);
+
     // Function to render the property cards
     const renderedCards = useMemo(
         () =>
@@ -336,12 +384,21 @@ const NewProperties = () => {
                     <h3 style={{ marginLeft: '1rem', marginBottom: '.25rem' }}>
                         {visiblePropertiesCount} homes to approve
                     </h3>
-                    <Button
-                    label={hideDuplicates ? 'Show Duplicates' : 'Hide Duplicates'}
-                    className="p-button-danger new__properties__duplicates__button"
-                    onClick={toggleHideDuplicates}
-                    style={{ backgroundColor: hideDuplicates ? '#4CAF50' : '#f44336' }}
-                />
+                    <div style={{ display: 'flex', gap: '1rem', marginLeft: '1rem' }}>
+                        <Button
+                            label={hideDuplicates ? 'Show Duplicates' : 'Hide Duplicates'}
+                            className="p-button-danger new__properties__duplicates__button"
+                            onClick={toggleHideDuplicates}
+                            style={{ backgroundColor: hideDuplicates ? '#4CAF50' : '#f44336' }}
+                        />
+                        <Button
+                            label="Try Duplicates"
+                            icon={processingDuplicates ? 'pi pi-spin pi-spinner' : 'pi pi-refresh'}
+                            className="p-button-warning"
+                            onClick={handleTryDuplicates}
+                            disabled={processingDuplicates || newProperties.length === 0}
+                        />
+                    </div>
                 </div>
                 <div className="new__properties__container">
                     {newProperties.length === 0 ? (

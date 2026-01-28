@@ -37,7 +37,7 @@ export const states = [
     { name: 'MA', label: 'Massachusetts' },
     { name: 'MI', label: 'Michigan' },
     { name: 'MN', label: 'Minnesota' },
-    { name: 'MO', label: 'Missori' },
+    { name: 'MO', label: 'Missouri' },
     { name: 'MS', label: 'Mississippi' },
     { name: 'MT', label: 'Montana' },
     { name: 'NE', label: 'Nebraska' },
@@ -78,7 +78,7 @@ export const types = [{ name: 'Buyer' }, { name: 'Seller' }, { name: 'Buyer & Se
 
 export const categories = [
     { name: 'new', label: 'New' },
-    { name: 'nurture', label: 'Nuture' },
+    { name: 'nurture', label: 'Nurture' },
     { name: 'watch', label: 'Watch' },
     { name: 'qualify', label: 'Qualify' },
     { name: 'pending', label: 'Pending' },

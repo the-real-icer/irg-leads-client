@@ -10,11 +10,20 @@ import {
 } from 'react-redux';
 
 // Dynamically Import Third Party Components
-const InputText = dynamic(() => import('primereact/inputtext'), { ssr: false });
-const Dropdown = dynamic(() => import('primereact/dropdown'), { ssr: false });
-const Card = dynamic(() => import('primereact/card'), { ssr: false });
-const InputTextarea = dynamic(() => import('primereact/inputtextarea'), { ssr: false });
-const Button = dynamic(() => import('primereact/button'), { ssr: false });
+const InputText = dynamic(() => import('primereact/inputtext').then((mod) => mod.InputText), {
+    ssr: false,
+});
+const Dropdown = dynamic(() => import('primereact/dropdown').then((mod) => mod.Dropdown), {
+    ssr: false,
+});
+const Card = dynamic(() => import('primereact/card').then((mod) => mod.Card), { ssr: false });
+const InputTextarea = dynamic(
+    () => import('primereact/inputtextarea').then((mod) => mod.InputTextarea),
+    { ssr: false },
+);
+const Button = dynamic(() => import('primereact/button').then((mod) => mod.Button), {
+    ssr: false,
+});
 
 // IRG Components
 import MainLayout from '../../components/layout/MainLayout';
@@ -24,6 +33,7 @@ import { categories, sources, types, states, blankUser } from '../../assets/newU
 
 const AddLead = () => {
     const [user, setUser] = useState(blankUser);
+    const [loading, setLoading] = useState(false);
 
     const {
         firstName,
@@ -47,14 +57,51 @@ const AddLead = () => {
         setUser((prevUser) => ({ ...prevUser, [e.target.id]: e.target.value }));
     }, []);
 
+    const validateEmail = (email) => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    };
+
+    const validatePhone = (phone) => {
+        const phoneRegex = /^[\d\s\-()]+$/;
+        return phone.length >= 10 && phoneRegex.test(phone);
+    };
+
     const onSubmit = useCallback(
         async (e) => {
             e.preventDefault();
 
-            // Basic validation
+            // Prevent double submission
+            if (loading) return;
+
+            // Enhanced validation
             if (!email || !phone) {
-                showToast('error', 'Email and phone are required.', 'Validation Error');
+                showToast('error', 'Email and phone are required.', 'Validation Error', 'top-left');
                 return;
+            }
+
+            if (!validateEmail(email)) {
+                showToast('error', 'Please enter a valid email address.', 'Invalid Email', 'top-left');
+                return;
+            }
+
+            if (!validatePhone(phone)) {
+                showToast(
+                    'error',
+                    'Please enter a valid phone number (at least 10 digits).',
+                    'Invalid Phone',
+                    'top-left',
+                );
+                return;
+            }
+
+            if (!firstName || !lastName) {
+                showToast(
+                    'warn',
+                    'First and last name are recommended for better lead management.',
+                    'Missing Information',
+                    'top-left',
+                );
             }
 
             const newUser = {
@@ -66,12 +113,14 @@ const AddLead = () => {
                 address,
                 city,
                 zipcode,
-                state: user.state.name,
-                source: source.name,
-                type: type.name,
-                category: category.name,
+                state: user.state?.name || '',
+                source: source?.name || '',
+                type: type?.name || '',
+                category: category?.name || '',
                 agentId: agent._id,
             };
+
+            setLoading(true);
 
             try {
                 const res = await irgApi.post('/users/new-user', newUser, {
@@ -82,27 +131,41 @@ const AddLead = () => {
                 });
 
                 if (res.data.status === 'success') {
-                    showToast('success', `${firstName} has been added!`, 'Lead Added!', 'top-left');
+                    showToast(
+                        'success',
+                        `${firstName || 'Lead'} has been added successfully!`,
+                        'Lead Added!',
+                        'top-left',
+                    );
                     setUser(blankUser);
                     // TODO: Enable navigation or dispatch action to update lead list
                     // router.push(`/lead/${res.data._id}`);
                 }
             } catch (err) {
-                if (err.message === 'Request failed with status code 418') {
+                if (err.response?.status === 418) {
                     showToast(
                         'error',
                         'A lead with that email already exists.',
                         'Duplicate Lead',
                         'top-left',
                     );
+                } else if (err.response?.status === 401) {
+                    showToast(
+                        'error',
+                        'Your session has expired. Please log in again.',
+                        'Authentication Error',
+                        'top-left',
+                    );
                 } else {
                     showToast(
                         'error',
-                        'Something went wrong. Please try again.',
+                        err.response?.data?.message || 'Something went wrong. Please try again.',
                         'Error',
                         'top-left',
                     );
                 }
+            } finally {
+                setLoading(false);
             }
         },
         [
@@ -120,71 +183,96 @@ const AddLead = () => {
             agent._id,
             isLoggedIn,
             user.state,
+            loading,
         ],
     );
 
     return (
         <MainLayout>
-            <div style={{ margin: '3rem' }}>
-                <Card>
-                    <h2>Add A Lead</h2>
+            <div className="add-lead-page">
+                <Card className="add-lead-card">
+                    <div className="add-lead-header">
+                        <h2>Add A Lead</h2>
+                        <p className="add-lead-subtitle">
+                            Create a new lead by filling out the information below
+                        </p>
+                    </div>
                     <form onSubmit={onSubmit}>
-                        <div className="grid formgrid mt-3">
-                            <div className="col-6 p-inputgroup">
-                                <span className="p-float-label">
-                                    <InputText
-                                        id="firstName"
-                                        value={firstName}
-                                        onChange={onChange}
-                                    />
-                                    <label htmlFor="firstName">First Name</label>
-                                </span>
+                        {/* Name Fields */}
+                        <div className="grid formgrid mt-4">
+                            <div className="col-12 md:col-6">
+                                <div className="p-inputgroup">
+                                    <span className="p-float-label">
+                                        <InputText
+                                            id="firstName"
+                                            value={firstName}
+                                            onChange={onChange}
+                                            disabled={loading}
+                                        />
+                                        <label htmlFor="firstName">First Name</label>
+                                    </span>
+                                </div>
                             </div>
-                            <div className="col-6 p-inputgroup">
-                                <span className="p-float-label">
-                                    <InputText id="lastName" value={lastName} onChange={onChange} />
-                                    <label htmlFor="lastName">Last Name</label>
-                                </span>
-                            </div>
-                        </div>
-
-                        <div className="grid mt-3">
-                            <div className="col-6 p-inputgroup">
-                                <span className="p-float-label">
-                                    <InputText
-                                        id="phone"
-                                        // mask="(999) 999-9999"
-                                        value={phone}
-                                        // placeholder="(999) 999-9999"
-                                        onChange={onChange}
-                                        required
-                                    />
-                                    <label htmlFor="phone">Phone</label>
-                                </span>
-                            </div>
-                            <div className="col-6 p-inputgroup">
-                                <span className="p-float-label">
-                                    <InputText
-                                        id="email"
-                                        value={email}
-                                        onChange={onChange}
-                                        required
-                                    />
-                                    <label htmlFor="email">Email</label>
-                                </span>
+                            <div className="col-12 md:col-6">
+                                <div className="p-inputgroup">
+                                    <span className="p-float-label">
+                                        <InputText
+                                            id="lastName"
+                                            value={lastName}
+                                            onChange={onChange}
+                                            disabled={loading}
+                                        />
+                                        <label htmlFor="lastName">Last Name</label>
+                                    </span>
+                                </div>
                             </div>
                         </div>
 
+                        {/* Contact Fields */}
                         <div className="grid mt-3">
-                            <div className="col-12 md:col-12">
+                            <div className="col-12 md:col-6">
+                                <div className="p-inputgroup">
+                                    <span className="p-float-label">
+                                        <InputText
+                                            id="phone"
+                                            value={phone}
+                                            onChange={onChange}
+                                            required
+                                            disabled={loading}
+                                        />
+                                        <label htmlFor="phone">Phone *</label>
+                                    </span>
+                                </div>
+                            </div>
+                            <div className="col-12 md:col-6">
+                                <div className="p-inputgroup">
+                                    <span className="p-float-label">
+                                        <InputText
+                                            id="email"
+                                            value={email}
+                                            onChange={onChange}
+                                            type="email"
+                                            required
+                                            disabled={loading}
+                                        />
+                                        <label htmlFor="email">Email *</label>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Address Fields */}
+                        <div className="grid mt-3">
+                            <div className="col-12">
                                 <div className="p-inputgroup">
                                     <span className="p-float-label">
                                         <InputText
                                             id="address"
                                             value={address}
                                             onChange={onChange}
+                                            disabled={loading}
                                         />
-                                        <label htmlFor="address">Address</label>
+                                        <label htmlFor="address">Street Address</label>
                                     </span>
                                 </div>
                             </div>
@@ -193,7 +281,12 @@ const AddLead = () => {
                             <div className="col-12 md:col-5">
                                 <div className="p-inputgroup">
                                     <span className="p-float-label">
-                                        <InputText id="city" value={city} onChange={onChange} />
+                                        <InputText
+                                            id="city"
+                                            value={city}
+                                            onChange={onChange}
+                                            disabled={loading}
+                                        />
                                         <label htmlFor="city">City</label>
                                     </span>
                                 </div>
@@ -207,8 +300,10 @@ const AddLead = () => {
                                             options={states}
                                             onChange={onChange}
                                             optionLabel="label"
-                                            placeholder="Select a State"
+                                            placeholder="State"
+                                            disabled={loading}
                                         />
+                                        <label htmlFor="state">State</label>
                                     </span>
                                 </div>
                             </div>
@@ -219,14 +314,17 @@ const AddLead = () => {
                                             id="zipcode"
                                             value={zipcode}
                                             onChange={onChange}
+                                            disabled={loading}
                                         />
                                         <label htmlFor="zipcode">Zipcode</label>
                                     </span>
                                 </div>
                             </div>
                         </div>
+
+                        {/* Description Field */}
                         <div className="grid mt-3">
-                            <div className="col-7">
+                            <div className="col-12">
                                 <div className="p-inputgroup">
                                     <span className="p-float-label">
                                         <InputTextarea
@@ -234,15 +332,18 @@ const AddLead = () => {
                                             value={description}
                                             onChange={onChange}
                                             rows={5}
-                                            cols={80}
+                                            autoResize
+                                            disabled={loading}
                                         />
-                                        <label htmlFor="description">Description</label>
+                                        <label htmlFor="description">Notes / Description</label>
                                     </span>
                                 </div>
                             </div>
                         </div>
-                        <div className="grid mt-3">
-                            <div className="col-2 md:col-3">
+
+                        {/* Lead Details */}
+                        <div className="grid mt-4">
+                            <div className="col-12 md:col-4">
                                 <div className="p-inputgroup">
                                     <span className="p-float-label">
                                         <Dropdown
@@ -251,12 +352,14 @@ const AddLead = () => {
                                             options={sources}
                                             onChange={onChange}
                                             optionLabel="name"
-                                            placeholder="Select a Source"
+                                            placeholder="Source"
+                                            disabled={loading}
                                         />
+                                        <label htmlFor="source">Lead Source</label>
                                     </span>
                                 </div>
                             </div>
-                            <div className="col-3">
+                            <div className="col-12 md:col-4">
                                 <div className="p-inputgroup">
                                     <span className="p-float-label">
                                         <Dropdown
@@ -265,12 +368,14 @@ const AddLead = () => {
                                             options={types}
                                             onChange={onChange}
                                             optionLabel="name"
-                                            placeholder="Select a Type"
+                                            placeholder="Type"
+                                            disabled={loading}
                                         />
+                                        <label htmlFor="type">Lead Type</label>
                                     </span>
                                 </div>
                             </div>
-                            <div className="col-2 md:col-3">
+                            <div className="col-12 md:col-4">
                                 <div className="p-inputgroup">
                                     <span className="p-float-label">
                                         <Dropdown
@@ -279,13 +384,25 @@ const AddLead = () => {
                                             options={categories}
                                             onChange={onChange}
                                             optionLabel="label"
-                                            placeholder="Select a Category"
+                                            placeholder="Category"
+                                            disabled={loading}
                                         />
+                                        <label htmlFor="category">Lead Category</label>
                                     </span>
                                 </div>
                             </div>
                         </div>
-                        <Button label="Add Lead" className="p-button-raised mt-3" type="submit" />
+
+                        {/* Submit Button */}
+                        <div className="mt-4">
+                            <Button
+                                label={loading ? 'Adding Lead...' : 'Add Lead'}
+                                icon={loading ? 'pi pi-spin pi-spinner' : 'pi pi-plus'}
+                                className="p-button-raised p-button-success"
+                                type="submit"
+                                disabled={loading}
+                            />
+                        </div>
                     </form>
                 </Card>
             </div>
