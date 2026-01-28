@@ -276,11 +276,19 @@ const NewProperties = () => {
         // Process properties sequentially
         for (const property of newProperties) {
             try {
+                // Create what the property_url should be
+                const propUrl = `${property.address} ${property.unit_number} ${property.city} ca ${property.zip_code}`;
+                const properUrl = propUrl
+                    .toLowerCase()
+                    .replace(/\s/g, '-')
+                    .replace(/--/g, '-')
+                    .replace(/í/g, 'i');
+
                 // eslint-disable-next-line no-await-in-loop
                 const res = await IrgApi.post(
                     '/mlsproperties/unduplicate-property',
                     {
-                        propertyUrl: property.property_url,
+                        propertyUrl: properUrl,
                         mlsId: property.mls_number,
                     },
                     {

@@ -62,7 +62,9 @@ const NewPropertyCard = ({
                     <Link href={`/property/${property.property_url}`} passHref>
                         <div className="new_property_card_status">
                             <span>Status</span>
-                            <span>{property.status}</span>
+                            <span className={`status-value status-value--${property.status?.toLowerCase().replace(/\s+/g, '-')}`}>
+                                {property.status}
+                            </span>
                             <span>{property.price}</span>
                         </div>
                     </Link>

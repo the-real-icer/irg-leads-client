@@ -135,10 +135,40 @@
             letter-spacing: 0.5px;
         }
 
-        span:nth-child(2) {
-            font-size: 0.95rem;
-            color: #667eea;
-            font-weight: 500;
+        .status-value {
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+
+            // Active - Green
+            &--active {
+                color: #10b981;
+            }
+
+            // Active Under Contract - Yellow/Orange
+            &--active-under-contract {
+                color: #f59e0b;
+            }
+
+            // Pending - Red
+            &--pending {
+                color: #ef4444;
+            }
+
+            // Sold - Blue
+            &--sold {
+                color: #3b82f6;
+            }
+
+            // Expired, Withdrawn, Cancelled, Off Market, Hold - Purple
+            &--expired,
+            &--withdrawn,
+            &--cancelled,
+            &--off-market,
+            &--hold {
+                color: #9b59b6;
+            }
         }
 
         span:last-child {
@@ -158,12 +188,14 @@
         gap: 0.5rem;
 
         > span:last-child {
-            font-size: 0.8rem;
-            color: #6c757d;
+            font-size: 1.05rem;
+            font-weight: 500;
+            color: #495057;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
             max-width: 100%;
+            letter-spacing: 0.3px;
         }
 
         @media (max-width: 1200px) {
