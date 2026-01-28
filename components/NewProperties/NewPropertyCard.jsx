@@ -36,6 +36,11 @@ const NewPropertyCard = ({
                 {/* Image Section */}
                 <Link href={`/property/${property.property_url}`} passHref>
                     <div className="new_property_card_img_wrapper">
+                        {property.is_duplicate_property && (
+                            <span className="new_property_card_duplicate_badge">
+                                Duplicate Property
+                            </span>
+                        )}
                         <img
                             src={goodImage || '/No-Photo-Light-Large.jpg'}
                             alt={property.address}
@@ -80,11 +85,6 @@ const NewPropertyCard = ({
                                 {property.is_bad_geocode && (
                                     <span className="new_property_card_flag new_property_card_flag--error">
                                         Bad Geocode
-                                    </span>
-                                )}
-                                {property.is_duplicate_property && (
-                                    <span className="new_property_card_flag new_property_card_flag--info">
-                                        Duplicate Property
                                     </span>
                                 )}
                             </div>
