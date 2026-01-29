@@ -1,10 +1,18 @@
 // React & NextJS
 import PropTypes from 'prop-types';
+import dynamic from 'next/dynamic';
 
-import { Button } from 'primereact/button';
-import { Dialog } from 'primereact/dialog';
-import { InputText } from 'primereact/inputtext';
-import { Checkbox } from 'primereact/checkbox';
+// Dynamically import PrimeReact components
+const Button = dynamic(() => import('primereact/button').then((mod) => mod.Button), { ssr: false });
+const Dialog = dynamic(() => import('primereact/dialog').then((mod) => mod.Dialog), {
+    ssr: false,
+});
+const InputText = dynamic(() => import('primereact/inputtext').then((mod) => mod.InputText), {
+    ssr: false,
+});
+const Checkbox = dynamic(() => import('primereact/checkbox').then((mod) => mod.Checkbox), {
+    ssr: false,
+});
 
 const NewPropertyEditDialog = (props) => {
     const {
@@ -33,146 +41,301 @@ const NewPropertyEditDialog = (props) => {
 
     return (
         <Dialog
-            style={{ width: '38rem', height: '63rem', fontSize: '1.2rem', background: '#fff' }}
-            header="Edit This Property"
+            header="Edit Property"
             visible={showDialog}
             onHide={handleDialogClose}
+            style={{ width: '600px', maxWidth: '90vw' }}
+            contentStyle={{
+                padding: '1.5rem',
+                background: '#ffffff',
+                borderRadius: '8px',
+            }}
         >
-            <form className="p-fluid" onSubmit={handlePropertyEdit}>
-                <div className="p-field">
-                    <label style={{ fontSize: '.9rem' }} htmlFor="address">
+            <form onSubmit={handlePropertyEdit}>
+                {/* Address Field */}
+                <div style={{ marginBottom: '1.5rem' }}>
+                    <label
+                        htmlFor="address"
+                        style={{
+                            display: 'block',
+                            marginBottom: '0.5rem',
+                            fontWeight: '600',
+                            color: '#495057',
+                            fontSize: '0.95rem',
+                        }}
+                    >
                         Address
                     </label>
                     <InputText
                         id="address"
                         type="text"
-                        placeholder="Address"
+                        placeholder="Enter address"
                         value={address}
                         onChange={handleChange}
-                        style={{ fontSize: '1.05rem' }}
+                        style={{ width: '100%' }}
                     />
                 </div>
-                <div className="p-field">
-                    <label style={{ fontSize: '.9rem' }} htmlFor="unitNum">
-                        Unit #
+
+                {/* Unit Number Field */}
+                <div style={{ marginBottom: '1.5rem' }}>
+                    <label
+                        htmlFor="unitNumber"
+                        style={{
+                            display: 'block',
+                            marginBottom: '0.5rem',
+                            fontWeight: '600',
+                            color: '#495057',
+                            fontSize: '0.95rem',
+                        }}
+                    >
+                        Unit Number
                     </label>
                     <InputText
-                        id="unitNum"
+                        id="unitNumber"
                         type="text"
-                        placeholder="Unit #"
+                        placeholder="Enter unit number"
                         value={unitNumber}
                         onChange={handleChange}
-                        style={{ fontSize: '1.05rem' }}
+                        style={{ width: '100%' }}
                     />
                 </div>
-                <div className="p-field">
-                    <label style={{ fontSize: '.9rem' }} htmlFor="city">
-                        City
-                    </label>
-                    <InputText
-                        id="city"
-                        type="text"
-                        placeholder="City"
-                        value={city}
-                        onChange={handleChange}
-                        style={{ fontSize: '1.05rem' }}
-                    />
+
+                {/* City and Zipcode Row */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+                    <div>
+                        <label
+                            htmlFor="city"
+                            style={{
+                                display: 'block',
+                                marginBottom: '0.5rem',
+                                fontWeight: '600',
+                                color: '#495057',
+                                fontSize: '0.95rem',
+                            }}
+                        >
+                            City
+                        </label>
+                        <InputText
+                            id="city"
+                            type="text"
+                            placeholder="Enter city"
+                            value={city}
+                            onChange={handleChange}
+                            style={{ width: '100%' }}
+                        />
+                    </div>
+                    <div>
+                        <label
+                            htmlFor="zipcode"
+                            style={{
+                                display: 'block',
+                                marginBottom: '0.5rem',
+                                fontWeight: '600',
+                                color: '#495057',
+                                fontSize: '0.95rem',
+                            }}
+                        >
+                            Zipcode
+                        </label>
+                        <InputText
+                            id="zipcode"
+                            type="text"
+                            placeholder="Enter zipcode"
+                            value={zipcode}
+                            onChange={handleChange}
+                            style={{ width: '100%' }}
+                        />
+                    </div>
                 </div>
-                <div className="p-field">
-                    <label style={{ fontSize: '.9rem' }} htmlFor="zipcode">
-                        Zipcode
-                    </label>
-                    <InputText
-                        id="zipcode"
-                        type="text"
-                        placeholder="Zipcode"
-                        value={zipcode}
-                        onChange={handleChange}
-                        style={{ fontSize: '1.05rem' }}
-                    />
-                </div>
-                <div className="p-field">
-                    <label style={{ fontSize: '.9rem' }} htmlFor="propertyUrl">
-                        Property Url
+
+                {/* Property URL Field */}
+                <div style={{ marginBottom: '1.5rem' }}>
+                    <label
+                        htmlFor="propertyUrl"
+                        style={{
+                            display: 'block',
+                            marginBottom: '0.5rem',
+                            fontWeight: '600',
+                            color: '#495057',
+                            fontSize: '0.95rem',
+                        }}
+                    >
+                        Property URL
                     </label>
                     <InputText
                         id="propertyUrl"
                         type="text"
-                        placeholder="Property Url"
+                        placeholder="Enter property URL"
                         value={propertyUrl}
                         onChange={handleChange}
-                        style={{ fontSize: '1.05rem' }}
+                        style={{ width: '100%' }}
+                    />
+                    <small
+                        style={{
+                            display: 'block',
+                            marginTop: '0.5rem',
+                            color: '#667eea',
+                            fontWeight: '500',
+                            fontSize: '0.85rem',
+                        }}
+                    >
+                        Generated URL: {properUrl}
+                    </small>
+                </div>
+
+                {/* Latitude and Longitude Row */}
+                <div
+                    style={{
+                        display: 'grid',
+                        gridTemplateColumns: '1fr 1fr',
+                        gap: '1rem',
+                        marginBottom: '1.5rem',
+                    }}
+                >
+                    <div>
+                        <label
+                            htmlFor="latitude"
+                            style={{
+                                display: 'block',
+                                marginBottom: '0.5rem',
+                                fontWeight: '600',
+                                color: '#495057',
+                                fontSize: '0.95rem',
+                            }}
+                        >
+                            Latitude
+                        </label>
+                        <InputText
+                            id="latitude"
+                            type="text"
+                            placeholder="Enter latitude"
+                            value={latitude}
+                            onChange={handleChange}
+                            style={{ width: '100%' }}
+                        />
+                    </div>
+                    <div>
+                        <label
+                            htmlFor="longitude"
+                            style={{
+                                display: 'block',
+                                marginBottom: '0.5rem',
+                                fontWeight: '600',
+                                color: '#495057',
+                                fontSize: '0.95rem',
+                            }}
+                        >
+                            Longitude
+                        </label>
+                        <InputText
+                            id="longitude"
+                            type="text"
+                            placeholder="Enter longitude"
+                            value={longitude}
+                            onChange={handleChange}
+                            style={{ width: '100%' }}
+                        />
+                    </div>
+                </div>
+
+                {/* Checkboxes Section */}
+                <div
+                    style={{
+                        padding: '1.25rem',
+                        background: '#f8f9fa',
+                        borderRadius: '8px',
+                        marginBottom: '1.5rem',
+                    }}
+                >
+                    <div
+                        style={{
+                            fontSize: '1rem',
+                            fontWeight: '600',
+                            color: '#495057',
+                            marginBottom: '1rem',
+                        }}
+                    >
+                        Property Flags
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        {/* Is Duplicate Property */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            <Checkbox inputId="cb1" onChange={handleDupCheck} checked={isDuplicate} />
+                            <label
+                                htmlFor="cb1"
+                                style={{
+                                    fontWeight: '500',
+                                    color: '#495057',
+                                    cursor: 'pointer',
+                                    fontSize: '0.95rem',
+                                }}
+                            >
+                                Mark as Duplicate Property
+                            </label>
+                        </div>
+
+                        {/* Bad GeoCode */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            <Checkbox inputId="cb2" onChange={handleGeoCheck} checked={badGeoCode} />
+                            <label
+                                htmlFor="cb2"
+                                style={{
+                                    fontWeight: '500',
+                                    color: '#495057',
+                                    cursor: 'pointer',
+                                    fontSize: '0.95rem',
+                                }}
+                            >
+                                Bad Geocode
+                            </label>
+                        </div>
+
+                        {/* Check Attributes */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            <Checkbox
+                                inputId="cb3"
+                                onChange={handleAttrCheck}
+                                checked={checkAttributes}
+                            />
+                            <label
+                                htmlFor="cb3"
+                                style={{
+                                    fontWeight: '500',
+                                    color: '#495057',
+                                    cursor: 'pointer',
+                                    fontSize: '0.95rem',
+                                }}
+                            >
+                                Check Attributes
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+                    <Button
+                        label="Cancel"
+                        className="p-button-secondary"
+                        onClick={handleDialogClose}
+                        type="button"
+                        style={{
+                            padding: '0.75rem 1.5rem',
+                            fontWeight: '600',
+                        }}
+                    />
+                    <Button
+                        label="Save Changes"
+                        icon="pi pi-check"
+                        type="submit"
+                        style={{
+                            padding: '0.75rem 1.5rem',
+                            fontWeight: '600',
+                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                            border: 'none',
+                        }}
                     />
                 </div>
-                {properUrl}
-                <div className="p-field">
-                    <label style={{ fontSize: '.9rem' }} htmlFor="latitude">
-                        Latitude
-                    </label>
-                    <InputText
-                        id="latitude"
-                        type="text"
-                        placeholder="Latitude"
-                        value={latitude}
-                        onChange={handleChange}
-                        style={{ fontSize: '1.05rem' }}
-                    />
-                </div>
-                <div className="p-field">
-                    <label style={{ fontSize: '.9rem' }} htmlFor="longitude">
-                        Longitude
-                    </label>
-                    <InputText
-                        id="longitude"
-                        type="text"
-                        placeholder="Longitude"
-                        value={longitude}
-                        onChange={handleChange}
-                        style={{ fontSize: '1.05rem' }}
-                    />
-                </div>
-                <div className="p-field">
-                    <Checkbox inputId="cb1" onChange={handleDupCheck} checked={isDuplicate} />
-                    <label
-                        style={{ fontSize: '1.1rem' }}
-                        htmlFor="cb1"
-                        className="p-checkbox-label"
-                    >
-                        Is Duplicate Property
-                    </label>
-                </div>
-                <div className="p-field">
-                    <Checkbox inputId="cb2" onChange={handleGeoCheck} checked={badGeoCode} />
-                    <label
-                        style={{ fontSize: '1.1rem' }}
-                        htmlFor="cb2"
-                        className="p-checkbox-label"
-                    >
-                        Bad GeoCode
-                    </label>
-                </div>
-                <div className="p-field">
-                    <Checkbox inputId="cb3" onChange={handleAttrCheck} checked={checkAttributes} />
-                    <label
-                        style={{ fontSize: '1.1rem' }}
-                        htmlFor="cb3"
-                        className="p-checkbox-label"
-                    >
-                        Check Attributes
-                    </label>
-                </div>
-                <Button
-                    label="Submit"
-                    icon="pi pi-check"
-                    type="submit"
-                    style={{ fontSize: '1.05rem', marginTop: '1.5rem' }}
-                />
-                <Button
-                    label="Cancel"
-                    className="p-button-danger"
-                    onClick={() => handleDialogClose()}
-                    style={{ fontSize: '1.05rem', marginTop: '1.5rem' }}
-                />
             </form>
         </Dialog>
     );

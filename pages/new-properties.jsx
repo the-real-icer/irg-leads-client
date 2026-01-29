@@ -385,6 +385,7 @@ const NewProperties = () => {
                 latitude={formData.latitude}
                 longitude={formData.longitude}
                 badGeoCode={formData.badGeoCode}
+                checkAttributes={formData.checkAttributes}
             />
             <div className="new__properties">
                 <div className='new__properties__header'>
