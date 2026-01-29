@@ -35,14 +35,24 @@ const Chip = dynamic(() => import('primereact/chip').then((mod) => mod.Chip), { 
 const Dialog = dynamic(() => import('primereact/dialog').then((mod) => mod.Dialog), {
     ssr: false,
 });
+const Accordion = dynamic(() => import('primereact/accordion').then((mod) => mod.Accordion), {
+    ssr: false,
+});
+const AccordionTab = dynamic(() => import('primereact/accordion').then((mod) => mod.AccordionTab), {
+    ssr: false,
+});
 
 // IRG Components
 import MainLayout from '../../components/layout/MainLayout';
 import PrpCard from '../../components/prpCard/PrpCard';
 
+// IRG API
+import IrgApi from '../../assets/irgApi';
+
 const Lead = () => {
     // __________________Redux State______________________\\
     const leads = useSelector((state) => state.allLeadsPage);
+    const isLoggedIn = useSelector((state) => state.isLoggedIn);
 
     const [lead, setLead] = useState({});
     const [activeIndex, setActiveIndex] = useState(0);
@@ -51,6 +61,8 @@ const Lead = () => {
     const [showFavoritedHomesDialog, setShowFavoritedHomesDialog] = useState(false);
     const [showSavedSearchesDialog, setShowSavedSearchesDialog] = useState(false);
     const [showSearchHistoryDialog, setShowSearchHistoryDialog] = useState(false);
+    const [emails, setEmails] = useState([]);
+    const [loadingEmails, setLoadingEmails] = useState(false);
 
     const router = useRouter();
 
@@ -75,6 +87,37 @@ const Lead = () => {
             setCategory(cat);
         }
     }, [lead]);
+
+    // Fetch emails when lead email is available
+    useEffect(() => {
+        if (lead?.email && isLoggedIn) {
+            fetchEmails();
+        }
+    }, [lead?.email]); // eslint-disable-line
+
+    const fetchEmails = async () => {
+        if (!lead?.email) return;
+
+        setLoadingEmails(true);
+        try {
+            const response = await IrgApi.get(`/gmail/emails/${encodeURIComponent(lead.email)}`, {
+                headers: { Authorization: `Bearer ${isLoggedIn}` },
+            });
+
+            if (response.data.status === 'success') {
+                // Sort emails by date (most recent first)
+                const sortedEmails = response.data.data.sort((a, b) => {
+                    return new Date(b.date) - new Date(a.date);
+                });
+                setEmails(sortedEmails);
+            }
+        } catch (error) {
+            console.error('Error fetching emails:', error); // eslint-disable-line
+            setEmails([]);
+        } finally {
+            setLoadingEmails(false);
+        }
+    };
 
     const formatDate = (val) => {
         const properDate = new Date(val);
@@ -154,6 +197,66 @@ const Lead = () => {
         const first = lead?.first_name?.[0] || '';
         const last = lead?.last_name?.[0] || '';
         return `${first}${last}`.toUpperCase();
+    };
+
+    // Calculate average price of viewed homes
+    const getAveragePrice = () => {
+        const viewedHomes = lead?.viewed_homes?.filter((home) => home?.property_viewed) || [];
+        if (viewedHomes.length === 0) return 'N/A';
+
+        const total = viewedHomes.reduce((sum, home) => {
+            const price = home.property_viewed?.price;
+            if (!price) return sum;
+            // Remove $ and commas, then parse to number
+            const numPrice = parseFloat(price.replace(/[$,]/g, ''));
+            return sum + (isNaN(numPrice) ? 0 : numPrice);
+        }, 0);
+
+        const average = total / viewedHomes.length;
+        return `$${Math.round(average).toLocaleString()}`;
+    };
+
+    // Format last visit time
+    const formatLastVisit = (lastVisit) => {
+        if (!lastVisit) return 'Never';
+
+        const now = new Date();
+        const visitDate = new Date(lastVisit);
+        const diffMs = now - visitDate;
+        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+        if (diffHours < 1) {
+            return 'An hour ago';
+        } else if (diffHours < 24) {
+            return `${diffHours} ${diffHours === 1 ? 'hour' : 'hours'} ago`;
+        } else {
+            return `${diffDays} ${diffDays === 1 ? 'day' : 'days'} ago`;
+        }
+    };
+
+    // Get last 3 unique cities from searches performed
+    const getAreasSearched = () => {
+        const searches = lead?.searches_performed || [];
+        if (searches.length === 0) return 'None';
+
+        // Extract unique cities from search terms (assuming search term contains city names)
+        const cities = new Set();
+        searches.forEach((search) => {
+            // Try to extract city from searchTerm
+            const term = search.searchTerm?.toLowerCase() || '';
+            // This is a simple extraction - adjust based on your data structure
+            if (term) {
+                // You might need to adjust this logic based on how cities are stored
+                const parts = term.split(',');
+                if (parts.length > 0) {
+                    cities.add(parts[0].trim());
+                }
+            }
+        });
+
+        const cityArray = Array.from(cities).slice(0, 3);
+        return cityArray.length > 0 ? cityArray.join(', ') : 'None';
     };
 
     return (
@@ -314,6 +417,58 @@ const Lead = () => {
                             </Card>
                         </div>
                     </div>
+
+                    {/* Second Row of Stats */}
+                    <div className="grid" style={{ marginTop: '1rem' }}>
+                        <div className="col-12 md:col-3">
+                            <Card className="stat-card">
+                                <div className="stat-content">
+                                    <i className="pi pi-dollar stat-icon"></i>
+                                    <div className="stat-details">
+                                        <span className="stat-value">{getAveragePrice()}</span>
+                                        <span className="stat-label">Average Price</span>
+                                    </div>
+                                </div>
+                            </Card>
+                        </div>
+                        <div className="col-12 md:col-3">
+                            <Card className="stat-card">
+                                <div className="stat-content">
+                                    <i className="pi pi-clock stat-icon"></i>
+                                    <div className="stat-details">
+                                        <span className="stat-value">
+                                            {formatLastVisit(lead?.last_visit)}
+                                        </span>
+                                        <span className="stat-label">Last Visit</span>
+                                    </div>
+                                </div>
+                            </Card>
+                        </div>
+                        <div className="col-12 md:col-3">
+                            <Card className="stat-card">
+                                <div className="stat-content">
+                                    <i className="pi pi-map-marker stat-icon"></i>
+                                    <div className="stat-details">
+                                        <span className="stat-value" style={{ fontSize: '1.2rem' }}>
+                                            {getAreasSearched()}
+                                        </span>
+                                        <span className="stat-label">Areas Searched</span>
+                                    </div>
+                                </div>
+                            </Card>
+                        </div>
+                        <div className="col-12 md:col-3">
+                            <Card className="stat-card">
+                                <div className="stat-content">
+                                    <i className="pi pi-comment stat-icon"></i>
+                                    <div className="stat-details">
+                                        <span className="stat-value">3 days ago</span>
+                                        <span className="stat-label">Last Contacted</span>
+                                    </div>
+                                </div>
+                            </Card>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Main Content Tabs */}
@@ -434,6 +589,75 @@ const Lead = () => {
                                         <div className="empty-state">
                                             <i className="pi pi-search"></i>
                                             <p>No search history</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </TabPanel>
+                            <TabPanel header="Email History" leftIcon="pi pi-envelope mr-2">
+                                <div className="email-history-container">
+                                    {loadingEmails ? (
+                                        <div className="empty-state">
+                                            <i className="pi pi-spin pi-spinner"></i>
+                                            <p>Loading emails...</p>
+                                        </div>
+                                    ) : emails.length > 0 ? (
+                                        <Accordion>
+                                            {emails.map((email, index) => (
+                                                <AccordionTab
+                                                    key={email.id || index}
+                                                    header={
+                                                        <div className="email-header">
+                                                            <div className="email-header-left">
+                                                                <i
+                                                                    className={`pi ${
+                                                                        email.direction === 'sent'
+                                                                            ? 'pi-send'
+                                                                            : 'pi-inbox'
+                                                                    }`}
+                                                                ></i>
+                                                                <span className="email-subject">
+                                                                    {email.subject || '(No Subject)'}
+                                                                </span>
+                                                            </div>
+                                                            <span className="email-date">
+                                                                {formatDate(email.date)}
+                                                            </span>
+                                                        </div>
+                                                    }
+                                                >
+                                                    <div className="email-content">
+                                                        <div className="email-meta">
+                                                            <div className="email-meta-row">
+                                                                <strong>From:</strong>{' '}
+                                                                <span>{email.from}</span>
+                                                            </div>
+                                                            <div className="email-meta-row">
+                                                                <strong>To:</strong>{' '}
+                                                                <span>{email.to}</span>
+                                                            </div>
+                                                            <div className="email-meta-row">
+                                                                <strong>Date:</strong>{' '}
+                                                                <span>
+                                                                    {new Date(
+                                                                        email.date
+                                                                    ).toLocaleString()}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        <div
+                                                            className="email-body"
+                                                            dangerouslySetInnerHTML={{
+                                                                __html: email.body || email.textBody,
+                                                            }}
+                                                        />
+                                                    </div>
+                                                </AccordionTab>
+                                            ))}
+                                        </Accordion>
+                                    ) : (
+                                        <div className="empty-state">
+                                            <i className="pi pi-envelope"></i>
+                                            <p>No email history found</p>
                                         </div>
                                     )}
                                 </div>

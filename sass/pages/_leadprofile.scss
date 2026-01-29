@@ -245,20 +245,33 @@
             color: #667eea;
             opacity: 0.8;
             transition: all 0.2s ease;
+            flex-shrink: 0;
         }
 
         .stat-details {
             display: flex;
             flex-direction: column;
+            min-width: 0;
+            flex: 1;
         }
 
         .stat-value {
             font-size: 2rem;
             font-weight: 700;
             color: #2c3e50;
-            line-height: 1;
+            line-height: 1.2;
             margin-bottom: 0.25rem;
             transition: color 0.2s ease;
+            overflow: hidden;
+            text-overflow: ellipsis;
+
+            @media (max-width: 1200px) {
+                font-size: 1.75rem;
+            }
+
+            @media (max-width: 992px) {
+                font-size: 1.5rem;
+            }
         }
 
         .stat-label {
@@ -504,6 +517,168 @@
         .history-date {
             color: #6c757d;
             font-size: 0.875rem;
+        }
+    }
+}
+
+// Email History Container
+.email-history-container {
+    .p-accordion {
+        .p-accordion-header {
+            margin-bottom: 0.5rem;
+
+            .p-accordion-header-link {
+                background: white;
+                border: 1px solid #dee2e6;
+                border-radius: 8px;
+                padding: 1rem 1.25rem;
+                transition: all 0.2s ease;
+
+                &:hover {
+                    background: #f8f9fa;
+                    border-color: #667eea;
+                    transform: translateX(4px);
+                }
+
+                &:focus {
+                    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+                }
+            }
+
+            &:not(.p-highlight) .p-accordion-header-link {
+                background: white;
+            }
+
+            &.p-highlight .p-accordion-header-link {
+                background: #f8f9fa;
+                border-color: #667eea;
+            }
+        }
+
+        .p-accordion-content {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            padding: 1.25rem;
+        }
+    }
+
+    .email-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        gap: 1rem;
+
+        .email-header-left {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex: 1;
+            min-width: 0;
+
+            i {
+                font-size: 1.25rem;
+                color: #667eea;
+                flex-shrink: 0;
+            }
+
+            .email-subject {
+                font-weight: 600;
+                color: #2c3e50;
+                font-size: 1rem;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+        }
+
+        .email-date {
+            color: #6c757d;
+            font-size: 0.875rem;
+            font-weight: 500;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+    }
+
+    .email-content {
+        .email-meta {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1.25rem;
+
+            .email-meta-row {
+                display: flex;
+                gap: 0.5rem;
+                margin-bottom: 0.5rem;
+                font-size: 0.9rem;
+
+                &:last-child {
+                    margin-bottom: 0;
+                }
+
+                strong {
+                    color: #495057;
+                    min-width: 60px;
+                }
+
+                span {
+                    color: #6c757d;
+                    word-break: break-word;
+                }
+            }
+        }
+
+        .email-body {
+            color: #2c3e50;
+            line-height: 1.6;
+            font-size: 0.95rem;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+
+            p {
+                margin: 0 0 1rem 0;
+
+                &:last-child {
+                    margin-bottom: 0;
+                }
+            }
+
+            a {
+                color: #667eea;
+                text-decoration: none;
+
+                &:hover {
+                    text-decoration: underline;
+                }
+            }
+
+            img {
+                max-width: 100%;
+                height: auto;
+                border-radius: 4px;
+                margin: 0.5rem 0;
+            }
+        }
+    }
+
+    @media (max-width: 768px) {
+        .email-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+
+            .email-header-left {
+                width: 100%;
+
+                .email-subject {
+                    white-space: normal;
+                    word-break: break-word;
+                }
+            }
         }
     }
 }
