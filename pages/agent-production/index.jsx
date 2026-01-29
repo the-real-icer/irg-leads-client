@@ -12,9 +12,15 @@ const Dropdown = dynamic(() => import('primereact/dropdown').then((mod) => mod.D
     ssr: false,
 });
 const Button = dynamic(() => import('primereact/button').then((mod) => mod.Button), { ssr: false });
+const Card = dynamic(() => import('primereact/card').then((mod) => mod.Card), { ssr: false });
+const ScrollPanel = dynamic(() => import('primereact/scrollpanel').then((mod) => mod.ScrollPanel), {
+    ssr: false,
+});
 
 // IRG Components
 import MainLayout from '../../components/layout/MainLayout';
+import PrpCard from '../../components/prpCard/PrpCard';
+import MapDialog from '@/components/Shared/MapDialog';
 import showToast from '../../utils/showToast';
 
 // IRG API - HOOKS - INFO - UTILS
@@ -29,6 +35,9 @@ const AgentProduction = () => {
     const [selectedProduction, setSelectedProduction] = useState(null);
     const [value, setValue] = useState('');
     const [results, setResults] = useState(null);
+    const [showMapDialog, setShowMapDialog] = useState(false);
+    const [selectedProperty, setSelectedProperty] = useState({});
+
     const cities = [
         { name: 'Active Listings', code: 'NY' },
         { name: 'Current Year', code: 'RM' },
@@ -36,6 +45,18 @@ const AgentProduction = () => {
         // { name: 'Istanbul', code: 'IST' },
         // { name: 'Paris', code: 'PRS' },
     ];
+
+    // Open Map Dialog
+    const handleOpenMapDialog = (property) => {
+        setShowMapDialog(true);
+        setSelectedProperty(property);
+    };
+
+    // Close Map Dialog
+    const handleCloseMapDialog = () => {
+        setShowMapDialog(false);
+        setSelectedProperty({});
+    };
 
     const onProductionChange = useCallback((e) => {
         setSelectedProduction(e.value);
@@ -107,44 +128,245 @@ const AgentProduction = () => {
 
     return (
         <MainLayout>
-            <div>AgentProduction</div>
-            <div className="flex flex-row m-auto">
-                <form onSubmit={onFormSubmit}>
-                    <InputText value={value} onChange={(e) => setValue(e.target.value)} />
-                    <Dropdown
-                        value={selectedProduction}
-                        options={cities}
-                        onChange={onProductionChange}
-                        optionLabel="name"
-                        placeholder="Select Production"
-                        // required
-                    />
-                    <Button label="Submit" type="submit" />
-                </form>
-            </div>
-            <div className="flex flex-row">
+            <MapDialog
+                showMapDialog={showMapDialog}
+                handleCloseMapDialog={handleCloseMapDialog}
+                property={selectedProperty}
+            />
+            <div style={{ padding: '1.5rem' }}>
+                {/* Page Header */}
+                <div style={{ marginBottom: '2rem' }}>
+                    <h1
+                        style={{
+                            fontSize: '2rem',
+                            fontWeight: '700',
+                            color: '#2c3e50',
+                            marginBottom: '0.5rem',
+                        }}
+                    >
+                        Agent Production
+                    </h1>
+                    <p style={{ fontSize: '1rem', color: '#6c757d' }}>
+                        Search for agent production data and view property listings
+                    </p>
+                </div>
+
+                {/* Search Form */}
+                <Card
+                    style={{
+                        marginBottom: '1.5rem',
+                        boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
+                    }}
+                >
+                    <form onSubmit={onFormSubmit}>
+                        <div
+                            style={{
+                                display: 'grid',
+                                gridTemplateColumns: '2fr 2fr 1fr',
+                                gap: '1rem',
+                                alignItems: 'end',
+                            }}
+                        >
+                            <div>
+                                <label
+                                    htmlFor="agent-name"
+                                    style={{
+                                        display: 'block',
+                                        marginBottom: '0.5rem',
+                                        fontWeight: '600',
+                                        color: '#495057',
+                                    }}
+                                >
+                                    Agent Name
+                                </label>
+                                <InputText
+                                    id="agent-name"
+                                    value={value}
+                                    onChange={(e) => setValue(e.target.value)}
+                                    placeholder="Enter agent name"
+                                    style={{ width: '100%' }}
+                                />
+                            </div>
+                            <div>
+                                <label
+                                    htmlFor="production-type"
+                                    style={{
+                                        display: 'block',
+                                        marginBottom: '0.5rem',
+                                        fontWeight: '600',
+                                        color: '#495057',
+                                    }}
+                                >
+                                    Production Type
+                                </label>
+                                <Dropdown
+                                    id="production-type"
+                                    value={selectedProduction}
+                                    options={cities}
+                                    onChange={onProductionChange}
+                                    optionLabel="name"
+                                    placeholder="Select Production"
+                                    style={{ width: '100%' }}
+                                />
+                            </div>
+                            <Button
+                                label="Search"
+                                icon="pi pi-search"
+                                type="submit"
+                                style={{
+                                    padding: '0.75rem 2rem',
+                                    fontWeight: '600',
+                                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                    border: 'none',
+                                }}
+                            />
+                        </div>
+                    </form>
+                </Card>
+
+                {/* Results Summary */}
                 {results && (
-                    <div>
-                        <h2>Number of Listings: {results.numberOfListings}</h2>
-                        {results?.numberOfBuyers && (
-                            <h2>Number of Buyers: {results.numberOfBuyers}</h2>
-                        )}
-                        <h2>Listing Production Volume: {agentProduction(results.listedHomes)}</h2>
-                        {results?.numberOfBuyers && (
-                            <h2>Buyer Production Volume: {agentProduction(results.soldHomes)}</h2>
-                        )}
-                        {/* <h2>
-                            Total Volume:{' '}
-                            {agentProduction([...results.listedHomes, ...results.soldHomes])}
-                        </h2> */}
-                    </div>
+                    <Card
+                        title="Production Summary"
+                        style={{
+                            marginBottom: '1.5rem',
+                            boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
+                        }}
+                    >
+                        <div
+                            style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                                gap: '1.5rem',
+                            }}
+                        >
+                            <div>
+                                <div
+                                    style={{
+                                        fontSize: '0.875rem',
+                                        color: '#6c757d',
+                                        marginBottom: '0.25rem',
+                                    }}
+                                >
+                                    Number of Listings
+                                </div>
+                                <div style={{ fontSize: '1.75rem', fontWeight: '700', color: '#2c3e50' }}>
+                                    {results.numberOfListings}
+                                </div>
+                            </div>
+                            {results?.numberOfBuyers && (
+                                <div>
+                                    <div
+                                        style={{
+                                            fontSize: '0.875rem',
+                                            color: '#6c757d',
+                                            marginBottom: '0.25rem',
+                                        }}
+                                    >
+                                        Number of Buyers
+                                    </div>
+                                    <div
+                                        style={{ fontSize: '1.75rem', fontWeight: '700', color: '#2c3e50' }}
+                                    >
+                                        {results.numberOfBuyers}
+                                    </div>
+                                </div>
+                            )}
+                            <div>
+                                <div
+                                    style={{
+                                        fontSize: '0.875rem',
+                                        color: '#6c757d',
+                                        marginBottom: '0.25rem',
+                                    }}
+                                >
+                                    Listing Production Volume
+                                </div>
+                                <div style={{ fontSize: '1.75rem', fontWeight: '700', color: '#2c3e50' }}>
+                                    {agentProduction(results.listedHomes)}
+                                </div>
+                            </div>
+                            {results?.numberOfBuyers && (
+                                <div>
+                                    <div
+                                        style={{
+                                            fontSize: '0.875rem',
+                                            color: '#6c757d',
+                                            marginBottom: '0.25rem',
+                                        }}
+                                    >
+                                        Buyer Production Volume
+                                    </div>
+                                    <div
+                                        style={{ fontSize: '1.75rem', fontWeight: '700', color: '#2c3e50' }}
+                                    >
+                                        {agentProduction(results.soldHomes)}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </Card>
                 )}
-                {/* {results?.length && selectedProduction === 'Active Listings' && (
-                    <div>
-                        <h2>Number of Listings: {results.numberOfListings}</h2>
-                        <h2>Listing Production Volume: {agentProduction(results.listedHomes)}</h2>
-                    </div>
-                )} */}
+
+                {/* Property Cards - Listed Homes */}
+                {results && results.listedHomes && results.listedHomes.length > 0 && (
+                    <Card
+                        title={`Listed Properties (${results.listedHomes.length})`}
+                        style={{
+                            marginBottom: '1.5rem',
+                            boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
+                        }}
+                    >
+                        <ScrollPanel style={{ width: '100%', height: '600px' }}>
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    flexWrap: 'wrap',
+                                    gap: '1.5rem',
+                                    padding: '1rem 0',
+                                }}
+                            >
+                                {results.listedHomes.map((property) => (
+                                    <PrpCard
+                                        key={property._id || property.mls_number}
+                                        property={property}
+                                        handleOpenMapDialog={handleOpenMapDialog}
+                                    />
+                                ))}
+                            </div>
+                        </ScrollPanel>
+                    </Card>
+                )}
+
+                {/* Property Cards - Sold Homes */}
+                {results && results.soldHomes && results.soldHomes.length > 0 && (
+                    <Card
+                        title={`Sold Properties (${results.soldHomes.length})`}
+                        style={{
+                            marginBottom: '1.5rem',
+                            boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
+                        }}
+                    >
+                        <ScrollPanel style={{ width: '100%', height: '600px' }}>
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    flexWrap: 'wrap',
+                                    gap: '1.5rem',
+                                    padding: '1rem 0',
+                                }}
+                            >
+                                {results.soldHomes.map((property) => (
+                                    <PrpCard
+                                        key={property._id || property.mls_number}
+                                        property={property}
+                                        handleOpenMapDialog={handleOpenMapDialog}
+                                    />
+                                ))}
+                            </div>
+                        </ScrollPanel>
+                    </Card>
+                )}
             </div>
         </MainLayout>
     );
