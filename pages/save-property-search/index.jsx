@@ -1,5 +1,5 @@
 // React & NextJS
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import dynamic from 'next/dynamic';
 
 // Dynamically import PrimeReact components
@@ -34,7 +34,7 @@ import MainLayout from '../../components/layout/MainLayout';
 
 const SavePropertySearch = () => {
     // Toast reference
-    const toast = useRef(null);
+    // const toast = useRef(null);
 
     // Lead search state
     const [selectedLead, setSelectedLead] = useState('');

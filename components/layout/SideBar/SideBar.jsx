@@ -56,6 +56,11 @@ const SideBar = () => {
                                 <span className="block p-3 text-600">ADMIN</span>
                             </li>
                             <SideBarLink
+                                name="Agents"
+                                url="/agents"
+                                icon="pi pi-users mr-2"
+                            />
+                            <SideBarLink
                                 name="New Properties"
                                 url="/new-properties"
                                 icon="pi pi-database mr-2"
