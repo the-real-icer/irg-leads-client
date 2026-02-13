@@ -16,7 +16,7 @@ const SideBar = () => {
     return (
         <div
             id="app-sidebar-3"
-            className="bg-gray-900 h-screen hidden lg:block flex-shrink-0 absolute lg:static left-0 top-0 z-1 border-right-1 border-gray-800 select-none"
+            className="bg-gray-900 h-screen hidden lg:block flex-shrink-0 fixed left-0 top-0 z-1 border-right-1 border-gray-800 select-none"
             style={{ width: '280px' }}
         >
             <div className="flex flex-column h-full">
@@ -59,6 +59,11 @@ const SideBar = () => {
                                 name="Agents"
                                 url="/agents"
                                 icon="pi pi-users mr-2"
+                            />
+                            <SideBarLink
+                                name="IRG Areas"
+                                url="/irg-areas"
+                                icon="pi pi-map-marker mr-2"
                             />
                             <SideBarLink
                                 name="New Properties"

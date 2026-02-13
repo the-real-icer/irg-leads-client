@@ -105,11 +105,11 @@ const MainLayout = (props) => {
     return (
         <React.Fragment>
             <MainHead />
-            <div className="min-h-screen flex relative lg:static surface-ground">
+            <div className="min-h-screen flex relative surface-ground">
                 <SideBar />
-                <div className="min-h-screen flex flex-column relative flex-auto">
+                <div className="min-h-screen flex flex-column flex-auto" style={{ marginLeft: '280px' }}>
                     <TopBar />
-                    <main>{children}</main>
+                    <main className="flex-auto" style={{ overflowY: 'auto' }}>{children}</main>
                 </div>
             </div>
         </React.Fragment>

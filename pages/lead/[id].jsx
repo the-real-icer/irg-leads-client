@@ -41,6 +41,15 @@ const Accordion = dynamic(() => import('primereact/accordion').then((mod) => mod
 const AccordionTab = dynamic(() => import('primereact/accordion').then((mod) => mod.AccordionTab), {
     ssr: false,
 });
+const InputTextarea = dynamic(() => import('primereact/inputtextarea').then((mod) => mod.InputTextarea), {
+    ssr: false,
+});
+const Calendar = dynamic(() => import('primereact/calendar').then((mod) => mod.Calendar), {
+    ssr: false,
+});
+const Dropdown = dynamic(() => import('primereact/dropdown').then((mod) => mod.Dropdown), {
+    ssr: false,
+});
 
 // IRG Components
 import MainLayout from '../../components/layout/MainLayout';
@@ -49,10 +58,14 @@ import PrpCard from '../../components/prpCard/PrpCard';
 // IRG API
 import IrgApi from '../../assets/irgApi';
 
+// Utils
+import showToast from '../../utils/showToast';
+
 const Lead = () => {
     // __________________Redux State______________________\\
     const leads = useSelector((state) => state.allLeadsPage);
     const isLoggedIn = useSelector((state) => state.isLoggedIn);
+    const agent = useSelector((state) => state.agent);
 
     const [lead, setLead] = useState({});
     const [activeIndex, setActiveIndex] = useState(0);
@@ -63,6 +76,21 @@ const Lead = () => {
     const [showSearchHistoryDialog, setShowSearchHistoryDialog] = useState(false);
     const [emails, setEmails] = useState([]);
     const [loadingEmails, setLoadingEmails] = useState(false);
+
+    // Notes and Calls state
+    const [showLogCallDialog, setShowLogCallDialog] = useState(false);
+    const [showCreateNoteDialog, setShowCreateNoteDialog] = useState(false);
+    const [callContent, setCallContent] = useState('');
+    const [noteContent, setNoteContent] = useState('');
+    const [savingNote, setSavingNote] = useState(false);
+    const [savingCall, setSavingCall] = useState(false);
+
+    // Reminders state
+    const [showAddReminderDialog, setShowAddReminderDialog] = useState(false);
+    const [reminderDate, setReminderDate] = useState(null);
+    const [reminderType, setReminderType] = useState('general');
+    const [reminderDescription, setReminderDescription] = useState('');
+    const [savingReminder, setSavingReminder] = useState(false);
 
     const router = useRouter();
 
@@ -129,14 +157,8 @@ const Lead = () => {
         });
     };
 
-    const toast = useRef(null);
-
     const updateStatus = (newStatus) => {
-        toast.current.show({
-            severity: 'success',
-            summary: 'Updated',
-            detail: `New Status: ${newStatus}`,
-        });
+        showToast('success', `New Status: ${newStatus}`, 'Updated');
     };
 
     const items = [
@@ -259,9 +281,222 @@ const Lead = () => {
         return cityArray.length > 0 ? cityArray.join(', ') : 'None';
     };
 
+    // Handle logging a call
+    const handleLogCall = async () => {
+        if (!callContent.trim()) {
+            showToast('warn', 'Please enter call notes before submitting', 'Missing Information');
+            return;
+        }
+
+        setSavingCall(true);
+        try {
+            const response = await IrgApi.post(
+                '/users/add-a-call',
+                {
+                    userId: lead._id,
+                    call: callContent,
+                    agentId: agent._id,
+                },
+                {
+                    headers: { Authorization: `Bearer ${isLoggedIn}` },
+                }
+            );
+
+            if (response.data.status === 'success') {
+                setLead(response.data.data);
+                setCallContent('');
+                setShowLogCallDialog(false);
+                showToast('success', 'Call has been successfully logged', 'Call Logged');
+            }
+        } catch (error) {
+            console.error('Error logging call:', error);
+            showToast('error', 'Failed to log call. Please try again.', 'Error');
+        } finally {
+            setSavingCall(false);
+        }
+    };
+
+    // Handle creating a note
+    const handleCreateNote = async () => {
+        if (!noteContent.trim()) {
+            showToast('warn', 'Please enter note content before submitting', 'Missing Information');
+            return;
+        }
+
+        setSavingNote(true);
+        try {
+            const response = await IrgApi.post(
+                '/users/add-a-note',
+                {
+                    userId: lead._id,
+                    note: noteContent,
+                    agentId: agent._id,
+                },
+                {
+                    headers: { Authorization: `Bearer ${isLoggedIn}` },
+                }
+            );
+
+            if (response.data.status === 'success') {
+                setLead(response.data.data);
+                setNoteContent('');
+                setShowCreateNoteDialog(false);
+                showToast('success', 'Note has been successfully created', 'Note Created');
+            }
+        } catch (error) {
+            console.error('Error creating note:', error);
+            showToast('error', 'Failed to create note. Please try again.', 'Error');
+        } finally {
+            setSavingNote(false);
+        }
+    };
+
+    // Get notes and calls sorted by date (most recent first)
+    const getNotesAndCalls = () => {
+        const actions = lead?.agent_actions || [];
+        const notesAndCalls = actions.filter(
+            (action) => action.type === 'note' || action.type === 'call'
+        );
+        // Sort by date_created descending (most recent first)
+        return notesAndCalls.sort((a, b) => {
+            const dateA = new Date(a.date_created);
+            const dateB = new Date(b.date_created);
+            return dateB - dateA;
+        });
+    };
+
+    // Handle adding a reminder
+    const handleAddReminder = async () => {
+        if (!reminderDate || !reminderDescription.trim()) {
+            showToast('warn', 'Please select a date and enter a description', 'Missing Information');
+            return;
+        }
+
+        setSavingReminder(true);
+        try {
+            const response = await IrgApi.post(
+                '/users/add-reminder',
+                {
+                    userId: lead._id,
+                    reminderDate: reminderDate,
+                    type: reminderType,
+                    description: reminderDescription,
+                    agentId: agent._id,
+                },
+                {
+                    headers: { Authorization: `Bearer ${isLoggedIn}` },
+                }
+            );
+
+            if (response.data.status === 'success') {
+                setLead(response.data.data);
+                setReminderDate(null);
+                setReminderType('general');
+                setReminderDescription('');
+                setShowAddReminderDialog(false);
+                showToast('success', 'Reminder has been successfully added', 'Reminder Added');
+            }
+        } catch (error) {
+            console.error('Error adding reminder:', error);
+            showToast('error', 'Failed to add reminder. Please try again.', 'Error');
+        } finally {
+            setSavingReminder(false);
+        }
+    };
+
+    // Handle marking reminder as complete
+    const handleCompleteReminder = async (reminderId) => {
+        try {
+            const response = await IrgApi.post(
+                '/users/update-reminder',
+                {
+                    userId: lead._id,
+                    reminderId: reminderId,
+                    completed: true,
+                },
+                {
+                    headers: { Authorization: `Bearer ${isLoggedIn}` },
+                }
+            );
+
+            if (response.data.status === 'success') {
+                setLead(response.data.data);
+                showToast('success', 'Reminder marked as complete', 'Reminder Completed');
+            }
+        } catch (error) {
+            console.error('Error completing reminder:', error);
+            showToast('error', 'Failed to complete reminder. Please try again.', 'Error');
+        }
+    };
+
+    // Handle deleting a reminder
+    const handleDeleteReminder = async (reminderId) => {
+        try {
+            const response = await IrgApi.post(
+                '/users/delete-reminder',
+                {
+                    userId: lead._id,
+                    reminderId: reminderId,
+                },
+                {
+                    headers: { Authorization: `Bearer ${isLoggedIn}` },
+                }
+            );
+
+            if (response.data.status === 'success') {
+                setLead(response.data.data);
+                showToast('success', 'Reminder has been deleted', 'Reminder Deleted');
+            }
+        } catch (error) {
+            console.error('Error deleting reminder:', error);
+            showToast('error', 'Failed to delete reminder. Please try again.', 'Error');
+        }
+    };
+
+    // Get active reminders sorted by date (soonest first)
+    const getActiveReminders = () => {
+        const reminders = lead?.reminders || [];
+        return reminders
+            .filter((reminder) => !reminder.completed)
+            .sort((a, b) => {
+                const dateA = new Date(a.reminder_date);
+                const dateB = new Date(b.reminder_date);
+                return dateA - dateB;
+            });
+    };
+
+    // Check if there's an upcoming reminder (within next 7 days)
+    const hasUpcomingReminder = () => {
+        const reminders = getActiveReminders();
+        if (reminders.length === 0) return false;
+
+        const now = new Date();
+        const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+        return reminders.some((reminder) => {
+            const reminderDate = new Date(reminder.reminder_date);
+            return reminderDate >= now && reminderDate <= sevenDaysFromNow;
+        });
+    };
+
+    // Format phone number to (XXX) XXX-XXXX
+    const formatPhoneNumber = (phoneNumber) => {
+        if (!phoneNumber) return 'No phone';
+
+        // Remove all non-numeric characters
+        const cleaned = phoneNumber.toString().replace(/\D/g, '');
+
+        // Check if we have 10 digits
+        if (cleaned.length === 10) {
+            return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
+        }
+
+        // If not 10 digits, return original
+        return phoneNumber;
+    };
+
     return (
         <MainLayout>
-            <Toast ref={toast} position="top-right" />
             <div className="lead-profile-page">
                 {/* Header Section */}
                 <div className="lead-profile-header">
@@ -279,15 +514,30 @@ const Lead = () => {
                                         <h2 className="lead-profile-name">
                                             {lead?.first_name} {lead?.last_name}
                                         </h2>
-                                        <Chip
-                                            label={category}
-                                            className={`lead-status-chip status-${lead?.backend_profile?.lead_category}`}
-                                        />
+                                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                            <Chip
+                                                label={category}
+                                                className={`lead-status-chip status-${lead?.backend_profile?.lead_category}`}
+                                            />
+                                            {hasUpcomingReminder() && (
+                                                <Chip
+                                                    label="Follow-Up Soon"
+                                                    icon="pi pi-bell"
+                                                    style={{
+                                                        backgroundColor: '#f59e0b',
+                                                        color: 'white',
+                                                        fontWeight: '600',
+                                                        padding: '0.25rem 0.75rem',
+                                                        fontSize: '0.875rem'
+                                                    }}
+                                                />
+                                            )}
+                                        </div>
                                     </div>
                                     <div className="lead-profile-contact">
                                         <div className="contact-item">
                                             <i className="pi pi-phone"></i>
-                                            <span>{lead?.phone_number || 'No phone'}</span>
+                                            <span>{formatPhoneNumber(lead?.phone_number)}</span>
                                         </div>
                                         <div className="contact-item">
                                             <i className="pi pi-envelope"></i>
@@ -469,6 +719,303 @@ const Lead = () => {
                             </Card>
                         </div>
                     </div>
+                </div>
+
+                {/* Reminders Section */}
+                <div className="lead-reminders" style={{ marginTop: '2rem', marginBottom: '2rem' }}>
+                    <Card>
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                                <h3 style={{
+                                    fontSize: '1.25rem',
+                                    fontWeight: '700',
+                                    color: '#2c3e50',
+                                    margin: 0
+                                }}>
+                                    Reminders & Follow-Ups
+                                </h3>
+                                <Button
+                                    label="Add A Reminder"
+                                    icon="pi pi-plus"
+                                    className="p-button-warning"
+                                    onClick={() => setShowAddReminderDialog(true)}
+                                    style={{
+                                        padding: '0.5rem 1rem',
+                                        fontSize: '0.9rem',
+                                        fontWeight: '600'
+                                    }}
+                                />
+                            </div>
+
+                            {/* Reminders List */}
+                            {getActiveReminders().length > 0 ? (
+                                <div style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '1rem'
+                                }}>
+                                    {getActiveReminders().map((reminder) => {
+                                        const reminderDate = new Date(reminder.reminder_date);
+                                        const now = new Date();
+                                        const isOverdue = reminderDate < now;
+                                        const daysUntil = Math.ceil((reminderDate - now) / (1000 * 60 * 60 * 24));
+
+                                        return (
+                                            <div
+                                                key={reminder.id}
+                                                style={{
+                                                    padding: '1rem',
+                                                    backgroundColor: isOverdue ? '#fee2e2' : '#fef3c7',
+                                                    borderLeft: `4px solid ${isOverdue ? '#ef4444' : '#f59e0b'}`,
+                                                    borderRadius: '8px',
+                                                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                                                }}
+                                            >
+                                                <div style={{
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'start',
+                                                    marginBottom: '0.5rem'
+                                                }}>
+                                                    <div style={{ flex: 1 }}>
+                                                        <div style={{
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: '0.5rem',
+                                                            marginBottom: '0.5rem'
+                                                        }}>
+                                                            <i
+                                                                className={`pi ${
+                                                                    reminder.type === 'call' ? 'pi-phone' :
+                                                                    reminder.type === 'email' ? 'pi-envelope' :
+                                                                    'pi-bell'
+                                                                }`}
+                                                                style={{
+                                                                    fontSize: '1.1rem',
+                                                                    color: isOverdue ? '#ef4444' : '#f59e0b'
+                                                                }}
+                                                            ></i>
+                                                            <span style={{
+                                                                fontWeight: '700',
+                                                                fontSize: '0.95rem',
+                                                                color: '#2c3e50',
+                                                                textTransform: 'capitalize'
+                                                            }}>
+                                                                {reminder.type} Reminder
+                                                            </span>
+                                                            <span style={{
+                                                                fontSize: '0.8rem',
+                                                                padding: '0.2rem 0.5rem',
+                                                                borderRadius: '12px',
+                                                                backgroundColor: isOverdue ? '#ef4444' : '#f59e0b',
+                                                                color: 'white',
+                                                                fontWeight: '600'
+                                                            }}>
+                                                                {isOverdue ? 'Overdue' : `${daysUntil} day${daysUntil !== 1 ? 's' : ''}`}
+                                                            </span>
+                                                        </div>
+                                                        <div style={{
+                                                            fontSize: '0.9rem',
+                                                            color: '#495057',
+                                                            marginBottom: '0.5rem'
+                                                        }}>
+                                                            {reminder.description}
+                                                        </div>
+                                                        <div style={{
+                                                            fontSize: '0.85rem',
+                                                            color: '#6c757d'
+                                                        }}>
+                                                            Due: {reminderDate.toLocaleDateString('en-US', {
+                                                                weekday: 'short',
+                                                                month: 'short',
+                                                                day: 'numeric',
+                                                                year: 'numeric'
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                    <div style={{ display: 'flex', gap: '0.5rem', marginLeft: '1rem' }}>
+                                                        <Button
+                                                            icon="pi pi-check"
+                                                            className="p-button-success p-button-sm"
+                                                            onClick={() => handleCompleteReminder(reminder.id)}
+                                                            tooltip="Mark as complete"
+                                                            tooltipOptions={{ position: 'top' }}
+                                                        />
+                                                        <Button
+                                                            icon="pi pi-trash"
+                                                            className="p-button-danger p-button-sm p-button-text"
+                                                            onClick={() => handleDeleteReminder(reminder.id)}
+                                                            tooltip="Delete reminder"
+                                                            tooltipOptions={{ position: 'top' }}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            ) : (
+                                <div style={{
+                                    textAlign: 'center',
+                                    padding: '2rem',
+                                    color: '#6c757d',
+                                    backgroundColor: '#f8f9fa',
+                                    borderRadius: '8px'
+                                }}>
+                                    <i className="pi pi-bell-slash" style={{ fontSize: '2.5rem', display: 'block', marginBottom: '1rem', opacity: 0.5 }}></i>
+                                    <p style={{ fontSize: '1rem', marginBottom: '0.5rem' }}>No active reminders</p>
+                                    <p style={{ fontSize: '0.9rem' }}>Click "Add A Reminder" to set up a follow-up</p>
+                                </div>
+                            )}
+                        </div>
+                    </Card>
+                </div>
+
+                {/* Activity Actions Section */}
+                <div className="lead-activity-actions" style={{ marginTop: '2rem', marginBottom: '2rem' }}>
+                    <Card>
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <h3 style={{
+                                fontSize: '1.25rem',
+                                fontWeight: '700',
+                                color: '#2c3e50',
+                                marginBottom: '1rem'
+                            }}>
+                                Activity Actions
+                            </h3>
+                            <div style={{
+                                display: 'flex',
+                                gap: '1rem',
+                                flexWrap: 'wrap'
+                            }}>
+                                <Button
+                                    label="Log A Call"
+                                    icon="pi pi-phone"
+                                    className="p-button-success"
+                                    onClick={() => setShowLogCallDialog(true)}
+                                    style={{
+                                        padding: '0.75rem 1.5rem',
+                                        fontSize: '1rem',
+                                        fontWeight: '600'
+                                    }}
+                                />
+                                <Button
+                                    label="Create A Note"
+                                    icon="pi pi-file-edit"
+                                    className="p-button-primary"
+                                    onClick={() => setShowCreateNoteDialog(true)}
+                                    style={{
+                                        padding: '0.75rem 1.5rem',
+                                        fontSize: '1rem',
+                                        fontWeight: '600'
+                                    }}
+                                />
+                                <Button
+                                    label="Send An Email"
+                                    icon="pi pi-envelope"
+                                    className="p-button-info"
+                                    disabled
+                                    style={{
+                                        padding: '0.75rem 1.5rem',
+                                        fontSize: '1rem',
+                                        fontWeight: '600'
+                                    }}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Notes and Calls History */}
+                        <div style={{
+                            borderTop: '1px solid #dee2e6',
+                            paddingTop: '1.5rem'
+                        }}>
+                            <h4 style={{
+                                fontSize: '1.1rem',
+                                fontWeight: '700',
+                                color: '#2c3e50',
+                                marginBottom: '1rem'
+                            }}>
+                                Notes & Call History
+                            </h4>
+                            <ScrollPanel style={{ width: '100%', height: '400px' }}>
+                                {getNotesAndCalls().length > 0 ? (
+                                    <div style={{
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: '1rem'
+                                    }}>
+                                        {getNotesAndCalls().map((action, index) => (
+                                            <div
+                                                key={action.id || index}
+                                                style={{
+                                                    padding: '1rem',
+                                                    backgroundColor: action.type === 'call' ? '#f0fdf4' : '#eff6ff',
+                                                    borderLeft: `4px solid ${action.type === 'call' ? '#22c55e' : '#667eea'}`,
+                                                    borderRadius: '8px',
+                                                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                                                }}
+                                            >
+                                                <div style={{
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'start',
+                                                    marginBottom: '0.5rem'
+                                                }}>
+                                                    <div style={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '0.5rem'
+                                                    }}>
+                                                        <i
+                                                            className={`pi ${action.type === 'call' ? 'pi-phone' : 'pi-file-edit'}`}
+                                                            style={{
+                                                                fontSize: '1.1rem',
+                                                                color: action.type === 'call' ? '#22c55e' : '#667eea'
+                                                            }}
+                                                        ></i>
+                                                        <span style={{
+                                                            fontWeight: '700',
+                                                            fontSize: '0.95rem',
+                                                            color: '#2c3e50',
+                                                            textTransform: 'capitalize'
+                                                        }}>
+                                                            {action.type}
+                                                        </span>
+                                                    </div>
+                                                    <span style={{
+                                                        fontSize: '0.85rem',
+                                                        color: '#6c757d'
+                                                    }}>
+                                                        {action.date_created
+                                                            ? formatDate(action.date_created)
+                                                            : 'Recent'}
+                                                    </span>
+                                                </div>
+                                                <div style={{
+                                                    fontSize: '0.95rem',
+                                                    color: '#495057',
+                                                    lineHeight: '1.6',
+                                                    whiteSpace: 'pre-wrap'
+                                                }}>
+                                                    {action.value}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div style={{
+                                        textAlign: 'center',
+                                        padding: '3rem',
+                                        color: '#6c757d'
+                                    }}>
+                                        <i className="pi pi-inbox" style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}></i>
+                                        <p style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>No activity recorded yet</p>
+                                        <p style={{ fontSize: '0.9rem' }}>Log a call or create a note to get started</p>
+                                    </div>
+                                )}
+                            </ScrollPanel>
+                        </div>
+                    </Card>
                 </div>
 
                 {/* Main Content Tabs */}
@@ -779,6 +1326,239 @@ const Lead = () => {
                                 <p>No saved searches</p>
                             </div>
                         )}
+                    </div>
+                </Dialog>
+
+                {/* Log Call Dialog */}
+                <Dialog
+                    header="Log A Call"
+                    visible={showLogCallDialog}
+                    style={{ width: '600px' }}
+                    onHide={() => {
+                        setShowLogCallDialog(false);
+                        setCallContent('');
+                    }}
+                    footer={
+                        <div>
+                            <Button
+                                label="Cancel"
+                                icon="pi pi-times"
+                                onClick={() => {
+                                    setShowLogCallDialog(false);
+                                    setCallContent('');
+                                }}
+                                className="p-button-text"
+                            />
+                            <Button
+                                label="Save Call"
+                                icon="pi pi-check"
+                                onClick={handleLogCall}
+                                loading={savingCall}
+                                className="p-button-success"
+                            />
+                        </div>
+                    }
+                >
+                    <div style={{ padding: '1rem 0' }}>
+                        <label
+                            htmlFor="call-notes"
+                            style={{
+                                display: 'block',
+                                marginBottom: '0.5rem',
+                                fontWeight: '600',
+                                color: '#495057'
+                            }}
+                        >
+                            Call Notes
+                        </label>
+                        <InputTextarea
+                            id="call-notes"
+                            value={callContent}
+                            onChange={(e) => setCallContent(e.target.value)}
+                            rows={8}
+                            placeholder="Enter notes about this call..."
+                            style={{ width: '100%', fontFamily: 'inherit' }}
+                            autoFocus
+                        />
+                        <small style={{ display: 'block', marginTop: '0.5rem', color: '#6c757d' }}>
+                            Document key points from your conversation with {lead?.first_name}
+                        </small>
+                    </div>
+                </Dialog>
+
+                {/* Create Note Dialog */}
+                <Dialog
+                    header="Create A Note"
+                    visible={showCreateNoteDialog}
+                    style={{ width: '600px' }}
+                    onHide={() => {
+                        setShowCreateNoteDialog(false);
+                        setNoteContent('');
+                    }}
+                    footer={
+                        <div>
+                            <Button
+                                label="Cancel"
+                                icon="pi pi-times"
+                                onClick={() => {
+                                    setShowCreateNoteDialog(false);
+                                    setNoteContent('');
+                                }}
+                                className="p-button-text"
+                            />
+                            <Button
+                                label="Save Note"
+                                icon="pi pi-check"
+                                onClick={handleCreateNote}
+                                loading={savingNote}
+                                className="p-button-primary"
+                            />
+                        </div>
+                    }
+                >
+                    <div style={{ padding: '1rem 0' }}>
+                        <label
+                            htmlFor="note-content"
+                            style={{
+                                display: 'block',
+                                marginBottom: '0.5rem',
+                                fontWeight: '600',
+                                color: '#495057'
+                            }}
+                        >
+                            Note Content
+                        </label>
+                        <InputTextarea
+                            id="note-content"
+                            value={noteContent}
+                            onChange={(e) => setNoteContent(e.target.value)}
+                            rows={8}
+                            placeholder="Enter your note about this lead..."
+                            style={{ width: '100%', fontFamily: 'inherit' }}
+                            autoFocus
+                        />
+                        <small style={{ display: 'block', marginTop: '0.5rem', color: '#6c757d' }}>
+                            Add important information or observations about {lead?.first_name}
+                        </small>
+                    </div>
+                </Dialog>
+
+                {/* Add Reminder Dialog */}
+                <Dialog
+                    header="Add A Reminder"
+                    visible={showAddReminderDialog}
+                    style={{ width: '600px' }}
+                    onHide={() => {
+                        setShowAddReminderDialog(false);
+                        setReminderDate(null);
+                        setReminderType('general');
+                        setReminderDescription('');
+                    }}
+                    footer={
+                        <div>
+                            <Button
+                                label="Cancel"
+                                icon="pi pi-times"
+                                onClick={() => {
+                                    setShowAddReminderDialog(false);
+                                    setReminderDate(null);
+                                    setReminderType('general');
+                                    setReminderDescription('');
+                                }}
+                                className="p-button-text"
+                            />
+                            <Button
+                                label="Save Reminder"
+                                icon="pi pi-check"
+                                onClick={handleAddReminder}
+                                loading={savingReminder}
+                                className="p-button-warning"
+                            />
+                        </div>
+                    }
+                >
+                    <div style={{ padding: '1rem 0' }}>
+                        {/* Reminder Date */}
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <label
+                                htmlFor="reminder-date"
+                                style={{
+                                    display: 'block',
+                                    marginBottom: '0.5rem',
+                                    fontWeight: '600',
+                                    color: '#495057'
+                                }}
+                            >
+                                Reminder Date *
+                            </label>
+                            <Calendar
+                                id="reminder-date"
+                                value={reminderDate}
+                                onChange={(e) => setReminderDate(e.value)}
+                                showIcon
+                                dateFormat="mm/dd/yy"
+                                placeholder="Select a date"
+                                style={{ width: '100%' }}
+                                minDate={new Date()}
+                            />
+                            <small style={{ display: 'block', marginTop: '0.25rem', color: '#6c757d' }}>
+                                When should we remind you?
+                            </small>
+                        </div>
+
+                        {/* Reminder Type */}
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <label
+                                htmlFor="reminder-type"
+                                style={{
+                                    display: 'block',
+                                    marginBottom: '0.5rem',
+                                    fontWeight: '600',
+                                    color: '#495057'
+                                }}
+                            >
+                                Reminder Type
+                            </label>
+                            <Dropdown
+                                id="reminder-type"
+                                value={reminderType}
+                                onChange={(e) => setReminderType(e.value)}
+                                options={[
+                                    { label: 'General Follow-Up', value: 'general' },
+                                    { label: 'Call Lead', value: 'call' },
+                                    { label: 'Email Lead', value: 'email' },
+                                ]}
+                                placeholder="Select reminder type"
+                                style={{ width: '100%' }}
+                            />
+                        </div>
+
+                        {/* Reminder Description */}
+                        <div>
+                            <label
+                                htmlFor="reminder-description"
+                                style={{
+                                    display: 'block',
+                                    marginBottom: '0.5rem',
+                                    fontWeight: '600',
+                                    color: '#495057'
+                                }}
+                            >
+                                Description *
+                            </label>
+                            <InputTextarea
+                                id="reminder-description"
+                                value={reminderDescription}
+                                onChange={(e) => setReminderDescription(e.target.value)}
+                                rows={5}
+                                placeholder="What do you need to follow up on?"
+                                style={{ width: '100%', fontFamily: 'inherit' }}
+                                autoFocus
+                            />
+                            <small style={{ display: 'block', marginTop: '0.5rem', color: '#6c757d' }}>
+                                Add notes about what you need to do or discuss with {lead?.first_name}
+                            </small>
+                        </div>
                     </div>
                 </Dialog>
             </div>
