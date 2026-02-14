@@ -12,51 +12,142 @@ import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { InputText } from 'primereact/inputtext';
 import { Dropdown } from 'primereact/dropdown';
-import { FilterMatchMode, FilterOperator } from 'primereact/api';
+import { Button } from 'primereact/button';
 
 // IRG Components
 import MainLayout from '../../components/layout/MainLayout';
 
 const Leads = () => {
     // __________________Redux State______________________\\
-    const leads = useSelector((state) => state.allLeadsPage);
+    const allLeads = useSelector((state) => state.allLeadsPage);
 
-    const [filters, setFilters] = useState({
-        global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-        name: {
-            operator: FilterOperator.AND,
-            constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
-        },
-        'country.name': {
-            operator: FilterOperator.AND,
-            constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
-        },
-        representative: { value: null, matchMode: FilterMatchMode.IN },
-        date: {
-            operator: FilterOperator.AND,
-            constraints: [{ value: null, matchMode: FilterMatchMode.DATE_IS }],
-        },
-        balance: {
-            operator: FilterOperator.AND,
-            constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }],
-        },
-        status: {
-            operator: FilterOperator.OR,
-            constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }],
-        },
-        activity: { value: null, matchMode: FilterMatchMode.BETWEEN },
-    });
     const [globalFilterValue, setGlobalFilterValue] = useState('');
+    const [selectedStatus, setSelectedStatus] = useState(null);
+    const [selectedType, setSelectedType] = useState(null);
+    const [selectedSource, setSelectedSource] = useState(null);
 
-    const statuses = ['unqualified', 'qualified', 'new', 'negotiation', 'renewal', 'proposal'];
+    // Sorting state
+    const [sortField, setSortField] = useState(null);
+    const [sortOrder, setSortOrder] = useState(null);
+
+    // Ensure allLeads is an array
+    const leadsArray = Array.isArray(allLeads) ? allLeads : [];
+
+    console.log('All leads from Redux:', allLeads);
+    console.log('Leads array length:', leadsArray.length);
+
+    // Get unique values for dropdowns (keep as simple strings)
+    const statusValues = [
+        ...new Set(
+            leadsArray
+                .map((lead) => lead.backend_profile?.lead_category)
+                .filter((status) => status)
+        ),
+    ].sort();
+
+    const types = [
+        ...new Set(
+            leadsArray
+                .map((lead) => lead.backend_profile?.lead_type)
+                .filter((type) => type)
+        ),
+    ].sort();
+
+    const sources = [
+        ...new Set(
+            leadsArray
+                .map((lead) => lead.backend_profile?.lead_source)
+                .filter((source) => source)
+        ),
+    ].sort();
+
+    // Filter leads based on selected filters
+    let leads = leadsArray.filter((lead) => {
+        // Global search filter
+        if (globalFilterValue) {
+            const searchLower = globalFilterValue.toLowerCase();
+            const matchesGlobal =
+                lead.first_name?.toLowerCase().includes(searchLower) ||
+                lead.last_name?.toLowerCase().includes(searchLower) ||
+                lead.email?.toLowerCase().includes(searchLower) ||
+                lead.phone_number?.toLowerCase().includes(searchLower);
+
+            if (!matchesGlobal) return false;
+        }
+
+        // Status filter
+        if (selectedStatus && lead.backend_profile?.lead_category !== selectedStatus) {
+            return false;
+        }
+
+        // Type filter
+        if (selectedType && lead.backend_profile?.lead_type !== selectedType) {
+            return false;
+        }
+
+        // Source filter
+        if (selectedSource && lead.backend_profile?.lead_source !== selectedSource) {
+            return false;
+        }
+
+        return true;
+    });
+
+    console.log('After filtering, leads count:', leads.length);
+    console.log('Sort field:', sortField, 'Sort order:', sortOrder);
+
+    // Apply sorting if sortField is set
+    if (sortField && sortOrder) {
+        leads = [...leads].sort((a, b) => {
+            let aValue, bValue;
+
+            // Handle nested fields (e.g., "backend_profile.lead_category")
+            if (sortField.includes('.')) {
+                const fields = sortField.split('.');
+                aValue = fields.reduce((obj, field) => obj?.[field], a);
+                bValue = fields.reduce((obj, field) => obj?.[field], b);
+            } else {
+                aValue = a[sortField];
+                bValue = b[sortField];
+            }
+
+            // Handle null/undefined values
+            if (aValue == null && bValue == null) return 0;
+            if (aValue == null) return 1;
+            if (bValue == null) return -1;
+
+            // String comparison (case-insensitive)
+            if (typeof aValue === 'string' && typeof bValue === 'string') {
+                const comparison = aValue.toLowerCase().localeCompare(bValue.toLowerCase());
+                return sortOrder === 1 ? comparison : -comparison;
+            }
+
+            // Numeric/Date comparison
+            if (aValue < bValue) return sortOrder === 1 ? -1 : 1;
+            if (aValue > bValue) return sortOrder === 1 ? 1 : -1;
+            return 0;
+        });
+        console.log('After sorting, leads count:', leads.length);
+    }
+
+    console.log('Final leads to render:', leads.length);
 
     const onGlobalFilterChange = (e) => {
-        const { value } = e.target;
-        const _filters = { ...filters };
-        _filters.global.value = value;
+        setGlobalFilterValue(e.target.value);
+    };
 
-        setFilters(_filters);
-        setGlobalFilterValue(value);
+    const clearFilters = () => {
+        setGlobalFilterValue('');
+        setSelectedStatus(null);
+        setSelectedType(null);
+        setSelectedSource(null);
+    };
+
+    const onSort = (event) => {
+        console.log('Sort triggered:', event.sortField, event.sortOrder);
+        setSortField(event.sortField);
+        // If sortOrder is undefined, default to ascending (1)
+        setSortOrder(event.sortOrder !== undefined ? event.sortOrder : 1);
     };
 
     const router = useRouter();
@@ -66,7 +157,15 @@ const Leads = () => {
     };
 
     const formatDate = (val) => {
+        if (!val) {
+            return 'Not Visited';
+        }
+
         const properDate = new Date(val);
+
+        if (isNaN(properDate.getTime())) {
+            return 'Not Visited';
+        }
 
         return properDate.toLocaleDateString('en-US', {
             day: '2-digit',
@@ -77,27 +176,31 @@ const Leads = () => {
 
     const dateBodyTemplate = (rowData) => formatDate(rowData.last_visit);
 
-    const statusItemTemplate = (option) => (
-        <span className={`customer-badge status-${option}`}>{option}</span>
-    );
-
-    const statusFilterTemplate = (options) => (
-        <Dropdown
-            value={options.value}
-            options={statuses}
-            onChange={(e) => options.filterCallback(e.value, options.index)}
-            itemTemplate={statusItemTemplate}
-            placeholder="Select a Status"
-            className="p-column-filter"
-            showClear
-        />
-    );
-
     const statusBodyTemplate = (rowData) => (
         <span className={`customer-badge status-${rowData.backend_profile.lead_category}`}>
             {rowData.backend_profile.lead_category}
         </span>
     );
+
+    // Template for status dropdown items (option is the string value)
+    const statusItemTemplate = (option) => {
+        if (!option) return null;
+        return (
+            <span className={`customer-badge status-${option}`}>
+                {option.charAt(0).toUpperCase() + option.slice(1)}
+            </span>
+        );
+    };
+
+    // Template for selected status value in dropdown
+    const statusValueTemplate = (option) => {
+        if (!option) return <span>Status</span>;
+        return (
+            <span className={`customer-badge status-${option}`}>
+                {option.charAt(0).toUpperCase() + option.slice(1)}
+            </span>
+        );
+    };
 
     const nameBodyTemplate = (rowData) => (
         <span>
@@ -145,19 +248,125 @@ const Leads = () => {
         return <span>No Homes Viewed</span>;
     };
 
-    const renderHeader = () => (
-        <div className="flex justify-content-between align-items-center">
-            <h3 className="m-0">Leads</h3>
-            <span className="p-input-icon-left">
-                <i className="pi pi-search" />
-                <InputText
-                    value={globalFilterValue}
-                    onChange={onGlobalFilterChange}
-                    placeholder="Keyword Search"
-                />
-            </span>
-        </div>
-    );
+    const renderHeader = () => {
+        const hasActiveFilters = selectedStatus || selectedType || selectedSource || globalFilterValue;
+
+        return (
+            <div style={{ marginBottom: '1.5rem' }}>
+                {/* Title and Search Row */}
+                <div
+                    style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: '1.25rem'
+                    }}
+                >
+                    <h2 style={{
+                        margin: 0,
+                        fontSize: '1.75rem',
+                        fontWeight: '600',
+                        color: '#2c3e50'
+                    }}>
+                        Leads
+                    </h2>
+                    <span className="p-input-icon-left">
+                        <i className="pi pi-search" style={{ color: '#6c757d' }} />
+                        <InputText
+                            value={globalFilterValue}
+                            onChange={onGlobalFilterChange}
+                            placeholder="Search leads..."
+                            style={{
+                                width: '320px',
+                                borderRadius: '8px',
+                                padding: '0.75rem 1rem 0.75rem 2.5rem'
+                            }}
+                        />
+                    </span>
+                </div>
+
+                {/* Filters Row */}
+                <div
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '1rem',
+                        padding: '1rem 1.25rem',
+                        backgroundColor: '#f8f9fa',
+                        borderRadius: '10px',
+                        border: '1px solid #e9ecef'
+                    }}
+                >
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        color: '#495057',
+                        fontSize: '0.9rem',
+                        fontWeight: '600',
+                        minWidth: '60px'
+                    }}>
+                        <i className="pi pi-filter" style={{ fontSize: '0.9rem' }}></i>
+                        <span>Filters</span>
+                    </div>
+
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.75rem',
+                        flex: 1
+                    }}>
+                        <Dropdown
+                            value={selectedStatus}
+                            options={statusValues}
+                            onChange={(e) => setSelectedStatus(e.value)}
+                            placeholder="Status"
+                            showClear
+                            itemTemplate={statusItemTemplate}
+                            valueTemplate={statusValueTemplate}
+                            style={{ minWidth: '160px' }}
+                            className="filter-dropdown"
+                        />
+                        <Dropdown
+                            value={selectedType}
+                            options={types}
+                            onChange={(e) => setSelectedType(e.value)}
+                            placeholder="Type"
+                            showClear
+                            style={{ minWidth: '160px' }}
+                            className="filter-dropdown"
+                        />
+                        <Dropdown
+                            value={selectedSource}
+                            options={sources}
+                            onChange={(e) => setSelectedSource(e.value)}
+                            placeholder="Source"
+                            showClear
+                            style={{ minWidth: '160px' }}
+                            className="filter-dropdown"
+                        />
+                    </div>
+
+                    {hasActiveFilters && (
+                        <Button
+                            icon="pi pi-times"
+                            rounded
+                            text
+                            severity="secondary"
+                            onClick={clearFilters}
+                            tooltip="Clear all filters"
+                            tooltipOptions={{ position: 'bottom' }}
+                            style={{
+                                width: '2.5rem',
+                                height: '2.5rem',
+                                marginLeft: 'auto'
+                            }}
+                        />
+                    )}
+                </div>
+            </div>
+        );
+    };
 
     const header = renderHeader();
 
@@ -176,57 +385,54 @@ const Leads = () => {
                     selectionMode="single"
                     onRowSelect={onRowSelect}
                     header={header}
-                    filters={filters}
-                    filterDisplay="menu"
                     responsiveLayout="scroll"
+                    sortMode="single"
+                    sortField={sortField}
+                    sortOrder={sortOrder}
+                    onSort={onSort}
                 >
                     <Column
                         header="Name"
                         sortable
-                        filter
-                        filterPlaceholder="Search by name"
+                        sortField="first_name"
                         style={{ minWidth: '14rem' }}
                         body={nameBodyTemplate}
                     />
-                    <Column field="email" header="Email" sortable filter></Column>
-                    <Column body={phoneBodyTemplate} header="Phone" sortable filter></Column>
+                    <Column field="email" header="Email" sortable></Column>
+                    <Column
+                        body={phoneBodyTemplate}
+                        header="Phone"
+                        sortable
+                        sortField="phone_number"
+                    ></Column>
                     <Column
                         header="Status"
                         sortable
-                        filterMenuStyle={{ width: '14rem' }}
+                        sortField="backend_profile.lead_category"
                         style={{ minWidth: '10rem' }}
                         body={statusBodyTemplate}
-                        filter
-                        filterElement={statusFilterTemplate}
                     />
                     <Column
                         field="backend_profile.lead_type"
                         header="Type"
                         sortable
-                        filterMenuStyle={{ width: '14rem' }}
                         style={{ minWidth: '10rem' }}
-                        filter
                     />
                     <Column
                         field="backend_profile.lead_source"
                         header="Source"
                         sortable
-                        filterMenuStyle={{ width: '14rem' }}
                         style={{ minWidth: '10rem' }}
-                        filter
                     />
                     <Column
                         header="Avg. Price"
-                        sortable
-                        showFilterMatchModes={false}
                         style={{ minWidth: '10rem' }}
                         body={avgPriceBodyTemplate}
-                        filter
                     />
                     <Column
-                        field="last_visit"
                         header="Last Visit"
                         sortable
+                        sortField="last_visit"
                         dataType="date"
                         style={{ minWidth: '8rem' }}
                         body={dateBodyTemplate}

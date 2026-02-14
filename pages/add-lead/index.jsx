@@ -2,12 +2,11 @@
 import { useState, useCallback } from 'react';
 // import PropTypes from 'prop-types';
 import dynamic from 'next/dynamic';
+import { useRouter } from 'next/router';
 
 // Redux
-import {
-    useSelector,
-    //  useDispatch
-} from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { addLead } from '../../store/actions';
 
 // Dynamically Import Third Party Components
 const InputText = dynamic(() => import('primereact/inputtext').then((mod) => mod.InputText), {
@@ -52,6 +51,10 @@ const AddLead = () => {
     // __________________Redux State______________________\\
     const isLoggedIn = useSelector((state) => state.isLoggedIn);
     const agent = useSelector((state) => state.agent);
+    const dispatch = useDispatch();
+
+    // __________________Next.js Router______________________\\
+    const router = useRouter();
 
     const onChange = useCallback((e) => {
         setUser((prevUser) => ({ ...prevUser, [e.target.id]: e.target.value }));
@@ -131,15 +134,17 @@ const AddLead = () => {
                 });
 
                 if (res.data.status === 'success') {
+                    // Add the new lead to Redux state
+                    dispatch(addLead(res.data.data));
+
                     showToast(
                         'success',
-                        `${firstName || 'Lead'} has been added successfully!`,
+                        `${firstName || 'Lead'} has been added successfully! Redirecting...`,
                         'Lead Added!',
                         'top-left',
                     );
-                    setUser(blankUser);
-                    // TODO: Enable navigation or dispatch action to update lead list
-                    // router.push(`/lead/${res.data._id}`);
+                    // Navigate to the newly created lead's profile page
+                    router.push(`/lead/${res.data.data._id}`);
                 }
             } catch (err) {
                 if (err.response?.status === 418) {
@@ -184,6 +189,8 @@ const AddLead = () => {
             isLoggedIn,
             user.state,
             loading,
+            router,
+            dispatch,
         ],
     );
 
@@ -352,7 +359,6 @@ const AddLead = () => {
                                             options={sources}
                                             onChange={onChange}
                                             optionLabel="name"
-                                            placeholder="Source"
                                             disabled={loading}
                                         />
                                         <label htmlFor="source">Lead Source</label>
@@ -368,7 +374,6 @@ const AddLead = () => {
                                             options={types}
                                             onChange={onChange}
                                             optionLabel="name"
-                                            placeholder="Type"
                                             disabled={loading}
                                         />
                                         <label htmlFor="type">Lead Type</label>
@@ -384,7 +389,6 @@ const AddLead = () => {
                                             options={categories}
                                             onChange={onChange}
                                             optionLabel="label"
-                                            placeholder="Category"
                                             disabled={loading}
                                         />
                                         <label htmlFor="category">Lead Category</label>

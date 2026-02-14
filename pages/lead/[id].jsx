@@ -50,6 +50,9 @@ const Calendar = dynamic(() => import('primereact/calendar').then((mod) => mod.C
 const Dropdown = dynamic(() => import('primereact/dropdown').then((mod) => mod.Dropdown), {
     ssr: false,
 });
+const Checkbox = dynamic(() => import('primereact/checkbox').then((mod) => mod.Checkbox), {
+    ssr: false,
+});
 
 // IRG Components
 import MainLayout from '../../components/layout/MainLayout';
@@ -91,6 +94,15 @@ const Lead = () => {
     const [reminderType, setReminderType] = useState('general');
     const [reminderDescription, setReminderDescription] = useState('');
     const [savingReminder, setSavingReminder] = useState(false);
+
+    // Transfer lead state
+    const [showTransferLeadDialog, setShowTransferLeadDialog] = useState(false);
+    const [agents, setAgents] = useState([]);
+    const [selectedAgent, setSelectedAgent] = useState(null);
+    const [notifyAgent, setNotifyAgent] = useState(false);
+    const [transferNote, setTransferNote] = useState('');
+    const [transferring, setTransferring] = useState(false);
+    const [loadingAgents, setLoadingAgents] = useState(false);
 
     const router = useRouter();
 
@@ -495,6 +507,75 @@ const Lead = () => {
         return phoneNumber;
     };
 
+    // Fetch agents for transfer when dialog opens
+    const fetchAgentsForTransfer = async () => {
+        setLoadingAgents(true);
+        try {
+            const response = await IrgApi.get('/agents/agents-for-transfer', {
+                headers: { Authorization: `Bearer ${isLoggedIn}` },
+            });
+
+            if (response.data.status === 'success') {
+                // Format agents for dropdown
+                const formattedAgents = response.data.data.map((ag) => ({
+                    label: `${ag.name} - ${ag.title}`,
+                    value: ag._id,
+                    ...ag,
+                }));
+                setAgents(formattedAgents);
+            }
+        } catch (error) {
+            console.error('Error fetching agents:', error);
+            showToast('error', 'Failed to load agents', 'Error');
+        } finally {
+            setLoadingAgents(false);
+        }
+    };
+
+    // Handle opening transfer dialog
+    const handleOpenTransferDialog = () => {
+        setShowTransferLeadDialog(true);
+        fetchAgentsForTransfer();
+    };
+
+    // Handle transferring the lead
+    const handleTransferLead = async () => {
+        if (!selectedAgent) {
+            showToast('warn', 'Please select an agent to transfer to', 'Missing Information');
+            return;
+        }
+
+        setTransferring(true);
+        try {
+            const response = await IrgApi.post(
+                '/agents/transfer-lead',
+                {
+                    leadId: lead._id,
+                    newAgentId: selectedAgent,
+                    note: transferNote,
+                    notifyAgent: notifyAgent,
+                },
+                {
+                    headers: { Authorization: `Bearer ${isLoggedIn}` },
+                }
+            );
+
+            if (response.data.status === 'success') {
+                setLead(response.data.data);
+                setShowTransferLeadDialog(false);
+                setSelectedAgent(null);
+                setNotifyAgent(false);
+                setTransferNote('');
+                showToast('success', 'Lead has been successfully transferred', 'Lead Transferred');
+            }
+        } catch (error) {
+            console.error('Error transferring lead:', error);
+            showToast('error', 'Failed to transfer lead. Please try again.', 'Error');
+        } finally {
+            setTransferring(false);
+        }
+    };
+
     return (
         <MainLayout>
             <div className="lead-profile-page">
@@ -592,7 +673,13 @@ const Lead = () => {
                                 <SplitButton
                                     label="Change Status"
                                     model={items}
-                                    className="p-button-rounded"
+                                    className="p-button-rounded mr-2"
+                                />
+                                <Button
+                                    icon="pi pi-user-plus"
+                                    label="Transfer Lead"
+                                    className="p-button-rounded p-button-warning"
+                                    onClick={handleOpenTransferDialog}
                                 />
                             </div>
                         </div>
@@ -1559,6 +1646,116 @@ const Lead = () => {
                                 Add notes about what you need to do or discuss with {lead?.first_name}
                             </small>
                         </div>
+                    </div>
+                </Dialog>
+
+                {/* Transfer Lead Dialog */}
+                <Dialog
+                    header="Transfer Lead"
+                    visible={showTransferLeadDialog}
+                    style={{ width: '600px' }}
+                    onHide={() => {
+                        setShowTransferLeadDialog(false);
+                        setSelectedAgent(null);
+                        setNotifyAgent(false);
+                        setTransferNote('');
+                    }}
+                    footer={
+                        <div>
+                            <Button
+                                label="Cancel"
+                                icon="pi pi-times"
+                                onClick={() => {
+                                    setShowTransferLeadDialog(false);
+                                    setSelectedAgent(null);
+                                    setNotifyAgent(false);
+                                    setTransferNote('');
+                                }}
+                                className="p-button-text"
+                            />
+                            <Button
+                                label="Transfer Lead"
+                                icon="pi pi-user-plus"
+                                onClick={handleTransferLead}
+                                loading={transferring}
+                                disabled={!selectedAgent}
+                                className="p-button-warning"
+                            />
+                        </div>
+                    }
+                >
+                    <div style={{ padding: '1rem 0' }}>
+                        {/* Agent Selection Dropdown */}
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <label
+                                htmlFor="select-agent"
+                                style={{
+                                    display: 'block',
+                                    marginBottom: '0.5rem',
+                                    fontWeight: '600',
+                                    color: '#495057'
+                                }}
+                            >
+                                Select Agent *
+                            </label>
+                            <Dropdown
+                                id="select-agent"
+                                value={selectedAgent}
+                                options={agents}
+                                onChange={(e) => setSelectedAgent(e.value)}
+                                placeholder={loadingAgents ? 'Loading agents...' : 'Select an agent to transfer to'}
+                                style={{ width: '100%' }}
+                                disabled={loadingAgents}
+                                filter
+                                filterPlaceholder="Search agents..."
+                            />
+                            <small style={{ display: 'block', marginTop: '0.25rem', color: '#6c757d' }}>
+                                Choose the agent who will take over this lead
+                            </small>
+                        </div>
+
+                        {/* Notify Agent Checkbox */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                            <Checkbox
+                                inputId="notify-agent"
+                                checked={notifyAgent}
+                                onChange={(e) => setNotifyAgent(e.checked)}
+                            />
+                            <label
+                                htmlFor="notify-agent"
+                                style={{ fontWeight: '600', cursor: 'pointer', color: '#495057' }}
+                            >
+                                Notify Agent
+                            </label>
+                        </div>
+
+                        {/* Transfer Note (conditional) */}
+                        {notifyAgent && (
+                            <div>
+                                <label
+                                    htmlFor="transfer-note"
+                                    style={{
+                                        display: 'block',
+                                        marginBottom: '0.5rem',
+                                        fontWeight: '600',
+                                        color: '#495057'
+                                    }}
+                                >
+                                    Note to Agent (Optional)
+                                </label>
+                                <InputTextarea
+                                    id="transfer-note"
+                                    value={transferNote}
+                                    onChange={(e) => setTransferNote(e.target.value)}
+                                    rows={5}
+                                    placeholder="Add a note for the new agent..."
+                                    style={{ width: '100%', fontFamily: 'inherit' }}
+                                />
+                                <small style={{ display: 'block', marginTop: '0.5rem', color: '#6c757d' }}>
+                                    This note will be sent to the agent when you transfer the lead (functionality coming soon)
+                                </small>
+                            </div>
+                        )}
                     </div>
                 </Dialog>
             </div>
