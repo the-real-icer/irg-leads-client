@@ -3,6 +3,9 @@ import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
 
+// Quill Editor Styles
+import 'react-quill-new/dist/quill.snow.css';
+
 // Redux
 import {
     useSelector,
@@ -52,6 +55,13 @@ const Dropdown = dynamic(() => import('primereact/dropdown').then((mod) => mod.D
 });
 const Checkbox = dynamic(() => import('primereact/checkbox').then((mod) => mod.Checkbox), {
     ssr: false,
+});
+const InputText = dynamic(() => import('primereact/inputtext').then((mod) => mod.InputText), {
+    ssr: false,
+});
+const ReactQuill = dynamic(() => import('react-quill-new'), {
+    ssr: false,
+    loading: () => <p>Loading editor...</p>,
 });
 
 // IRG Components
@@ -104,6 +114,45 @@ const Lead = () => {
     const [transferring, setTransferring] = useState(false);
     const [loadingAgents, setLoadingAgents] = useState(false);
 
+    // Send Email state
+    const [showSendEmailDialog, setShowSendEmailDialog] = useState(false);
+    const [emailSubject, setEmailSubject] = useState('');
+    const [emailBody, setEmailBody] = useState('');
+    const [sendingEmail, setSendingEmail] = useState(false);
+
+    // Add to Google Contacts state
+    const [addingToContacts, setAddingToContacts] = useState(false);
+
+    // Quill Editor Configuration
+    const quillModules = {
+        toolbar: [
+            [{ header: [1, 2, 3, false] }],
+            [{ size: ['small', false, 'large', 'huge'] }],
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ color: [] }, { background: [] }],
+            [{ list: 'ordered' }, { list: 'bullet' }],
+            [{ align: [] }],
+            ['link'],
+            ['clean'],
+            // Placeholder for signature button - will be added later
+        ],
+    };
+
+    const quillFormats = [
+        'header',
+        'size',
+        'bold',
+        'italic',
+        'underline',
+        'strike',
+        'color',
+        'background',
+        'list',
+        'bullet',
+        'align',
+        'link',
+    ];
+
     const router = useRouter();
 
     const leadId = router.asPath.replace(/\/lead\//, '');
@@ -140,7 +189,7 @@ const Lead = () => {
 
         setLoadingEmails(true);
         try {
-            const response = await IrgApi.get(`/gmail/emails/${encodeURIComponent(lead.email)}`, {
+            const response = await IrgApi.get(`/google/gmail/emails/${encodeURIComponent(lead.email)}`, {
                 headers: { Authorization: `Bearer ${isLoggedIn}` },
             });
 
@@ -152,7 +201,10 @@ const Lead = () => {
                 setEmails(sortedEmails);
             }
         } catch (error) {
-            console.error('Error fetching emails:', error); // eslint-disable-line
+            // Silently fail if Google is not connected
+            if (error.response?.status !== 401) {
+                console.error('Error fetching emails:', error);
+            }
             setEmails([]);
         } finally {
             setLoadingEmails(false);
@@ -377,6 +429,39 @@ const Lead = () => {
         });
     };
 
+    // Get last contacted text from calls and emails
+    const getLastContactedText = () => {
+        const actions = lead?.agent_actions || [];
+        const contactActions = actions.filter(
+            (action) => action.type === 'call' || action.type === 'email'
+        );
+
+        if (contactActions.length === 0) {
+            return 'Not Contacted Yet';
+        }
+
+        // Sort by date_created descending (most recent first)
+        const sortedActions = contactActions.sort((a, b) => {
+            const dateA = new Date(a.date_created);
+            const dateB = new Date(b.date_created);
+            return dateB - dateA;
+        });
+
+        const mostRecent = sortedActions[0];
+        const contactDate = new Date(mostRecent.date_created);
+        const now = new Date();
+        const diffMs = now - contactDate;
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 0) {
+            return 'Today';
+        } else if (diffDays === 1) {
+            return '1 day ago';
+        } else {
+            return `${diffDays} days ago`;
+        }
+    };
+
     // Handle adding a reminder
     const handleAddReminder = async () => {
         if (!reminderDate || !reminderDescription.trim()) {
@@ -475,6 +560,112 @@ const Lead = () => {
                 const dateB = new Date(b.reminder_date);
                 return dateA - dateB;
             });
+    };
+
+    // Handle sending email through Gmail
+    const handleSendEmail = async () => {
+        if (!emailSubject.trim()) {
+            showToast('warn', 'Please enter an email subject', 'Missing Subject');
+            return;
+        }
+
+        // Strip HTML tags to check if there's actual content
+        const strippedBody = emailBody.replace(/<[^>]*>/g, '').trim();
+        if (!strippedBody) {
+            showToast('warn', 'Please enter email content', 'Missing Content');
+            return;
+        }
+
+        if (!lead.email) {
+            showToast('error', 'This lead does not have an email address', 'No Email');
+            return;
+        }
+
+        setSendingEmail(true);
+
+        try {
+            // Send email through Gmail API
+            const response = await IrgApi.post(
+                '/google/gmail/send',
+                {
+                    to: lead.email,
+                    subject: emailSubject,
+                    body: emailBody, // Rich HTML content from Quill editor
+                    leadId: lead._id,
+                },
+                {
+                    headers: { Authorization: `Bearer ${isLoggedIn}` },
+                }
+            );
+
+            if (response.data.status === 'success') {
+                showToast('success', `Email sent successfully to ${lead.first_name}!`, 'Success');
+                setEmailSubject('');
+                setEmailBody('');
+                setShowSendEmailDialog(false);
+
+                // Refresh lead data to show new email in agent actions
+                const updatedLead = await IrgApi.post(
+                    '/users/user',
+                    { _id: lead._id },
+                    { headers: { Authorization: `Bearer ${isLoggedIn}` } }
+                );
+                if (updatedLead.data.status === 'success') {
+                    setLead(updatedLead.data.data);
+                }
+            }
+        } catch (error) {
+            console.error('Error sending email:', error);
+
+            // Check if it's an authorization error (Google not connected)
+            if (error.response?.status === 401) {
+                showToast(
+                    'error',
+                    'Please connect your Google account in Settings to send emails',
+                    'Google Not Connected'
+                );
+            } else {
+                showToast('error', 'Failed to send email. Please try again.', 'Error');
+            }
+        } finally {
+            setSendingEmail(false);
+        }
+    };
+
+    // Handle adding lead to Google Contacts
+    const handleAddToGoogleContacts = async () => {
+        setAddingToContacts(true);
+
+        try {
+            const response = await IrgApi.post(
+                '/google/contacts/add',
+                {
+                    leadId: lead._id,
+                },
+                {
+                    headers: { Authorization: `Bearer ${isLoggedIn}` },
+                }
+            );
+
+            if (response.data.status === 'success') {
+                showToast('success', `${lead.first_name} ${lead.last_name} added to Google Contacts!`, 'Success');
+            }
+        } catch (error) {
+            console.error('Error adding to Google Contacts:', error);
+
+            // Check if it's an authorization error (Google not connected)
+            if (error.response?.status === 401) {
+                showToast(
+                    'error',
+                    'Please connect your Google account in Settings to add contacts',
+                    'Google Not Connected'
+                );
+            } else {
+                showToast('error', 'Failed to add to Google Contacts. Please try again.', 'Error');
+            }
+        } finally {
+            setAddingToContacts(false);
+        }
     };
 
     // Check if there's an upcoming reminder (within next 7 days)
@@ -799,7 +990,7 @@ const Lead = () => {
                                 <div className="stat-content">
                                     <i className="pi pi-comment stat-icon"></i>
                                     <div className="stat-details">
-                                        <span className="stat-value">3 days ago</span>
+                                        <span className="stat-value">{getLastContactedText()}</span>
                                         <span className="stat-label">Last Contacted</span>
                                     </div>
                                 </div>
@@ -1001,12 +1192,26 @@ const Lead = () => {
                                     label="Send An Email"
                                     icon="pi pi-envelope"
                                     className="p-button-info"
-                                    disabled
+                                    onClick={() => setShowSendEmailDialog(true)}
                                     style={{
                                         padding: '0.75rem 1.5rem',
                                         fontSize: '1rem',
                                         fontWeight: '600'
                                     }}
+                                />
+                                <Button
+                                    label="Add to Google Contacts"
+                                    icon="pi pi-user-plus"
+                                    className="p-button-help"
+                                    onClick={handleAddToGoogleContacts}
+                                    loading={addingToContacts}
+                                    style={{
+                                        padding: '0.75rem 1.5rem',
+                                        fontSize: '1rem',
+                                        fontWeight: '600'
+                                    }}
+                                    tooltip="Add this lead to your Google Contacts"
+                                    tooltipOptions={{ position: 'bottom' }}
                                 />
                             </div>
                         </div>
@@ -1527,6 +1732,121 @@ const Lead = () => {
                         <small style={{ display: 'block', marginTop: '0.5rem', color: '#6c757d' }}>
                             Add important information or observations about {lead?.first_name}
                         </small>
+                    </div>
+                </Dialog>
+
+                {/* Send Email Dialog */}
+                <Dialog
+                    header="Send An Email"
+                    visible={showSendEmailDialog}
+                    style={{ width: '700px' }}
+                    onHide={() => {
+                        setShowSendEmailDialog(false);
+                        setEmailSubject('');
+                        setEmailBody('');
+                    }}
+                    footer={
+                        <div>
+                            <Button
+                                label="Cancel"
+                                icon="pi pi-times"
+                                onClick={() => {
+                                    setShowSendEmailDialog(false);
+                                    setEmailSubject('');
+                                    setEmailBody('');
+                                }}
+                                className="p-button-text"
+                            />
+                            <Button
+                                label="Send"
+                                icon="pi pi-send"
+                                onClick={handleSendEmail}
+                                loading={sendingEmail}
+                                className="p-button-success"
+                            />
+                        </div>
+                    }
+                >
+                    <div style={{ padding: '1rem 0' }}>
+                        {/* To Field (Read-only) */}
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <label
+                                htmlFor="email-to"
+                                style={{
+                                    display: 'block',
+                                    marginBottom: '0.5rem',
+                                    fontWeight: '600',
+                                    color: '#495057'
+                                }}
+                            >
+                                To
+                            </label>
+                            <InputText
+                                id="email-to"
+                                value={lead?.email || ''}
+                                disabled
+                                style={{
+                                    width: '100%',
+                                    backgroundColor: '#f8f9fa',
+                                    cursor: 'not-allowed'
+                                }}
+                            />
+                        </div>
+
+                        {/* Subject Field */}
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <label
+                                htmlFor="email-subject"
+                                style={{
+                                    display: 'block',
+                                    marginBottom: '0.5rem',
+                                    fontWeight: '600',
+                                    color: '#495057'
+                                }}
+                            >
+                                Subject
+                            </label>
+                            <InputText
+                                id="email-subject"
+                                value={emailSubject}
+                                onChange={(e) => setEmailSubject(e.target.value)}
+                                placeholder="Enter email subject..."
+                                style={{ width: '100%' }}
+                                autoFocus
+                            />
+                        </div>
+
+                        {/* Body Field */}
+                        <div>
+                            <label
+                                htmlFor="email-body"
+                                style={{
+                                    display: 'block',
+                                    marginBottom: '0.5rem',
+                                    fontWeight: '600',
+                                    color: '#495057'
+                                }}
+                            >
+                                Message
+                            </label>
+                            <div style={{ marginBottom: '0.5rem' }}>
+                                <ReactQuill
+                                    theme="snow"
+                                    value={emailBody}
+                                    onChange={setEmailBody}
+                                    modules={quillModules}
+                                    formats={quillFormats}
+                                    placeholder="Compose your email message..."
+                                    style={{
+                                        height: '300px',
+                                        marginBottom: '50px',
+                                    }}
+                                />
+                            </div>
+                            <small style={{ display: 'block', marginTop: '0.5rem', color: '#6c757d' }}>
+                                This email will be sent to {lead?.first_name} {lead?.last_name} at {lead?.email}
+                            </small>
+                        </div>
                     </div>
                 </Dialog>
 

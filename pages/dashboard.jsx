@@ -156,7 +156,7 @@ const Dashboard = () => {
                                                               ).toLocaleString()}`
                                                             : 'N/A'}
                                                     </div>
-                                                    <div>
+                                                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                                                         <span
                                                             style={{
                                                                 padding: '0.25rem 0.75rem',
@@ -174,6 +174,25 @@ const Dashboard = () => {
                                                         >
                                                             {lead.backend_profile?.lead_category || 'New'}
                                                         </span>
+                                                        {hasUpcomingReminder(lead) && (
+                                                            <span
+                                                                style={{
+                                                                    padding: '0.25rem 0.75rem',
+                                                                    borderRadius: '6px',
+                                                                    fontSize: '0.75rem',
+                                                                    fontWeight: '600',
+                                                                    background: '#fff3cd',
+                                                                    color: '#856404',
+                                                                    border: '1px solid #ffc107',
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    gap: '0.25rem',
+                                                                }}
+                                                            >
+                                                                <i className="pi pi-clock" style={{ fontSize: '0.65rem' }}></i>
+                                                                Follow Up Soon
+                                                            </span>
+                                                        )}
                                                     </div>
                                                 </div>
                                                 <div
@@ -289,6 +308,25 @@ const getStatusColor = (status) => {
         default:
             return { bg: '#e9ecef', text: '#495057' };
     }
+};
+
+// Helper function to check if lead has upcoming reminder (within next 7 days)
+const hasUpcomingReminder = (lead) => {
+    if (!lead.reminders || lead.reminders.length === 0) return false;
+
+    const now = new Date();
+    const oneWeekFromNow = new Date();
+    oneWeekFromNow.setDate(now.getDate() + 7);
+
+    return lead.reminders.some((reminder) => {
+        // Skip completed reminders
+        if (reminder.completed) return false;
+
+        const reminderDate = new Date(reminder.reminder_date);
+
+        // Check if reminder is between now and 7 days from now
+        return reminderDate >= now && reminderDate <= oneWeekFromNow;
+    });
 };
 
 // Helper function to format last visit time
