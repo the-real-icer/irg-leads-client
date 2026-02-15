@@ -217,8 +217,30 @@ const GoogleConnectButton = () => {
     // Detect if user is on mobile device
     const isMobileDevice = () => {
         if (typeof window === 'undefined') return false;
-        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-               window.innerWidth <= 768;
+
+        // Check user agent
+        const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+        // Check screen size (mobile devices are typically <= 768px wide)
+        const isMobileWidth = window.innerWidth <= 768;
+
+        // Also check if it's a touch device
+        const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+        // Mobile if it matches UA OR (small width AND touch)
+        const isMobile = isMobileUA || (isMobileWidth && isTouchDevice);
+
+        // Debug logging
+        console.log('Mobile detection:', {
+            userAgent: navigator.userAgent,
+            isMobileUA,
+            width: window.innerWidth,
+            isMobileWidth,
+            isTouchDevice,
+            finalDecision: isMobile
+        });
+
+        return isMobile;
     };
 
     // Handle Google Connect
@@ -237,18 +259,32 @@ const GoogleConnectButton = () => {
                 const authUrl = response.data.data.authUrl;
 
                 // On mobile or if popup is not supported, use redirect flow
-                if (isMobileDevice()) {
+                const isMobile = isMobileDevice();
+                console.log('OAuth flow decision:', isMobile ? 'MOBILE (redirect)' : 'DESKTOP (popup)');
+
+                if (isMobile) {
                     // Set flag in localStorage to track OAuth flow
                     if (typeof window !== 'undefined') {
                         window.localStorage.setItem('google_oauth_in_progress', 'true');
                     }
 
-                    // Redirect to Google OAuth (same tab)
-                    window.location.href = authUrl;
+                    console.log('Using mobile redirect flow to:', authUrl);
+
+                    // Mobile browsers block redirects after async operations
+                    // Use anchor click to preserve user gesture context
+                    const anchor = document.createElement('a');
+                    anchor.href = authUrl;
+                    anchor.target = '_self'; // Same tab
+                    anchor.rel = 'noopener noreferrer';
+                    document.body.appendChild(anchor);
+                    anchor.click();
+                    document.body.removeChild(anchor);
                     return;
                 }
 
                 // Desktop: Use popup flow
+                console.log('Using desktop popup flow');
+
                 const width = 600;
                 const height = 700;
                 const left = window.screenX + (window.outerWidth - width) / 2;
@@ -260,6 +296,8 @@ const GoogleConnectButton = () => {
                     `width=${width},height=${height},left=${left},top=${top}`
                 );
 
+                console.log('Popup opened:', popup ? 'SUCCESS' : 'BLOCKED');
+
                 // Check if popup was blocked
                 if (!popup || popup.closed || typeof popup.closed === 'undefined') {
                     // Popup was blocked, fall back to redirect flow
@@ -269,8 +307,15 @@ const GoogleConnectButton = () => {
                         window.localStorage.setItem('google_oauth_in_progress', 'true');
                     }
 
+                    // Use anchor click for better mobile/popup blocker compatibility
                     setTimeout(() => {
-                        window.location.href = authUrl;
+                        const anchor = document.createElement('a');
+                        anchor.href = authUrl;
+                        anchor.target = '_self';
+                        anchor.rel = 'noopener noreferrer';
+                        document.body.appendChild(anchor);
+                        anchor.click();
+                        document.body.removeChild(anchor);
                     }, 1500);
                     return;
                 }
