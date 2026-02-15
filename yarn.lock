@@ -117,12 +117,41 @@
   resolved "https://registry.npmjs.org/@fullcalendar/interaction/-/interaction-6.1.20.tgz"
   integrity sha512-p6txmc5txL0bMiPaJxe2ip6o0T384TyoD2KGdsU6UjZ5yoBlaY+dg7kxfnYKpYMzEJLG58n+URrHr2PgNL2fyA==
 
+"@fullcalendar/premium-common@~6.1.20":
+  version "6.1.20"
+  resolved "https://registry.npmjs.org/@fullcalendar/premium-common/-/premium-common-6.1.20.tgz"
+  integrity sha512-rT+AitNnRyZuFEtYvsB1OJ2g1Bq2jmTR6qdn/dEU6LwkIj/4L499goLtMOena/JyJ31VBztdHrccX//36QrY3w==
+
 "@fullcalendar/react@^6.1.20":
   version "6.1.20"
   resolved "https://registry.npmjs.org/@fullcalendar/react/-/react-6.1.20.tgz"
   integrity sha512-1w0pZtceaUdfAnxMSCGHCQalhi+mR1jOe76sXzyAXpcPz/Lf0zHSdcGK/U2XpZlnQgQtBZW+d+QBnnzVQKCxAA==
 
-"@fullcalendar/timegrid@^6.1.20":
+"@fullcalendar/resource-daygrid@~6.1.20":
+  version "6.1.20"
+  resolved "https://registry.npmjs.org/@fullcalendar/resource-daygrid/-/resource-daygrid-6.1.20.tgz"
+  integrity sha512-g1rhNsTiGyx6U/01MCjRjQfpmkHpJABoTLS9TR2jcMa7X0SJd2xNd88phoMhIkYdfp+cZ29VOjhwN+3Xg6aohg==
+  dependencies:
+    "@fullcalendar/daygrid" "~6.1.20"
+    "@fullcalendar/premium-common" "~6.1.20"
+
+"@fullcalendar/resource-timegrid@^6.1.20":
+  version "6.1.20"
+  resolved "https://registry.npmjs.org/@fullcalendar/resource-timegrid/-/resource-timegrid-6.1.20.tgz"
+  integrity sha512-uMf9ERh1c/WeYHg5CPNGxYorkamDzfwUh2o9XS+9fR+KypIIovH1ArflOZF42XFsdrvQx61vDF0alt6/cOqT8Q==
+  dependencies:
+    "@fullcalendar/premium-common" "~6.1.20"
+    "@fullcalendar/resource-daygrid" "~6.1.20"
+    "@fullcalendar/timegrid" "~6.1.20"
+
+"@fullcalendar/resource@^6.1.20":
+  version "6.1.20"
+  resolved "https://registry.yarnpkg.com/@fullcalendar/resource/-/resource-6.1.20.tgz#5cc60c3e28956c6ed8e62fc01482d2265d23ab70"
+  integrity sha512-vpQs1eYJbc1zGOzF3obVVr+XsHTMTG7STKVQBEGy3AeFgfosRkUz+3DUawmy98vSjJUYOAQHO+pWW0ek0n5g0w==
+  dependencies:
+    "@fullcalendar/premium-common" "~6.1.20"
+
+"@fullcalendar/timegrid@^6.1.20", "@fullcalendar/timegrid@~6.1.20":
   version "6.1.20"
   resolved "https://registry.npmjs.org/@fullcalendar/timegrid/-/timegrid-6.1.20.tgz"
   integrity sha512-4H+/MWbz3ntA50lrPif+7TsvMeX3R1GSYjiLULz0+zEJ7/Yfd9pupZmAwUs/PBpA6aAcFmeRr0laWfcz1a9V1A==
