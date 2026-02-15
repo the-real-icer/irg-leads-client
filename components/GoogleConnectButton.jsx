@@ -38,18 +38,41 @@ const GoogleConnectButton = () => {
 
     // Handle OAuth callback on mount
     useEffect(() => {
-        if (!isMounted || !isLoggedIn || hasHandledCallback.current) return;
+        if (!isMounted || !isLoggedIn) return;
 
         const { google_auth } = router.query;
+
+        // Check if we just completed OAuth flow (from localStorage flag)
+        const oauthInProgress = typeof window !== 'undefined' && window.localStorage.getItem('google_oauth_in_progress');
+
         if (google_auth === 'success') {
-            hasHandledCallback.current = true;
-            showToast('success', 'Google account connected successfully!', 'Connected');
-            router.replace('/profile', undefined, { shallow: true });
-            checkConnectionStatus();
+            if (!hasHandledCallback.current) {
+                hasHandledCallback.current = true;
+                showToast('success', 'Google account connected successfully!', 'Connected');
+                checkConnectionStatus();
+
+                // Clean up URL and localStorage
+                if (typeof window !== 'undefined') {
+                    window.localStorage.removeItem('google_oauth_in_progress');
+                }
+                router.replace('/profile', undefined, { shallow: true });
+            }
         } else if (google_auth === 'failed') {
-            hasHandledCallback.current = true;
-            showToast('error', 'Failed to connect Google account. Please try again.', 'Connection Failed');
-            router.replace('/profile', undefined, { shallow: true });
+            if (!hasHandledCallback.current) {
+                hasHandledCallback.current = true;
+                showToast('error', 'Failed to connect Google account. Please try again.', 'Connection Failed');
+
+                // Clean up localStorage
+                if (typeof window !== 'undefined') {
+                    window.localStorage.removeItem('google_oauth_in_progress');
+                }
+                router.replace('/profile', undefined, { shallow: true });
+            }
+        } else if (oauthInProgress && !google_auth) {
+            // OAuth was in progress but no callback received - clean up
+            if (typeof window !== 'undefined') {
+                window.localStorage.removeItem('google_oauth_in_progress');
+            }
         }
     }, [isMounted, isLoggedIn, router.query.google_auth]); // eslint-disable-line
 
@@ -58,6 +81,47 @@ const GoogleConnectButton = () => {
         if (!isMounted || !isLoggedIn) return;
         checkConnectionStatus();
     }, [isMounted, isLoggedIn]); // eslint-disable-line
+
+    // Listen for messages from OAuth popup/redirect
+    useEffect(() => {
+        if (!isMounted) return;
+
+        const handleMessage = (event) => {
+            // Verify message origin for security
+            const allowedOrigins = [
+                window.location.origin,
+                process.env.NEXT_PUBLIC_IRG_API_URL,
+                'http://localhost:2000',
+                'http://localhost:4000'
+            ];
+
+            if (!allowedOrigins.some(origin => event.origin.includes(origin))) {
+                return;
+            }
+
+            // Handle OAuth callback message
+            if (event.data.type === 'google_oauth_success') {
+                if (!hasHandledCallback.current) {
+                    hasHandledCallback.current = true;
+                    showToast('success', 'Google account connected successfully!', 'Connected');
+                    setProcessing(false);
+                    checkConnectionStatus();
+                }
+            } else if (event.data.type === 'google_oauth_failed') {
+                if (!hasHandledCallback.current) {
+                    hasHandledCallback.current = true;
+                    showToast('error', 'Failed to connect Google account. Please try again.', 'Connection Failed');
+                    setProcessing(false);
+                }
+            }
+        };
+
+        window.addEventListener('message', handleMessage);
+
+        return () => {
+            window.removeEventListener('message', handleMessage);
+        };
+    }, [isMounted]); // eslint-disable-line
 
     // Check if Google account is connected
     const checkConnectionStatus = async () => {
@@ -150,8 +214,17 @@ const GoogleConnectButton = () => {
         });
     };
 
+    // Detect if user is on mobile device
+    const isMobileDevice = () => {
+        if (typeof window === 'undefined') return false;
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+               window.innerWidth <= 768;
+    };
+
     // Handle Google Connect
     const handleConnect = async () => {
+        // Reset callback handler for new OAuth flow
+        hasHandledCallback.current = false;
         setProcessing(true);
 
         try {
@@ -163,7 +236,19 @@ const GoogleConnectButton = () => {
             if (response.data.status === 'success') {
                 const authUrl = response.data.data.authUrl;
 
-                // Open OAuth popup
+                // On mobile or if popup is not supported, use redirect flow
+                if (isMobileDevice()) {
+                    // Set flag in localStorage to track OAuth flow
+                    if (typeof window !== 'undefined') {
+                        window.localStorage.setItem('google_oauth_in_progress', 'true');
+                    }
+
+                    // Redirect to Google OAuth (same tab)
+                    window.location.href = authUrl;
+                    return;
+                }
+
+                // Desktop: Use popup flow
                 const width = 600;
                 const height = 700;
                 const left = window.screenX + (window.outerWidth - width) / 2;
@@ -175,16 +260,53 @@ const GoogleConnectButton = () => {
                     `width=${width},height=${height},left=${left},top=${top}`
                 );
 
-                // Poll for popup closure and check connection status
+                // Check if popup was blocked
+                if (!popup || popup.closed || typeof popup.closed === 'undefined') {
+                    // Popup was blocked, fall back to redirect flow
+                    showToast('warn', 'Popup blocked. Redirecting to Google...', 'Notice');
+
+                    if (typeof window !== 'undefined') {
+                        window.localStorage.setItem('google_oauth_in_progress', 'true');
+                    }
+
+                    setTimeout(() => {
+                        window.location.href = authUrl;
+                    }, 1500);
+                    return;
+                }
+
+                // Poll for popup closure with timeout
+                let pollCount = 0;
+                const maxPolls = 600; // 5 minutes (600 * 500ms = 300s)
+
                 const pollInterval = setInterval(() => {
-                    if (popup.closed) {
+                    pollCount++;
+
+                    // Check if polling has timed out
+                    if (pollCount >= maxPolls) {
                         clearInterval(pollInterval);
                         setProcessing(false);
+                        showToast('warn', 'Authorization timed out. Please try again.', 'Timeout');
+                        if (popup && !popup.closed) {
+                            popup.close();
+                        }
+                        return;
+                    }
 
-                        // Check if connection was successful
-                        setTimeout(() => {
-                            checkConnectionStatus();
-                        }, 1000);
+                    // Check if popup is closed or no longer accessible
+                    try {
+                        if (!popup || popup.closed) {
+                            clearInterval(pollInterval);
+                            setProcessing(false);
+
+                            // Check if connection was successful after a short delay
+                            setTimeout(() => {
+                                checkConnectionStatus();
+                            }, 1000);
+                        }
+                    } catch (e) {
+                        // Cross-origin access error means popup navigated to Google - this is expected
+                        // Continue polling
                     }
                 }, 500);
             }
