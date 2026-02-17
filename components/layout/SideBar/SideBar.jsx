@@ -39,6 +39,11 @@ const SideBar = () => {
                             url="/transactions"
                             icon="pi pi-briefcase mr-2"
                         />
+                        <SideBarLink
+                            name="Drip Campaigns"
+                            url="/drip-campaigns"
+                            icon="pi pi-send mr-2"
+                        />
                         <li>
                                 <span className="block p-3 text-600">LEADS</span>
                         </li>

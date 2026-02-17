@@ -18,7 +18,6 @@ import {
     fetchAllAddresses,
     // fetchNewStories,
 } from '../../store/actions';
-import { fetchHotsheetHomes } from '../../store/actions/hotsheet';
 
 const MainLayout = (props) => {
     const { children } = props; // eslint-disable-line
@@ -29,7 +28,7 @@ const MainLayout = (props) => {
     // const selectedHomes = useSelector((state) => state.selectedHomes);
     const allLeadsPage = useSelector((state) => state.allLeadsPage);
     const irgAreas = useSelector((state) => state.irgAreas);
-    const hotsheet = useSelector((state) => state.hotsheet);
+
     const newProperties = useSelector((state) => state.newProperties);
 
     // _____________________Hooks_____________________\\
@@ -85,22 +84,6 @@ const MainLayout = (props) => {
         return () => clearTimeout(getIrgAddresses); //eslint-disable-line
     }, []); // eslint-disable-line
 
-    // ________________________Hotsheet Functions_______________\\
-    // Load initial Hotsheet homes
-    useEffect(() => {
-        if (hotsheet.initialHomes && hotsheet.initialHomes.length === 0) {
-            dispatch(
-                fetchHotsheetHomes({
-                    days: 3,
-                    city: '',
-                    county: 'san-diego',
-                    hood: '',
-                    zip: '',
-                    limit: 100,
-                })
-            );
-        }
-    }, []); //eslint-disable-line
 
     return (
         <React.Fragment>

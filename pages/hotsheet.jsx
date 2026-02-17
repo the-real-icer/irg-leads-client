@@ -1,259 +1,199 @@
-// React
-import { useEffect, useCallback, useRef, useState } from 'react';
+import { useEffect, useCallback, useRef, useState, useMemo } from 'react';
 import dynamic from 'next/dynamic';
-// Redux
 import { useSelector, useDispatch } from 'react-redux';
+import { useInterval } from 'react-use';
 
-// IRG Components
 import MainLayout from '../components/layout/MainLayout';
 import PrpCard from '../components/prpCard/PrpCard';
 import MapDialog from '@/components/Shared/MapDialog';
+
 const HotsheetDropdown = dynamic(() => import('../components/Hotsheet/HotsheetDropdown'), {
     ssr: false,
 });
-// const HotSheetMapDialog = dynamic(() => import('../components/Hotsheet/HotSheetMapDialog'), {
-//     ssr: false,
-// });
+const AutoComplete = dynamic(
+    () => import('primereact/autocomplete').then((mod) => mod.AutoComplete || mod.default),
+    { ssr: false },
+);
 
-// IRG API - HOOKS - INFO - UTILS
-import {
-    fetchHotsheetHomes,
-    changeCounty,
-    changeCity,
-    changeNeighborhood,
-    changeZipcode,
-    changeDaysBack,
-    changeLimit,
-    // fetchingHomes,
-} from '../store/actions/hotsheet';
+import { fetchHotsheetHomes, changeCounty } from '../store/actions/hotsheet';
 
-// Define default parameters outside the component
-const defaultParams = {
-    days: 3,
-    limit: 100,
-    county: 'san-diego',
-    city: '',
-    hood: '',
-    zip: '',
-};
+const countyOptions = [
+    { name: 'San Diego' },
+    { name: 'Orange' },
+    { name: 'Riverside' },
+    { name: 'Los Angeles' },
+    { name: 'San Bernardino' },
+];
+
+const numDaysBack = [
+    { name: 1 },
+    { name: 2 },
+    { name: 3 },
+    { name: 5 },
+    { name: 7 },
+    { name: 14 },
+    { name: 30 },
+];
+
+const limitOfHomes = [
+    { name: 10 },
+    { name: 15 },
+    { name: 20 },
+    { name: 25 },
+    { name: 50 },
+    { name: 100 },
+    { name: 200 },
+];
 
 const Hotsheet = () => {
-    // __________________Redux State______________________\\
-    const { county, city, neighborhood, zipcode, daysBack, limit, initialHomes, fetchingHomes, error } =
-        useSelector((state) => state.hotsheet);
-    const irgAreas = useSelector((state) => state.irgAreas);
-
-    // ________________Component State_________________\\
-    const [showMapDialog, setShowMapDialog] = useState(false);
-    const [selectedProperty, setSelectedProperty] = useState({})
-
-    // _____________________Hooks_____________________\\
+    const { county, initialHomes, fetchingHomes, error } = useSelector((state) => state.hotsheet);
     const dispatch = useDispatch();
-    const hasFetchedInitial = useRef(false); // Track initial fetch
+    const hasFetchedInitial = useRef(false);
 
-    // Open Map Dialog
+    // Local filter state (frontend-only, no API calls)
+    const [daysBack, setDaysBack] = useState(7);
+    const [limit, setLimit] = useState(100);
+    const [selectedFilters, setSelectedFilters] = useState([]);
+    const [suggestions, setSuggestions] = useState([]);
+
+    // Map dialog
+    const [showMapDialog, setShowMapDialog] = useState(false);
+    const [selectedProperty, setSelectedProperty] = useState({});
+
     const handleOpenMapDialog = (property) => {
         setShowMapDialog(true);
-        setSelectedProperty(property)
-    }
-
-    // Close Map Dialog
+        setSelectedProperty(property);
+    };
     const handleCloseMapDialog = () => {
         setShowMapDialog(false);
-        setSelectedProperty({})
-    }
+        setSelectedProperty({});
+    };
 
-    // Fetch homes with current parameters
-    const fetchHomes = useCallback(
-        (params, source) => {
-            console.log(`Fetching homes from ${source} with params:`, params); // eslint-disable-line
-            dispatch(fetchHotsheetHomes(params));
-        },
-        [dispatch],
-    );
-
-      // Fetch homes on mount
+    // _______________API Fetch (on mount + county change + every 3 min)_______________
     useEffect(() => {
-        if (!hasFetchedInitial.current && !initialHomes.length && !fetchingHomes) {
-            // console.log('Initial fetch triggered');
-            fetchHomes(defaultParams, 'initial');
-            // console.log('initialHomes:', initialHomes);
+        if (!hasFetchedInitial.current) {
+            dispatch(fetchHotsheetHomes(county));
             hasFetchedInitial.current = true;
         }
-    }, []);  // eslint-disable-line
+    }, []); // eslint-disable-line
 
-    // Helper to format string parameters
-    const formatStringParam = (value, defaultValue = '') => {
-        if (!value || value.startsWith('Select') || value === '# of Days Back' || value === '# of Homes') {
-            return defaultValue;
-        }
-        return value.toLowerCase().replace(/\s/g, '-');
-    };
+    // Auto-refresh every 3 minutes
+    useInterval(() => {
+        dispatch(fetchHotsheetHomes(county));
+    }, 3 * 60 * 1000);
 
-    // Helper to format numeric parameters
-    const formatNumericParam = (value, defaultValue) => {
-        if (!value || value === '# of Days Back' || value === '# of Homes') {
-            return defaultValue;
-        }
-        return Number(value) || defaultValue;
-    };
+    // Clear frontend filters when new data loads
+    useEffect(() => {
+        setSelectedFilters([]);
+    }, [initialHomes]);
 
-    // Event handlers with change check to prevent unnecessary fetches
-    const onCityChange = useCallback(
-        (e) => {
-            const value = e.value?.name || '';
-            if (value !== city) {
-                dispatch(changeCity(value));
-                const params = {
-                    ...defaultParams,
-                    county: formatStringParam(county, defaultParams.county),
-                    city: formatStringParam(value),
-                    hood: formatStringParam(neighborhood),
-                    zip: formatStringParam(zipcode),
-                    days: formatNumericParam(daysBack, defaultParams.days),
-                    limit: formatNumericParam(limit, defaultParams.limit),
-                };
-                fetchHomes(params, 'onCityChange');
-            }
-        },
-        [dispatch, fetchHomes, county, neighborhood, zipcode, daysBack, limit, city],
-    );
-
-    const onZipChange = useCallback(
-        (e) => {
-            const value = e.value?.name || '';
-            if (value !== zipcode) {
-                dispatch(changeZipcode(value));
-                const params = {
-                    ...defaultParams,
-                    county: formatStringParam(county, defaultParams.county),
-                    city: formatStringParam(city),
-                    hood: formatStringParam(neighborhood),
-                    zip: formatStringParam(value),
-                    days: formatNumericParam(daysBack, defaultParams.days),
-                    limit: formatNumericParam(limit, defaultParams.limit),
-                };
-                fetchHomes(params, 'onZipChange');
-            }
-        },
-        [dispatch, fetchHomes, county, city, neighborhood, daysBack, limit, zipcode],
-    );
-
-    const onHoodChange = useCallback(
-        (e) => {
-            const value = e.value?.name || '';
-            if (value !== neighborhood) {
-                dispatch(changeNeighborhood(value));
-                const params = {
-                    ...defaultParams,
-                    county: formatStringParam(county, defaultParams.county),
-                    city: formatStringParam(city),
-                    hood: formatStringParam(value),
-                    zip: formatStringParam(zipcode),
-                    days: formatNumericParam(daysBack, defaultParams.days),
-                    limit: formatNumericParam(limit, defaultParams.limit),
-                };
-                fetchHomes(params, 'onHoodChange');
-            }
-        },
-        [dispatch, fetchHomes, county, city, zipcode, daysBack, limit, neighborhood],
-    );
-
-    const onDaysChange = useCallback(
-        (e) => {
-            const value = String(e.value?.name ?? defaultParams.days);
-            if (value !== String(daysBack)) {
-                dispatch(changeDaysBack(Number(value) || defaultParams.days));
-                const params = {
-                    ...defaultParams,
-                    county: formatStringParam(county, defaultParams.county),
-                    city: formatStringParam(city),
-                    hood: formatStringParam(neighborhood),
-                    zip: formatStringParam(zipcode),
-                    days: formatNumericParam(value, defaultParams.days),
-                    limit: formatNumericParam(limit, defaultParams.limit),
-                };
-                fetchHomes(params, 'onDaysChange');
-            }
-        },
-        [dispatch, fetchHomes, county, city, neighborhood, zipcode, limit, daysBack],
-    );
-
-    const onLimitChange = useCallback(
-        (e) => {
-            const value = String(e.value?.name ?? defaultParams.limit);
-            if (value !== String(limit)) {
-                dispatch(changeLimit(Number(value) || defaultParams.limit));
-                const params = {
-                    ...defaultParams,
-                    county: formatStringParam(county, defaultParams.county),
-                    city: formatStringParam(city),
-                    hood: formatStringParam(neighborhood),
-                    zip: formatStringParam(zipcode),
-                    days: formatNumericParam(daysBack, defaultParams.days),
-                    limit: formatNumericParam(value, defaultParams.limit),
-                };
-                fetchHomes(params, 'onLimitChange');
-            }
-        },
-        [dispatch, fetchHomes, county, city, neighborhood, zipcode, daysBack, limit],
-    );
-
+    // _______________Dropdown Handlers_______________
     const onCountyChange = useCallback(
         (e) => {
             const value = e.value?.name || '';
-            if (value !== county) {
+            if (value && value !== county) {
                 dispatch(changeCounty(value));
-                const params = {
-                    ...defaultParams,
-                    county: formatStringParam(value, defaultParams.county),
-                    city: formatStringParam(city),
-                    hood: formatStringParam(neighborhood),
-                    zip: formatStringParam(zipcode),
-                    days: formatNumericParam(daysBack, defaultParams.days),
-                    limit: formatNumericParam(limit, defaultParams.limit),
-                };
-                fetchHomes(params, 'onCountyChange');
+                dispatch(fetchHotsheetHomes(value));
             }
         },
-        [dispatch, fetchHomes, city, neighborhood, zipcode, daysBack, limit, county],
+        [dispatch, county],
     );
 
-    // // Debug state changes
-    // useEffect(() => {
-    //     console.log('initialHomes:', initialHomes);
-    //     console.log('fetchingHomes:', fetchingHomes);
-    //     console.log('error:', error);
-    // }, [initialHomes, fetchingHomes, error]);
+    const onDaysChange = useCallback((e) => {
+        const value = Number(e.value?.name);
+        if (value) setDaysBack(value);
+    }, []);
 
-    const numDaysBack = [
-        { name: 1 },
-        { name: 2 },
-        { name: 3 },
-        { name: 4 },
-        { name: 5 },
-        { name: 6 },
-        { name: 7 },
-    ];
-    const limitOfHomes = [
-        { name: 50 },
-        { name: 100 },
-        { name: 150 },
-        { name: 200 },
-        { name: 250 },
-        { name: 300 },
-        { name: 500 },
-    ];
-    const countyOptions = [
-        { name: 'San Diego' },
-        { name: 'Orange' },
-        { name: 'Riverside' },
-        { name: 'Los Angeles' },
-    ];
+    const onLimitChange = useCallback((e) => {
+        const value = Number(e.value?.name);
+        if (value) setLimit(value);
+    }, []);
+
+    // _______________Autocomplete: Build suggestions from loaded properties_______________
+    const allFilterOptions = useMemo(() => {
+        if (!initialHomes.length) return [];
+        const citySet = new Set();
+        const zipSet = new Set();
+
+        initialHomes.forEach((home) => {
+            if (home.city) citySet.add(home.city);
+            if (home.zip_code) zipSet.add(home.zip_code);
+        });
+
+        const options = [];
+        [...citySet].sort().forEach((c) =>
+            options.push({ label: `City: ${c}`, type: 'city', value: c }),
+        );
+        [...zipSet].sort((a, b) => a - b).forEach((z) =>
+            options.push({ label: `Zip: ${z}`, type: 'zip', value: z }),
+        );
+        return options;
+    }, [initialHomes]);
+
+    const searchFilters = useCallback(
+        (event) => {
+            const query = (event.query || '').toLowerCase().trim();
+            if (!query) {
+                setSuggestions(allFilterOptions);
+                return;
+            }
+            const selectedLabels = new Set(selectedFilters.map((f) => f.label));
+            const filtered = allFilterOptions.filter(
+                (opt) => opt.label.toLowerCase().includes(query) && !selectedLabels.has(opt.label),
+            );
+            setSuggestions(filtered);
+        },
+        [allFilterOptions, selectedFilters],
+    );
+
+    const filterItemTemplate = (item) => (
+        <div className="hotsheet__suggestion">
+            <span className="hotsheet__suggestion-label">{item.label}</span>
+        </div>
+    );
+
+    // _______________Frontend Filtering (days + city/zip + limit)_______________
+    const displayedHomes = useMemo(() => {
+        const now = Date.now();
+        const cutoff = now - daysBack * 24 * 60 * 60 * 1000;
+
+        const selectedCities = selectedFilters.filter((f) => f.type === 'city').map((f) => f.value);
+        const selectedZips = selectedFilters.filter((f) => f.type === 'zip').map((f) => f.value);
+
+        const filtered = initialHomes.filter((home) => {
+            // Filter by days back
+            const created = new Date(home.date_created).getTime();
+            if (created < cutoff) return false;
+
+            // Filter by city/zip autocomplete
+            const matchesCity = !selectedCities.length || selectedCities.includes(home.city);
+            const matchesZip = !selectedZips.length || selectedZips.includes(home.zip_code);
+            return matchesCity && matchesZip;
+        });
+
+        return filtered.slice(0, limit);
+    }, [initialHomes, daysBack, limit, selectedFilters]);
+
+    // Total matching (before limit) for display
+    const totalMatching = useMemo(() => {
+        const now = Date.now();
+        const cutoff = now - daysBack * 24 * 60 * 60 * 1000;
+
+        const selectedCities = selectedFilters.filter((f) => f.type === 'city').map((f) => f.value);
+        const selectedZips = selectedFilters.filter((f) => f.type === 'zip').map((f) => f.value);
+
+        return initialHomes.filter((home) => {
+            const created = new Date(home.date_created).getTime();
+            if (created < cutoff) return false;
+            const matchesCity = !selectedCities.length || selectedCities.includes(home.city);
+            const matchesZip = !selectedZips.length || selectedZips.includes(home.zip_code);
+            return matchesCity && matchesZip;
+        }).length;
+    }, [initialHomes, daysBack, selectedFilters]);
 
     return (
         <MainLayout>
-            <MapDialog 
+            <MapDialog
                 showMapDialog={showMapDialog}
                 handleCloseMapDialog={handleCloseMapDialog}
                 property={selectedProperty}
@@ -261,51 +201,51 @@ const Hotsheet = () => {
             <div className="hotsheet">
                 <div className="hotsheet__container">
                     <div className="hotsheet__filters">
+                        <AutoComplete
+                            value={selectedFilters}
+                            suggestions={suggestions}
+                            completeMethod={searchFilters}
+                            onChange={(e) => setSelectedFilters(e.value)}
+                            itemTemplate={filterItemTemplate}
+                            field="label"
+                            placeholder={selectedFilters.length ? '' : 'Filter by city or zipcode...'}
+                            multiple
+                            className="hotsheet__search"
+                            panelClassName="hotsheet__search-panel"
+                            delay={100}
+                            minLength={0}
+                        />
                         <HotsheetDropdown
                             value={county}
                             options={countyOptions}
                             onChange={onCountyChange}
                         />
                         <HotsheetDropdown
-                            value={city}
-                            options={irgAreas.City}
-                            onChange={onCityChange}
-                        />
-                        <HotsheetDropdown
-                            value={zipcode}
-                            options={irgAreas.Zip}
-                            onChange={onZipChange}
-                        />
-                        <HotsheetDropdown
-                            value={neighborhood}
-                            options={irgAreas.Neighborhood}
-                            onChange={onHoodChange}
-                        />
-                        <HotsheetDropdown
-                            value={daysBack}
+                            value={String(daysBack)}
                             options={numDaysBack}
                             onChange={onDaysChange}
                         />
                         <HotsheetDropdown
-                            value={limit}
+                            value={String(limit)}
                             options={limitOfHomes}
                             onChange={onLimitChange}
                         />
-                        <h3 style={{ marginTop: '.8rem', marginLeft: '2.5rem' }}>
-                            {initialHomes.length} Homes On Market
-                        </h3>
+                        <span className="hotsheet__home-count">
+                            {displayedHomes.length}{totalMatching > limit ? ` of ${totalMatching}` : ''} Homes
+                        </span>
                     </div>
-                    <div className="hotsheet__homes" style={{ minHeight: '200px' }}>
+
+                    <div className="hotsheet__homes">
                         {fetchingHomes ? (
                             <p>Loading homes...</p>
                         ) : error ? (
                             <p>Error fetching homes: {error}</p>
-                        ) : initialHomes.length > 0 ? (
-                            initialHomes.map((home) => (
+                        ) : displayedHomes.length > 0 ? (
+                            displayedHomes.map((home) => (
                                 <PrpCard key={home._id} property={home} handleOpenMapDialog={handleOpenMapDialog} />
                             ))
                         ) : (
-                            <p>No homes found.</p>
+                            <p>{initialHomes.length ? 'No homes match your filters.' : 'No homes found.'}</p>
                         )}
                     </div>
                 </div>

@@ -123,6 +123,13 @@ const Lead = () => {
     // Add to Google Contacts state
     const [addingToContacts, setAddingToContacts] = useState(false);
 
+    // Drip Campaigns state
+    const [showEnrollDripDialog, setShowEnrollDripDialog] = useState(false);
+    const [availableCampaigns, setAvailableCampaigns] = useState([]);
+    const [selectedCampaign, setSelectedCampaign] = useState(null);
+    const [enrollingDrip, setEnrollingDrip] = useState(false);
+    const [loadingCampaigns, setLoadingCampaigns] = useState(false);
+
     // Quill Editor Configuration
     const quillModules = {
         toolbar: [
@@ -668,6 +675,97 @@ const Lead = () => {
         }
     };
 
+    // Drip Campaign handlers
+    const fetchAvailableCampaigns = async () => {
+        setLoadingCampaigns(true);
+        try {
+            const response = await IrgApi.get('/drip-campaigns', {
+                headers: { Authorization: `Bearer ${isLoggedIn}` },
+            });
+            if (response.data.status === 'success') {
+                setAvailableCampaigns(response.data.data);
+            }
+        } catch (error) {
+            console.error('Error fetching campaigns:', error);
+            showToast('error', 'Failed to load campaigns', 'Error');
+        } finally {
+            setLoadingCampaigns(false);
+        }
+    };
+
+    const handleEnrollInCampaign = async () => {
+        if (!selectedCampaign) return;
+        setEnrollingDrip(true);
+        try {
+            const response = await IrgApi.post(
+                '/drip-campaigns/enroll',
+                { userId: lead._id, campaignId: selectedCampaign },
+                { headers: { Authorization: `Bearer ${isLoggedIn}` } }
+            );
+            if (response.data.status === 'success') {
+                setLead(response.data.data);
+                showToast('success', 'Lead enrolled in campaign', 'Success');
+                setShowEnrollDripDialog(false);
+                setSelectedCampaign(null);
+            }
+        } catch (error) {
+            console.error('Error enrolling in campaign:', error);
+            showToast('error', error.response?.data?.message || 'Failed to enroll', 'Error');
+        } finally {
+            setEnrollingDrip(false);
+        }
+    };
+
+    const handleUnenrollFromCampaign = async (campaignId) => {
+        try {
+            const response = await IrgApi.post(
+                '/drip-campaigns/unenroll',
+                { userId: lead._id, campaignId },
+                { headers: { Authorization: `Bearer ${isLoggedIn}` } }
+            );
+            if (response.data.status === 'success') {
+                setLead(response.data.data);
+                showToast('success', 'Lead removed from campaign', 'Success');
+            }
+        } catch (error) {
+            console.error('Error unenrolling from campaign:', error);
+            showToast('error', 'Failed to remove from campaign', 'Error');
+        }
+    };
+
+    const getDripCampaignProgress = (enrollment) => {
+        if (!enrollment?.scheduled_emails) return { sent: 0, total: 0, percent: 0 };
+        const sent = enrollment.scheduled_emails.filter((e) => e.sent).length;
+        const total = enrollment.scheduled_emails.length;
+        const percent = total > 0 ? Math.round((sent / total) * 100) : 0;
+        return { sent, total, percent };
+    };
+
+    const getLastSentDate = (enrollment) => {
+        if (!enrollment?.scheduled_emails) return null;
+        const sentEmails = enrollment.scheduled_emails.filter((e) => e.sent && e.sent_date);
+        if (sentEmails.length === 0) return null;
+        sentEmails.sort((a, b) => new Date(b.sent_date) - new Date(a.sent_date));
+        return sentEmails[0].sent_date;
+    };
+
+    const getLastOpenedDate = (enrollment) => {
+        if (!enrollment?.scheduled_emails) return null;
+        const openedEmails = enrollment.scheduled_emails.filter((e) => e.opened && e.last_opened_date);
+        if (openedEmails.length === 0) return null;
+        openedEmails.sort((a, b) => new Date(b.last_opened_date) - new Date(a.last_opened_date));
+        return openedEmails[0].last_opened_date;
+    };
+
+    const getDripTypeBadgeColor = (type) => {
+        const colors = {
+            Buyer: { bg: '#dbeafe', color: '#1d4ed8', border: '#93c5fd' },
+            Seller: { bg: '#dcfce7', color: '#15803d', border: '#86efac' },
+            Both: { bg: '#f3e8ff', color: '#7c3aed', border: '#c4b5fd' },
+        };
+        return colors[type] || colors.Both;
+    };
+
     // Check if there's an upcoming reminder (within next 7 days)
     const hasUpcomingReminder = () => {
         const reminders = getActiveReminders();
@@ -1146,6 +1244,146 @@ const Lead = () => {
                                 </div>
                             )}
                         </div>
+                    </Card>
+                </div>
+
+                {/* Drip Campaigns Section */}
+                <div className="lead-drip-campaigns" style={{ marginTop: '2rem', marginBottom: '2rem' }}>
+                    <Card>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                            <h3 style={{
+                                fontSize: '1.25rem',
+                                fontWeight: '700',
+                                color: '#2c3e50',
+                                margin: 0
+                            }}>
+                                Drip Campaigns
+                            </h3>
+                            <Button
+                                label="Enroll In Campaign"
+                                icon="pi pi-plus"
+                                className="p-button-sm p-button-outlined"
+                                onClick={() => {
+                                    fetchAvailableCampaigns();
+                                    setShowEnrollDripDialog(true);
+                                }}
+                                style={{ fontWeight: '600' }}
+                            />
+                        </div>
+
+                        {lead?.drip_campaigns?.filter((dc) => dc.enabled).length > 0 ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                {lead.drip_campaigns
+                                    .filter((dc) => dc.enabled)
+                                    .map((enrollment) => {
+                                        const campaign = enrollment.campaign;
+                                        const progress = getDripCampaignProgress(enrollment);
+                                        const lastSent = getLastSentDate(enrollment);
+                                        const lastOpened = getLastOpenedDate(enrollment);
+                                        const badgeColor = getDripTypeBadgeColor(campaign?.type);
+
+                                        return (
+                                            <div
+                                                key={enrollment._id}
+                                                style={{
+                                                    padding: '1rem',
+                                                    backgroundColor: '#f8fafc',
+                                                    borderLeft: '4px solid #667eea',
+                                                    borderRadius: '8px',
+                                                }}
+                                            >
+                                                <div style={{
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'start',
+                                                    marginBottom: '0.75rem'
+                                                }}>
+                                                    <div>
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                                                            <span style={{ fontWeight: '700', fontSize: '1rem', color: '#2c3e50' }}>
+                                                                {campaign?.name || 'Unknown Campaign'}
+                                                            </span>
+                                                            {campaign?.type && (
+                                                                <span style={{
+                                                                    backgroundColor: badgeColor.bg,
+                                                                    color: badgeColor.color,
+                                                                    border: `1px solid ${badgeColor.border}`,
+                                                                    padding: '0.15rem 0.5rem',
+                                                                    borderRadius: '12px',
+                                                                    fontSize: '0.7rem',
+                                                                    fontWeight: '600',
+                                                                }}>
+                                                                    {campaign.type}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <span style={{ fontSize: '0.85rem', color: '#6c757d' }}>
+                                                            {progress.sent} of {progress.total} emails sent
+                                                        </span>
+                                                    </div>
+                                                    <Button
+                                                        icon="pi pi-times"
+                                                        className="p-button-sm p-button-danger p-button-text"
+                                                        onClick={() => handleUnenrollFromCampaign(campaign?._id || enrollment.campaign)}
+                                                        tooltip="Remove from campaign"
+                                                        tooltipOptions={{ position: 'top' }}
+                                                    />
+                                                </div>
+
+                                                {/* Progress Bar */}
+                                                <div style={{
+                                                    height: '6px',
+                                                    backgroundColor: '#e2e8f0',
+                                                    borderRadius: '3px',
+                                                    marginBottom: '0.75rem',
+                                                    overflow: 'hidden'
+                                                }}>
+                                                    <div style={{
+                                                        height: '100%',
+                                                        width: `${progress.percent}%`,
+                                                        backgroundColor: progress.percent === 100 ? '#22c55e' : '#667eea',
+                                                        borderRadius: '3px',
+                                                        transition: 'width 0.3s ease',
+                                                    }} />
+                                                </div>
+
+                                                <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
+                                                    {lastSent && (
+                                                        <span style={{ fontSize: '0.8rem', color: '#6c757d' }}>
+                                                            <i className="pi pi-send" style={{ marginRight: '0.3rem' }}></i>
+                                                            Last sent: {new Date(lastSent).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                                        </span>
+                                                    )}
+                                                    {lastOpened && (
+                                                        <span style={{ fontSize: '0.8rem', color: '#22c55e' }}>
+                                                            <i className="pi pi-eye" style={{ marginRight: '0.3rem' }}></i>
+                                                            Last opened: {new Date(lastOpened).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                                        </span>
+                                                    )}
+                                                    {!lastSent && !lastOpened && (
+                                                        <span style={{ fontSize: '0.8rem', color: '#6c757d' }}>
+                                                            <i className="pi pi-clock" style={{ marginRight: '0.3rem' }}></i>
+                                                            Enrolled {new Date(enrollment.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                            </div>
+                        ) : (
+                            <div style={{
+                                textAlign: 'center',
+                                padding: '2rem',
+                                color: '#6c757d',
+                                backgroundColor: '#f8f9fa',
+                                borderRadius: '8px'
+                            }}>
+                                <i className="pi pi-send" style={{ fontSize: '2.5rem', display: 'block', marginBottom: '1rem', opacity: 0.5 }}></i>
+                                <p style={{ fontSize: '1rem', marginBottom: '0.5rem' }}>No active drip campaigns</p>
+                                <p style={{ fontSize: '0.9rem' }}>Click "Enroll In Campaign" to add an automated email sequence</p>
+                            </div>
+                        )}
                     </Card>
                 </div>
 
@@ -2076,6 +2314,69 @@ const Lead = () => {
                                 </small>
                             </div>
                         )}
+                    </div>
+                </Dialog>
+
+                {/* Enroll in Drip Campaign Dialog */}
+                <Dialog
+                    header="Enroll In Drip Campaign"
+                    visible={showEnrollDripDialog}
+                    style={{ width: '600px' }}
+                    onHide={() => {
+                        setShowEnrollDripDialog(false);
+                        setSelectedCampaign(null);
+                    }}
+                    footer={
+                        <div>
+                            <Button
+                                label="Cancel"
+                                icon="pi pi-times"
+                                onClick={() => {
+                                    setShowEnrollDripDialog(false);
+                                    setSelectedCampaign(null);
+                                }}
+                                className="p-button-text"
+                            />
+                            <Button
+                                label="Enroll"
+                                icon="pi pi-check"
+                                onClick={handleEnrollInCampaign}
+                                loading={enrollingDrip}
+                                disabled={!selectedCampaign}
+                                className="p-button-success"
+                            />
+                        </div>
+                    }
+                >
+                    <div style={{ padding: '1rem 0' }}>
+                        <label
+                            htmlFor="select-campaign"
+                            style={{
+                                display: 'block',
+                                marginBottom: '0.5rem',
+                                fontWeight: '600',
+                                color: '#495057'
+                            }}
+                        >
+                            Select Campaign *
+                        </label>
+                        <Dropdown
+                            id="select-campaign"
+                            value={selectedCampaign}
+                            options={availableCampaigns.map((c) => ({
+                                label: `${c.name} (${c.type} - ${c.timeframe}) - ${c.emails?.length || 0} emails`,
+                                value: c._id,
+                            }))}
+                            onChange={(e) => setSelectedCampaign(e.value)}
+                            placeholder={loadingCampaigns ? 'Loading campaigns...' : 'Select a campaign'}
+                            style={{ width: '100%' }}
+                            disabled={loadingCampaigns}
+                            filter
+                            filterPlaceholder="Search campaigns..."
+                        />
+                        <small style={{ display: 'block', marginTop: '0.5rem', color: '#6c757d' }}>
+                            Choose a drip campaign to enroll {lead?.first_name} in. Emails will be sent automatically on schedule.
+                        </small>
                     </div>
                 </Dialog>
             </div>
