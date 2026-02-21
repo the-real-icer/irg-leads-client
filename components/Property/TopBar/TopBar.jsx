@@ -3,7 +3,7 @@ import { useState, useRef } from 'react';
 import PropTypes from 'prop-types';
 
 // Redux
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 
 // Third Party Components
 import { Button } from 'primereact/button';
@@ -15,6 +15,8 @@ import EmailToLeadDialog from './EmailToLeadDialog';
 
 // IRG API - HOOKS - INFO - UTILS
 import IrgApi from '../../../assets/irgApi';
+import { addSelectedHome, removeSelectedHome } from '../../../store/actions';
+import showToast from '../../../utils/showToast';
 
 const btnStyle = { fontSize: '1.2rem', fontWeight: '400', marginRight: '1rem' };
 
@@ -27,6 +29,22 @@ const TopBar = (props) => {
     // __________________Redux State______________________\\
     const isLoggedIn = useSelector((state) => state.isLoggedIn);
     const agent = useSelector((state) => state.agent);
+    const selectedHomes = useSelector((state) => state.selectedHomes);
+    const dispatch = useDispatch();
+
+    const isQueued = selectedHomes.some((h) => h.mls_number === property.mls_number);
+
+    const handleQueueToggle = () => {
+        if (isQueued) {
+            dispatch(removeSelectedHome(property));
+            const unitNum = property?.unit_number ? ` #${property.unit_number}` : '';
+            showToast('info', `${property.address}${unitNum} removed from queue`, 'Removed');
+        } else {
+            dispatch(addSelectedHome(property));
+            const unitNum = property?.unit_number ? ` #${property.unit_number}` : '';
+            showToast('success', `${property.address}${unitNum} added to queue`, 'Added to Queue');
+        }
+    };
 
     const [showDialog, setShowDialog] = useState(false);
     const [subject, setSubject] = useState('');
@@ -106,6 +124,13 @@ const TopBar = (props) => {
                 <TopBarAddress property={property} />
                 <TopBarStats property={property} />
                 <div className="property__topbar__actions">
+                    <Button
+                        label={isQueued ? 'Remove from Queue' : 'Add to Queue'}
+                        icon={isQueued ? 'pi pi-minus' : 'pi pi-plus'}
+                        className={`p-button-lg ${isQueued ? 'p-button-warning' : 'p-button-success'} p-button-outlined`}
+                        onClick={handleQueueToggle}
+                        style={btnStyle}
+                    />
                     <Button
                         label="Email To Client"
                         className="p-button-lg p-button-secondary p-button-outlined"

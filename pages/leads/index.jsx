@@ -153,7 +153,7 @@ const Leads = () => {
     const router = useRouter();
 
     const onRowSelect = (event) => {
-        router.push(`/lead/${event.data.id}`);
+        router.push(`/lead/${event.data._id}`);
     };
 
     const formatDate = (val) => {

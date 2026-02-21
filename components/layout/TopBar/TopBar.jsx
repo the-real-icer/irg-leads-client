@@ -1,5 +1,5 @@
 // React & NextJS
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 // import Link from 'next/link';
 
@@ -24,11 +24,12 @@ import {
     // setLoadingHomes,
 } from '../../../store/actions/searchPage';
 
-const TopBar = ({ irgAreas, agent }) => {
-    // const btnRef14 = useRef(null);
-    // const [selectedCity, setSelectedCity] = useState(null);
-    // const [filteredCities, setFilteredCities] = useState(null);
-    // const [groupedAreas, setGroupedAreas] = useState([]);
+import PropertyQueueDialog from '../../PropertyQueue/PropertyQueueDialog';
+import SendToLeadDialog from '../../PropertyQueue/SendToLeadDialog';
+
+const TopBar = ({ irgAreas, agent, selectedHomes }) => {
+    const [showQueueDialog, setShowQueueDialog] = useState(false);
+    const [showSendDialog, setShowSendDialog] = useState(false);
 
     const router = useRouter();
 
@@ -152,7 +153,18 @@ const TopBar = ({ irgAreas, agent }) => {
         }
     };
 
+    const handleSendClick = () => {
+        setShowQueueDialog(false);
+        setShowSendDialog(true);
+    };
+
+    const handleSendSuccess = () => {
+        setShowSendDialog(false);
+        setShowQueueDialog(false);
+    };
+
     return (
+        <>
         <div
             className="flex justify-content-between align-items-center px-5 surface-0 border-bottom-1 surface-border relative lg:static"
             style={{ height: '60px' }}
@@ -201,13 +213,17 @@ const TopBar = ({ irgAreas, agent }) => {
                 className="list-none p-0 m-0 hidden lg:flex lg:align-items-center select-none lg:flex-row
 surface-section border-1 lg:border-none surface-border right-0 top-100 z-1 shadow-2 lg:shadow-none absolute lg:static"
             >
-                <li>
+                <li style={{ overflow: 'visible' }}>
                     <a
                         className="p-ripple flex p-3 lg:px-3 lg:py-2 align-items-center text-600 hover:text-900 hover:surface-100 font-medium border-round cursor-pointer
         transition-duration-150 transition-colors w-full"
+                        onClick={() => setShowQueueDialog(true)}
+                        style={{ overflow: 'visible' }}
                     >
-                        <i className="pi pi-inbox text-base lg:text-2xl mr-2 lg:mr-0"></i>
-                        <span className="block lg:hidden font-medium">Inbox</span>
+                        <i className={`pi pi-inbox text-base lg:text-2xl mr-2 lg:mr-0${selectedHomes?.length > 0 ? ' p-overlay-badge' : ''}`}>
+                            {selectedHomes?.length > 0 && <Badge value={selectedHomes.length} severity="info" />}
+                        </i>
+                        <span className="block lg:hidden font-medium">Queue ({selectedHomes?.length || 0})</span>
                         <Ripple />
                     </a>
                 </li>
@@ -227,25 +243,27 @@ surface-section border-1 lg:border-none surface-border right-0 top-100 z-1 shado
                     <a
                         className="p-ripple flex p-3 lg:px-3 lg:py-2 align-items-center hover:surface-100 font-medium border-round cursor-pointer
         transition-duration-150 transition-colors w-full"
+                        onClick={() => router.push('/profile')}
                     >
-                        <Avatar image={agent.image} className="mr-2" shape="circle" />
-                        {/* <img
-                            src={agent.image}
-                            alt="avatar-f-1"
-                            className="mr-3 lg:mr-0"
-                            style={{ width: '32px', height: '32px' }}
-                        /> */}
-                        <div className="block lg:hidden">
-                            <div className="text-900 font-medium">Josephine Lillard</div>
-                            <span className="text-600 font-medium text-sm">
-                                Marketing Specialist
-                            </span>
-                        </div>
+                        <Avatar image={agent?.image} className="mr-2" shape="circle" />
+                        <span className="hidden lg:block text-900 font-medium text-sm">
+                            {agent?.name || ''}
+                        </span>
                         <Ripple />
                     </a>
                 </li>
             </ul>
         </div>
+        <PropertyQueueDialog
+            visible={showQueueDialog}
+            onHide={() => setShowQueueDialog(false)}
+            onSendClick={handleSendClick}
+        />
+        <SendToLeadDialog
+            visible={showSendDialog}
+            onHide={() => setShowSendDialog(false)}
+        />
+        </>
         // <div
         //     className="flex justify-content-between align-items-center px-5 surface-0 border-bottom-1 surface-border relative lg:static"
         //     style={{ height: '60px' }}
@@ -313,6 +331,7 @@ function mapStateToProps(state) {
         searchPage: state.searchPage,
         irgAreas: state.irgAreas,
         agent: state.agent,
+        selectedHomes: state.selectedHomes,
     };
 }
 

@@ -67,6 +67,7 @@ const ReactQuill = dynamic(() => import('react-quill-new'), {
 // IRG Components
 import MainLayout from '../../components/layout/MainLayout';
 import PrpCard from '../../components/prpCard/PrpCard';
+import LeadDashboard from '../../components/LeadDashboard/LeadDashboard';
 
 // IRG API
 import IrgApi from '../../assets/irgApi';
@@ -117,7 +118,9 @@ const Lead = () => {
     // Send Email state
     const [showSendEmailDialog, setShowSendEmailDialog] = useState(false);
     const [emailSubject, setEmailSubject] = useState('');
-    const [emailBody, setEmailBody] = useState('');
+    const getInitialEmailBody = () =>
+        agent?.email_signature ? `<p><br></p><p><br></p>---<br>${agent.email_signature}` : '';
+    const [emailBody, setEmailBody] = useState(getInitialEmailBody());
     const [sendingEmail, setSendingEmail] = useState(false);
 
     // Add to Google Contacts state
@@ -139,7 +142,7 @@ const Lead = () => {
             [{ color: [] }, { background: [] }],
             [{ list: 'ordered' }, { list: 'bullet' }],
             [{ align: [] }],
-            ['link'],
+            ['link', 'image'],
             ['clean'],
             // Placeholder for signature button - will be added later
         ],
@@ -158,6 +161,7 @@ const Lead = () => {
         'bullet',
         'align',
         'link',
+        'image',
     ];
 
     const router = useRouter();
@@ -422,14 +426,36 @@ const Lead = () => {
         }
     };
 
-    // Get notes and calls sorted by date (most recent first)
-    const getNotesAndCalls = () => {
+    // Get all activity (notes, calls, sent emails, received emails) sorted by date
+    const getAllActivity = () => {
         const actions = lead?.agent_actions || [];
-        const notesAndCalls = actions.filter(
-            (action) => action.type === 'note' || action.type === 'call'
+        const filtered = actions.filter(
+            (action) => action.type === 'note' || action.type === 'call' || action.type === 'email'
         );
-        // Sort by date_created descending (most recent first)
-        return notesAndCalls.sort((a, b) => {
+
+        // Build a set of gmail_ids already in agent_actions to avoid duplicates
+        const loggedGmailIds = new Set(
+            filtered.filter((a) => a.gmail_id).map((a) => a.gmail_id)
+        );
+
+        // Merge Gmail emails that aren't already logged (received emails + any missed sent)
+        const gmailItems = emails
+            .filter((e) => !loggedGmailIds.has(e.id))
+            .map((e) => ({
+                _source: 'gmail',
+                type: e.direction === 'received' ? 'email_received' : 'email',
+                date_created: new Date(e.date),
+                value: e.body,
+                subject: e.subject,
+                from: e.from,
+                to: e.to,
+                id: e.id,
+            }));
+
+        const allItems = [...filtered, ...gmailItems];
+
+        // Sort by date descending (most recent first)
+        return allItems.sort((a, b) => {
             const dateA = new Date(a.date_created);
             const dateB = new Date(b.date_created);
             return dateB - dateA;
@@ -608,13 +634,13 @@ const Lead = () => {
             if (response.data.status === 'success') {
                 showToast('success', `Email sent successfully to ${lead.first_name}!`, 'Success');
                 setEmailSubject('');
-                setEmailBody('');
+                setEmailBody(getInitialEmailBody());
                 setShowSendEmailDialog(false);
 
                 // Refresh lead data to show new email in agent actions
                 const updatedLead = await IrgApi.post(
                     '/users/user',
-                    { _id: lead._id },
+                    { userId: lead._id },
                     { headers: { Authorization: `Bearer ${isLoggedIn}` } }
                 );
                 if (updatedLead.data.status === 'success') {
@@ -949,15 +975,13 @@ const Lead = () => {
                                     icon="pi pi-phone"
                                     label="Call"
                                     className="p-button-rounded p-button-success mr-2"
-                                    onClick={() =>
-                                        window.open(`tel:${lead?.phone_number}`, '_self')
-                                    }
+                                    onClick={() => setShowLogCallDialog(true)}
                                 />
                                 <Button
                                     icon="pi pi-envelope"
                                     label="Email"
                                     className="p-button-rounded p-button-info mr-2"
-                                    onClick={() => window.open(`mailto:${lead?.email}`, '_self')}
+                                    onClick={() => setShowSendEmailDialog(true)}
                                 />
                                 <SplitButton
                                     label="Change Status"
@@ -1465,72 +1489,121 @@ const Lead = () => {
                                 color: '#2c3e50',
                                 marginBottom: '1rem'
                             }}>
-                                Notes & Call History
+                                Activity
                             </h4>
-                            <ScrollPanel style={{ width: '100%', height: '400px' }}>
-                                {getNotesAndCalls().length > 0 ? (
+                            <div>
+                                {loadingEmails && getAllActivity().length === 0 ? (
+                                    <div style={{
+                                        textAlign: 'center',
+                                        padding: '3rem',
+                                        color: '#6c757d'
+                                    }}>
+                                        <i className="pi pi-spin pi-spinner" style={{ fontSize: '2rem', display: 'block', marginBottom: '1rem' }}></i>
+                                        <p style={{ fontSize: '0.9rem' }}>Loading activity...</p>
+                                    </div>
+                                ) : getAllActivity().length > 0 ? (
                                     <div style={{
                                         display: 'flex',
                                         flexDirection: 'column',
                                         gap: '1rem'
                                     }}>
-                                        {getNotesAndCalls().map((action, index) => (
-                                            <div
-                                                key={action.id || index}
-                                                style={{
-                                                    padding: '1rem',
-                                                    backgroundColor: action.type === 'call' ? '#f0fdf4' : '#eff6ff',
-                                                    borderLeft: `4px solid ${action.type === 'call' ? '#22c55e' : '#667eea'}`,
-                                                    borderRadius: '8px',
-                                                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-                                                }}
-                                            >
-                                                <div style={{
-                                                    display: 'flex',
-                                                    justifyContent: 'space-between',
-                                                    alignItems: 'start',
-                                                    marginBottom: '0.5rem'
-                                                }}>
+                                        {getAllActivity().map((action, index) => {
+                                            const isReceived = action.type === 'email_received';
+                                            const isEmail = action.type === 'email' || isReceived;
+                                            const isCall = action.type === 'call';
+
+                                            let bgColor = '#eff6ff';
+                                            let borderColor = '#667eea';
+                                            let iconClass = 'pi-file-edit';
+                                            let iconColor = '#667eea';
+                                            let label = action.type;
+
+                                            if (isCall) {
+                                                bgColor = '#f0fdf4'; borderColor = '#22c55e'; iconClass = 'pi-phone'; iconColor = '#22c55e';
+                                            } else if (isReceived) {
+                                                bgColor = '#fef9f0'; borderColor = '#f59e0b'; iconClass = 'pi-inbox'; iconColor = '#f59e0b'; label = 'Email Received';
+                                            } else if (isEmail) {
+                                                bgColor = '#fef3f2'; borderColor = '#e74c3c'; iconClass = 'pi-send'; iconColor = '#e74c3c'; label = 'Email Sent';
+                                            }
+
+                                            return (
+                                                <div
+                                                    key={action.id || action._id || index}
+                                                    style={{
+                                                        padding: '1rem',
+                                                        backgroundColor: bgColor,
+                                                        borderLeft: `4px solid ${borderColor}`,
+                                                        borderRadius: '8px',
+                                                        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                                                    }}
+                                                >
                                                     <div style={{
                                                         display: 'flex',
-                                                        alignItems: 'center',
-                                                        gap: '0.5rem'
+                                                        justifyContent: 'space-between',
+                                                        alignItems: 'start',
+                                                        marginBottom: '0.5rem'
                                                     }}>
-                                                        <i
-                                                            className={`pi ${action.type === 'call' ? 'pi-phone' : 'pi-file-edit'}`}
-                                                            style={{
-                                                                fontSize: '1.1rem',
-                                                                color: action.type === 'call' ? '#22c55e' : '#667eea'
-                                                            }}
-                                                        ></i>
-                                                        <span style={{
-                                                            fontWeight: '700',
-                                                            fontSize: '0.95rem',
-                                                            color: '#2c3e50',
-                                                            textTransform: 'capitalize'
+                                                        <div style={{
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: '0.5rem'
                                                         }}>
-                                                            {action.type}
+                                                            <i
+                                                                className={`pi ${iconClass}`}
+                                                                style={{ fontSize: '1.1rem', color: iconColor }}
+                                                            ></i>
+                                                            <span style={{
+                                                                fontWeight: '700',
+                                                                fontSize: '0.95rem',
+                                                                color: '#2c3e50',
+                                                            }}>
+                                                                {label}
+                                                            </span>
+                                                            {isEmail && action.subject && (
+                                                                <span style={{
+                                                                    fontSize: '0.85rem',
+                                                                    color: '#6c757d',
+                                                                    fontWeight: '400',
+                                                                }}>
+                                                                    — {action.subject}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <span style={{
+                                                            fontSize: '0.85rem',
+                                                            color: '#6c757d',
+                                                            whiteSpace: 'nowrap',
+                                                            marginLeft: '0.5rem'
+                                                        }}>
+                                                            {action.date_created
+                                                                ? `${formatDate(action.date_created)} at ${new Date(action.date_created).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`
+                                                                : 'Recent'}
                                                         </span>
                                                     </div>
-                                                    <span style={{
-                                                        fontSize: '0.85rem',
-                                                        color: '#6c757d'
-                                                    }}>
-                                                        {action.date_created
-                                                            ? formatDate(action.date_created)
-                                                            : 'Recent'}
-                                                    </span>
+                                                    {isEmail ? (
+                                                        <div
+                                                            style={{
+                                                                fontSize: '0.95rem',
+                                                                color: '#495057',
+                                                                lineHeight: '1.6',
+                                                                maxHeight: '200px',
+                                                                overflow: 'hidden',
+                                                            }}
+                                                            dangerouslySetInnerHTML={{ __html: action.value }}
+                                                        />
+                                                    ) : (
+                                                        <div style={{
+                                                            fontSize: '0.95rem',
+                                                            color: '#495057',
+                                                            lineHeight: '1.6',
+                                                            whiteSpace: 'pre-wrap'
+                                                        }}>
+                                                            {action.value}
+                                                        </div>
+                                                    )}
                                                 </div>
-                                                <div style={{
-                                                    fontSize: '0.95rem',
-                                                    color: '#495057',
-                                                    lineHeight: '1.6',
-                                                    whiteSpace: 'pre-wrap'
-                                                }}>
-                                                    {action.value}
-                                                </div>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 ) : (
                                     <div style={{
@@ -1540,10 +1613,10 @@ const Lead = () => {
                                     }}>
                                         <i className="pi pi-inbox" style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}></i>
                                         <p style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>No activity recorded yet</p>
-                                        <p style={{ fontSize: '0.9rem' }}>Log a call or create a note to get started</p>
+                                        <p style={{ fontSize: '0.9rem' }}>Log a call, create a note, or send an email to get started</p>
                                     </div>
                                 )}
-                            </ScrollPanel>
+                            </div>
                         </div>
                     </Card>
                 </div>
@@ -1555,37 +1628,10 @@ const Lead = () => {
                             activeIndex={activeIndex}
                             onTabChange={(e) => setActiveIndex(e.index)}
                         >
-                            <TabPanel header="Activity & Notes" leftIcon="pi pi-comments mr-2">
-                                <div className="activity-timeline">
-                                    {lead?.agent_actions?.length ? (
-                                        lead.agent_actions.map((item, index) => (
-                                            <div className="activity-item" key={item._id || index}>
-                                                <div className="activity-marker"></div>
-                                                <div className="activity-card">
-                                                    <div className="activity-header">
-                                                        <div className="activity-type">
-                                                            <i className="pi pi-comment"></i>
-                                                            <span>{item.type}</span>
-                                                        </div>
-                                                        <span className="activity-date">
-                                                            {item.date
-                                                                ? formatDate(item.date)
-                                                                : 'Recent'}
-                                                        </span>
-                                                    </div>
-                                                    <div className="activity-content">
-                                                        {item.value}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <div className="empty-state">
-                                            <i className="pi pi-inbox"></i>
-                                            <p>No activity recorded yet</p>
-                                        </div>
-                                    )}
-                                </div>
+                            <TabPanel header="Property Dashboard" leftIcon="pi pi-th-large mr-2">
+                                {lead?._id && isLoggedIn && (
+                                    <LeadDashboard leadId={lead._id} isLoggedIn={isLoggedIn} />
+                                )}
                             </TabPanel>
                             <TabPanel header="Viewed Homes" leftIcon="pi pi-home mr-2">
                                 <ScrollPanel className="viewed-homes-scroll">
@@ -1981,7 +2027,7 @@ const Lead = () => {
                     onHide={() => {
                         setShowSendEmailDialog(false);
                         setEmailSubject('');
-                        setEmailBody('');
+                        setEmailBody(getInitialEmailBody());
                     }}
                     footer={
                         <div>
@@ -1991,7 +2037,7 @@ const Lead = () => {
                                 onClick={() => {
                                     setShowSendEmailDialog(false);
                                     setEmailSubject('');
-                                    setEmailBody('');
+                                    setEmailBody(getInitialEmailBody());
                                 }}
                                 className="p-button-text"
                             />
@@ -2310,7 +2356,7 @@ const Lead = () => {
                                     style={{ width: '100%', fontFamily: 'inherit' }}
                                 />
                                 <small style={{ display: 'block', marginTop: '0.5rem', color: '#6c757d' }}>
-                                    This note will be sent to the agent when you transfer the lead (functionality coming soon)
+                                    This note will be included in the notification email sent to the agent
                                 </small>
                             </div>
                         )}

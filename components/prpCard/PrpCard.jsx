@@ -26,13 +26,17 @@ const PrpCard = ({ property, handleOpenMapDialog }) => {
 
     const isSelected = find(selectedHomes, (home) => home.mls_number === property.mls_number);
 
-    const addHome = useCallback(() => {
+    const addHome = useCallback((e) => {
+        e.preventDefault();
+        e.stopPropagation();
         dispatch(addSelectedHome(property));
         const unitNum = property?.unit_number ? ` #${property.unit_number}` : '';
         showToast('success', `${property.address}${unitNum} has been added!`, 'Home Added!');
     }, [dispatch, property]);
 
-    const removeHome = useCallback(() => {
+    const removeHome = useCallback((e) => {
+        e.preventDefault();
+        e.stopPropagation();
         dispatch(removeSelectedHome(property));
         const unitNum = property?.unit_number ? ` #${property.unit_number}` : '';
         showToast('success', `${property.address}${unitNum} has been removed!`, 'Home Removed!');

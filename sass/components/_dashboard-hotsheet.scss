@@ -1,0 +1,247 @@
+.dashboard-hotsheet {
+    // Constrain PrimeReact Card internals so the slider doesn't overflow the page
+    &.p-card {
+        overflow: hidden;
+    }
+
+    .p-card-body,
+    .p-card-content {
+        overflow: hidden;
+        min-width: 0;
+    }
+
+    &__controls {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-bottom: 1.25rem;
+    }
+
+    &__search {
+        flex: 0 1 280px;
+        min-width: 180px;
+
+        .p-autocomplete-input {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+    }
+
+    &__search-panel {
+        max-height: 300px;
+    }
+
+    &__dropdown {
+        min-width: 8rem;
+    }
+
+    &__count {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #6c757d;
+        margin-left: auto;
+        white-space: nowrap;
+    }
+
+    // ── Horizontal slider (default view) ──
+    &__slider {
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+        min-width: 0;
+    }
+
+    &__slider-track {
+        display: flex;
+        gap: 1.25rem;
+        overflow-x: auto;
+        scroll-behavior: smooth;
+        padding: 0.5rem 0.25rem;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+    }
+
+    &__slider-arrow {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 3;
+        width: 2.25rem;
+        height: 2.25rem;
+        border-radius: 50%;
+        border: none;
+        background: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #495057;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+
+        &:hover {
+            background: #667eea;
+            color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.35);
+        }
+
+        &--left {
+            left: -0.25rem;
+        }
+
+        &--right {
+            right: -0.25rem;
+        }
+    }
+
+    // ── Expanded grid (multi-row view) ──
+    &__grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.25rem;
+        padding: 0.5rem 0;
+    }
+
+    // ── Toggle button ──
+    &__toggle {
+        display: flex;
+        justify-content: center;
+        margin-top: 1rem;
+    }
+
+    &__toggle-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.45rem 1.25rem;
+        border-radius: 20px;
+        border: 1px solid #dee2e6;
+        background: white;
+        color: #495057;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+            border-color: #667eea;
+            color: #667eea;
+            background: #f8f9ff;
+        }
+    }
+
+    // ── Card wrapper ──
+    &__card-wrapper {
+        position: relative;
+        flex-shrink: 0;
+    }
+
+    &__new-badge {
+        position: absolute;
+        top: 0.5rem;
+        left: 0.5rem;
+        z-index: 2;
+        background: #22c55e;
+        color: white;
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    &__card-meta {
+        padding: 0.25rem 0.75rem 0.5rem;
+        font-size: 0.8rem;
+        color: #6c757d;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem 0.75rem;
+        align-items: center;
+    }
+
+    &__card-meta-type {
+        font-weight: 600;
+        color: #495057;
+    }
+
+    &__card-meta-mls {
+        font-family: monospace;
+        font-size: 0.75rem;
+    }
+
+    &__card-meta-time {
+        font-style: italic;
+    }
+
+    // ── Skeleton loading cards ──
+    &__skeleton {
+        width: 18rem;
+        flex-shrink: 0;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+
+        &-img {
+            height: 14rem;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: dashboard-hotsheet-shimmer 1.5s infinite;
+        }
+
+        &-body {
+            padding: 0.75rem;
+
+            &-line {
+                height: 0.875rem;
+                border-radius: 4px;
+                margin-bottom: 0.5rem;
+                background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+                background-size: 200% 100%;
+                animation: dashboard-hotsheet-shimmer 1.5s infinite;
+
+                &--price { width: 50%; height: 1.25rem; }
+                &--details { width: 70%; }
+                &--address { width: 90%; }
+            }
+        }
+    }
+
+    // ── Suggestion item styling ──
+    &__suggestion {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.25rem 0;
+
+        &-type {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #667eea;
+            background: #eff0ff;
+            padding: 0.1rem 0.35rem;
+            border-radius: 3px;
+            white-space: nowrap;
+        }
+
+        &-label {
+            font-size: 0.9rem;
+            color: #2c3e50;
+        }
+    }
+}
+
+@keyframes dashboard-hotsheet-shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}

@@ -49,7 +49,7 @@ const createStorage = () => {
 
 const persistConfig = {
     key: 'nextjs2',
-    whitelist: ['isLoggedIn'],
+    whitelist: ['isLoggedIn', 'agent'],
     storage: createStorage(),
 };
 

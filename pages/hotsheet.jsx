@@ -82,10 +82,10 @@ const Hotsheet = () => {
         dispatch(fetchHotsheetHomes(county));
     }, 3 * 60 * 1000);
 
-    // Clear frontend filters when new data loads
+    // Clear frontend filters only when county changes (not on auto-refresh)
     useEffect(() => {
         setSelectedFilters([]);
-    }, [initialHomes]);
+    }, [county]);
 
     // _______________Dropdown Handlers_______________
     const onCountyChange = useCallback(

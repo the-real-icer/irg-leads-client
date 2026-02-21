@@ -20,7 +20,7 @@ export function fetchHotsheetHomes(county) {
             const response = await IrgApi.get(
                 `/mlsproperties/hotsheet?days=${API_DAYS}&limit=${API_LIMIT}&county=${countyParam}`,
             );
-            const homes = Array.isArray(response.data.data.properties) ? response.data.data.properties : [];
+            const homes = Array.isArray(response.data?.data?.properties) ? response.data.data.properties : [];
             dispatch({ type: FETCH_HOTSHEET_HOMES, payload: homes });
         } catch (error) {
             console.error('Fetch homes error:', error.message); // eslint-disable-line

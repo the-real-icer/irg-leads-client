@@ -33,7 +33,6 @@ const SideBar = () => {
                         <SideBarLink name="Marketing" url="/marketing" icon="pi pi-image mr-2" />
                         <SideBarLink name="Property Search" url="/search" icon="pi pi-search mr-2" />
                         <SideBarLink name="Calendar" url="/calendar" icon="pi pi-calendar mr-2" />
-                        <SideBarLink name="Profile" url="/profile" icon="pi pi-cog mr-2" />
                         <SideBarLink
                             name="Transactions"
                             url="/transactions"
@@ -55,7 +54,7 @@ const SideBar = () => {
                         />
                         <SideBarLink name="Save Property Search" url="/save-property-search" icon="pi pi-search mr-2" />
                     </ul>
-                    {agent.role === 'admin' && (
+                    {agent?.role === 'admin' && (
                         <ul className="list-none p-3 m-0">
                             <li>
                                 <span className="block p-3 text-600">ADMIN</span>
@@ -84,6 +83,11 @@ const SideBar = () => {
                                 name="Property URL Search"
                                 url="/property-url-search"
                                 icon="pi pi-search mr-2"
+                            />
+                            <SideBarLink
+                                name="Traffic Dashboard"
+                                url="/traffic-dashboard"
+                                icon="pi pi-chart-line mr-2"
                             />
                         </ul>
                     )}

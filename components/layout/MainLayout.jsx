@@ -37,15 +37,17 @@ const MainLayout = (props) => {
     // UseEffect to run once to fetch all the leads for the agent & News stories
     // TODO - Reimplement after date format
     useEffect(() => {
-        if (allLeadsPage.length === 0) {
+        if (agent?._id && allLeadsPage.length === 0) {
             dispatch(fetchLeads(agent._id, isLoggedIn));
             // dispatch(fetchNewStories());
         }
-    }, []); // eslint-disable-line
+    }, [agent?._id]); // eslint-disable-line
 
     // useInterval to update leads list every 2 minutes
     useInterval(() => {
-        dispatch(fetchLeads(agent._id, isLoggedIn));
+        if (agent?._id) {
+            dispatch(fetchLeads(agent._id, isLoggedIn));
+        }
     }, 120000);
 
     // ________________________________useEffect to get Irg Areas_____________\\
