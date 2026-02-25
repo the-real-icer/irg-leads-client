@@ -1,110 +1,80 @@
-import React from 'react';
 import PropTypes from 'prop-types';
 
 const PrimaryFeatures = ({ property }) => {
     let lotSizeAcresClean = '';
-    if (property) {
+    if (property.lot_size_acres) {
         const lotSizeAcres = property.lot_size_acres * 1;
         lotSizeAcresClean = Math.round((lotSizeAcres + Number.EPSILON) * 100) / 100;
     }
+
+    const details = [];
+
+    details.push({ label: 'Year Built', value: property.year_built });
+
+    if (property.property_sub_type) {
+        details.push({
+            label: 'Property Type',
+            value:
+                property.property_sub_type === 'Single Family Residence'
+                    ? 'Single Family'
+                    : property.property_sub_type,
+        });
+    }
+
+    if (property.garage_spaces !== 0) {
+        details.push({
+            label: 'Garage Spaces',
+            value: `${property.garage_spaces} ${property.garage_spaces === 1 ? 'Car' : 'Cars'}`,
+        });
+    }
+
+    if (property.mls_number) {
+        details.push({ label: 'MLS Number', value: property.mls_number });
+    }
+
+    if (property.lot_size_acres && property.property_sub_type === 'Single Family Residence') {
+        details.push({ label: 'Lot Size', value: `${lotSizeAcresClean} Acres` });
+    }
+
+    if (property.pool_private) {
+        details.push({ label: 'Pool', value: 'Private' });
+    }
+
+    if (
+        property.cooling_y_n &&
+        property.cooling &&
+        property.cooling.length > 0 &&
+        property.cooling.includes('CA')
+    ) {
+        details.push({ label: 'Air Conditioning', value: 'Central' });
+    }
+
+    if (property.association_y_n && property.association_fee) {
+        details.push({ label: 'HOA Fee', value: `$${property.association_fee}` });
+    }
+
+    if (property.senior_community_y_n) {
+        details.push({ label: 'Senior Community', value: 'Yes' });
+    }
+
+    if (property.levels === 'A') {
+        details.push({ label: 'Stories', value: 'Single Story' });
+    } else if (property.levels === 'U') {
+        details.push({ label: 'Stories', value: '2 Story' });
+    }
+
     return (
-        <React.Fragment>
-            <div className="property__features__primary__title">Property Details</div>
-            <div className="property__features__primary">
-                <div className="property__features__primary__column">
-                    <div className="property__features__feature">
-                        <span className="property__features__feature__label">Year Built:</span>
-                        <span className="property__features__feature__item">
-                            {property.year_built}
-                        </span>
+        <div className="property-details">
+            <h3 className="property-details__title">Property Details</h3>
+            <div className="property-details__grid">
+                {details.map((detail) => (
+                    <div key={detail.label} className="property-details__item">
+                        <span className="property-details__label">{detail.label}</span>
+                        <span className="property-details__value">{detail.value}</span>
                     </div>
-                    {property.garage_spaces !== 0 && (
-                        <div className="property__features__feature">
-                            <span className="property__features__feature__label">
-                                Garage Spaces:
-                            </span>
-                            <span className="property__features__feature__item">
-                                {property.garage_spaces}{' '}
-                                {property.garage_spaces === 1 ? 'Car' : 'Cars'}
-                            </span>
-                        </div>
-                    )}
-                    {property.mls_number && (
-                        <div className="property__features__feature">
-                            <span className="property__features__feature__label">MLS Number:</span>
-                            <span className="property__features__feature__item">
-                                {property.mls_number}
-                            </span>
-                        </div>
-                    )}
-                    {property.lot_size_acres &&
-                    property.property_sub_type === 'Single Family Residence' ? (
-                        <div className="property__features__feature">
-                            <span className="property__features__feature__label">Lot Size:</span>
-                            <span className="property__features__feature__item">
-                                {lotSizeAcresClean} Acres
-                            </span>
-                        </div>
-                    ) : null}
-                </div>
-                <div className="property__features__primary__column">
-                    {property.property_sub_type && (
-                        <div className="property__features__feature">
-                            <span className="property__features__feature__label">
-                                Property Type:
-                            </span>
-                            <span className="property__features__feature__item">
-                                {property.property_sub_type === 'Single Family Residence'
-                                    ? 'Single Family'
-                                    : property.property_sub_type}
-                            </span>
-                        </div>
-                    )}
-                    {property.pool_private && (
-                        <div className="property__features__feature">
-                            <span className="property__features__feature__label">Pool:</span>
-                            <span className="property__features__feature__item">Private</span>
-                        </div>
-                    )}
-                    {property.senior_community_y_n && (
-                        <div className="property__features__feature">
-                            <span className="property__features__feature__label">
-                                Senior Community:
-                            </span>
-                            <span className="property__features__feature__item">Yes</span>
-                        </div>
-                    )}
-                    {property.cooling_y_n && property.cooling && property.cooling.length > 0 && property.cooling.includes('CA') && (
-                        <div className="property__features__feature">
-                            <span className="property__features__feature__label">
-                                Air Conditioning:
-                            </span>
-                            <span className="property__features__feature__item">Central</span>
-                        </div>
-                    )}
-                    {property.association_y_n && property.association_fee && (
-                        <div className="property__features__feature">
-                            <span className="property__features__feature__label">HOA Fee:</span>
-                            <span className="property__features__feature__item">
-                                ${property.association_fee}
-                            </span>
-                        </div>
-                    )}
-                    {property.levels === 'A' && (
-                        <div className="property__features__feature">
-                            <span className="property__features__feature__label">Stories:</span>
-                            <span className="property__features__feature__item">Single Story</span>
-                        </div>
-                    )}
-                    {property.levels === 'U' && (
-                        <div className="property__features__feature">
-                            <span className="property__features__feature__label">Stories:</span>
-                            <span className="property__features__feature__item">2 Story</span>
-                        </div>
-                    )}
-                </div>
+                ))}
             </div>
-        </React.Fragment>
+        </div>
     );
 };
 

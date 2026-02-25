@@ -11,12 +11,20 @@ import AgentPropertyCard from './AgentPropertyCard';
 import AgentNotesPanel from './AgentNotesPanel';
 import SendPropertyDialog from './SendPropertyDialog';
 
+const FILTER_LABELS = {
+    like: 'Liked',
+    maybe: 'Maybe',
+    discard: 'Discarded',
+    pending_showings: 'Pending Showings',
+};
+
 const LeadDashboard = ({ leadId, isLoggedIn }) => {
     const [deliveries, setDeliveries] = useState([]);
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [summary, setSummary] = useState({ total: 0, liked: 0, maybe: 0, discarded: 0, pending_showings: 0 });
+    const [activeFilter, setActiveFilter] = useState(null);
 
     // Notes panel state
     const [notesVisible, setNotesVisible] = useState(false);
@@ -27,10 +35,12 @@ const LeadDashboard = ({ leadId, isLoggedIn }) => {
 
     const headers = { Authorization: `Bearer ${isLoggedIn}` };
 
-    const fetchDeliveries = useCallback(async (pg = 1) => {
+    const fetchDeliveries = useCallback(async (pg = 1, reaction = null) => {
         setLoading(true);
         try {
-            const response = await IrgApi.get(`/users/dashboard/${leadId}/properties?page=${pg}&limit=24`, { headers });
+            const params = new URLSearchParams({ page: pg, limit: 24 });
+            if (reaction) params.append('reaction', reaction);
+            const response = await IrgApi.get(`/users/dashboard/${leadId}/properties?${params.toString()}`, { headers });
             if (response.data.status === 'success') {
                 setDeliveries(response.data.data);
                 setTotalPages(response.data.totalPages);
@@ -66,6 +76,12 @@ const LeadDashboard = ({ leadId, isLoggedIn }) => {
         setNotesVisible(true);
     };
 
+    const handleFilterClick = useCallback((filterValue) => {
+        const next = activeFilter === filterValue ? null : filterValue;
+        setActiveFilter(next);
+        fetchDeliveries(1, next);
+    }, [activeFilter, fetchDeliveries]);
+
     const handleShowingAction = async (requestId, status) => {
         try {
             const response = await IrgApi.patch(
@@ -75,7 +91,7 @@ const LeadDashboard = ({ leadId, isLoggedIn }) => {
             );
             if (response.data.status === 'success') {
                 showToast('success', `Showing ${status}`, 'Updated');
-                fetchDeliveries(page);
+                fetchDeliveries(page, activeFilter);
                 fetchSummary();
             }
         } catch (error) {
@@ -86,32 +102,42 @@ const LeadDashboard = ({ leadId, isLoggedIn }) => {
 
     const handlePropertySent = () => {
         setSendVisible(false);
-        fetchDeliveries(1);
+        fetchDeliveries(1, activeFilter);
         fetchSummary();
         showToast('success', 'Property sent to lead', 'Success');
     };
 
     const statCards = [
-        { label: 'Total Sent', value: summary.total, icon: 'pi pi-send', color: '#667eea' },
-        { label: 'Liked', value: summary.liked, icon: 'pi pi-heart-fill', color: '#e74c3c' },
-        { label: 'Maybe', value: summary.maybe, icon: 'pi pi-question-circle', color: '#f59e0b' },
-        { label: 'Discarded', value: summary.discarded, icon: 'pi pi-times-circle', color: '#6c757d' },
-        { label: 'Pending Showings', value: summary.pending_showings, icon: 'pi pi-calendar', color: '#2196f3' },
+        { label: 'Total Sent', value: summary.total, icon: 'pi pi-send', color: '#667eea', filterKey: null },
+        { label: 'Liked', value: summary.liked, icon: 'pi pi-heart-fill', color: '#e74c3c', filterKey: 'like' },
+        { label: 'Maybe', value: summary.maybe, icon: 'pi pi-question-circle', color: '#f59e0b', filterKey: 'maybe' },
+        { label: 'Discarded', value: summary.discarded, icon: 'pi pi-times-circle', color: '#6c757d', filterKey: 'discard' },
+        { label: 'Pending Showings', value: summary.pending_showings, icon: 'pi pi-calendar', color: '#2196f3', filterKey: 'pending_showings' },
     ];
 
     return (
         <div className="lead-dashboard">
             {/* Summary Stats */}
             <div className="lead-dashboard__stats">
-                {statCards.map((stat) => (
-                    <div key={stat.label} className="lead-dashboard__stat">
-                        <i className={`${stat.icon} lead-dashboard__stat-icon`} style={{ color: stat.color }}></i>
-                        <div className="lead-dashboard__stat-info">
-                            <span className="lead-dashboard__stat-value">{stat.value}</span>
-                            <span className="lead-dashboard__stat-label">{stat.label}</span>
-                        </div>
-                    </div>
-                ))}
+                {statCards.map((stat) => {
+                    const isActive = stat.filterKey && activeFilter === stat.filterKey;
+                    const isClickable = !!stat.filterKey;
+                    return (
+                        <button
+                            key={stat.label}
+                            type="button"
+                            className={`lead-dashboard__stat${isClickable ? ' lead-dashboard__stat--clickable' : ''}${isActive ? ' lead-dashboard__stat--active' : ''}`}
+                            style={isActive ? { '--stat-color': stat.color } : undefined}
+                            onClick={isClickable ? () => handleFilterClick(stat.filterKey) : undefined}
+                        >
+                            <i className={`${stat.icon} lead-dashboard__stat-icon`} style={{ color: isActive ? '#fff' : stat.color }}></i>
+                            <div className="lead-dashboard__stat-info">
+                                <span className="lead-dashboard__stat-value">{stat.value}</span>
+                                <span className="lead-dashboard__stat-label">{stat.label}</span>
+                            </div>
+                        </button>
+                    );
+                })}
             </div>
 
             {/* Actions */}
@@ -126,7 +152,7 @@ const LeadDashboard = ({ leadId, isLoggedIn }) => {
                     label="Refresh"
                     icon="pi pi-refresh"
                     className="p-button-rounded p-button-text"
-                    onClick={() => { fetchDeliveries(page); fetchSummary(); }}
+                    onClick={() => { fetchDeliveries(page, activeFilter); fetchSummary(); }}
                 />
             </div>
 
@@ -145,6 +171,8 @@ const LeadDashboard = ({ leadId, isLoggedIn }) => {
                                 delivery={delivery}
                                 onOpenNotes={() => handleOpenNotes(delivery)}
                                 onShowingAction={handleShowingAction}
+                                leadId={leadId}
+                                isLoggedIn={isLoggedIn}
                             />
                         ))}
                     </div>
@@ -156,7 +184,7 @@ const LeadDashboard = ({ leadId, isLoggedIn }) => {
                                 icon="pi pi-chevron-left"
                                 className="p-button-text p-button-sm"
                                 disabled={page <= 1}
-                                onClick={() => fetchDeliveries(page - 1)}
+                                onClick={() => fetchDeliveries(page - 1, activeFilter)}
                             />
                             <span className="lead-dashboard__page-info">
                                 Page {page} of {totalPages}
@@ -165,15 +193,22 @@ const LeadDashboard = ({ leadId, isLoggedIn }) => {
                                 icon="pi pi-chevron-right"
                                 className="p-button-text p-button-sm"
                                 disabled={page >= totalPages}
-                                onClick={() => fetchDeliveries(page + 1)}
+                                onClick={() => fetchDeliveries(page + 1, activeFilter)}
                             />
                         </div>
                     )}
                 </>
+            ) : activeFilter ? (
+                <div className="lead-dashboard__empty">
+                    <i className="pi pi-filter-slash" style={{ fontSize: '3rem', opacity: 0.3 }}></i>
+                    <p style={{ fontSize: '1.1rem', color: 'hsl(var(--foreground-muted))', marginTop: '1rem' }}>
+                        No {FILTER_LABELS[activeFilter]} properties
+                    </p>
+                </div>
             ) : (
                 <div className="lead-dashboard__empty">
                     <i className="pi pi-inbox" style={{ fontSize: '3rem', opacity: 0.3 }}></i>
-                    <p style={{ fontSize: '1.1rem', color: '#6c757d', marginTop: '1rem' }}>
+                    <p style={{ fontSize: '1.1rem', color: 'hsl(var(--foreground-muted))', marginTop: '1rem' }}>
                         No properties have been sent to this lead yet.
                     </p>
                     <Button
@@ -193,7 +228,7 @@ const LeadDashboard = ({ leadId, isLoggedIn }) => {
                 delivery={notesDelivery}
                 leadId={leadId}
                 isLoggedIn={isLoggedIn}
-                onNoteCreated={() => fetchDeliveries(page)}
+                onNoteCreated={() => fetchDeliveries(page, activeFilter)}
             />
 
             {/* Send Property Dialog */}

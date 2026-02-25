@@ -21,6 +21,9 @@
 @import 'components/dashboard-hotsheet';
 @import 'components/property-queue';
 @import 'components/leaddashboard';
+@import 'components/notificationbell';
+@import 'components/campaignpreview';
+@import 'components/topbarsearch';
 @import 'components/search/homelist';
 @import 'components/search/searchfilters';
 @import 'components/search/searchmap';
@@ -34,6 +37,8 @@
 @import 'pages/property';
 @import 'pages/propertyurlsearch';
 @import 'pages/searchpage';
+@import 'pages/propertysearch';
+@import 'pages/transactions';
 
 .topbar_input {
     width: 550px;
@@ -51,31 +56,405 @@
 }
 
 .customer-badge.status-watch {
-    background-color: #feedaf;
-    color: #8a5340;
+    background-color: hsl(var(--status-watch) / 0.15);
+    color: hsl(var(--status-watch));
 }
 
 .customer-badge.status-qualify {
-    background-color: #c8e6c9;
-    color: #256029;
+    background-color: hsl(var(--status-qualify) / 0.15);
+    color: hsl(var(--status-qualify));
 }
 
 .customer-badge.status-hot {
-    background-color: #ffcdd2;
-    color: #c63737;
+    background-color: hsl(var(--status-hot) / 0.15);
+    color: hsl(var(--status-hot));
 }
 
 .customer-badge.status-nurture {
-    background-color: #eccfff;
-    color: #694382;
+    background-color: hsl(var(--status-nurture) / 0.15);
+    color: hsl(var(--status-nurture));
 }
 
 .customer-badge.status-new {
-    background-color: #b3e5fc;
-    color: #23547b;
+    background-color: hsl(var(--status-new) / 0.15);
+    color: hsl(var(--status-new));
 }
 
 .customer-badge.status-closed {
-    background-color: #ffd8b2;
-    color: #805b36;
+    background-color: hsl(var(--status-closed) / 0.15);
+    color: hsl(var(--status-closed));
+}
+
+
+// ── Areas AutoComplete search icon padding ──
+.areas-autocomplete .p-autocomplete-multiple-container {
+    padding-left: 2.25rem;
+}
+
+// ── PrimeReact Dark Mode Overrides ──
+// The saga-blue theme is light-only; these overrides apply when .dark is on <html>.
+.dark {
+    // Card
+    .p-card {
+        background: hsl(var(--surface));
+        color: hsl(var(--foreground));
+        box-shadow: 0 2px 12px hsl(var(--shadow-color) / 0.15);
+    }
+
+    .p-card .p-card-title {
+        color: hsl(var(--foreground));
+    }
+
+    .p-card .p-card-subtitle {
+        color: hsl(var(--foreground-muted));
+    }
+
+    // Dropdown
+    .p-dropdown {
+        background: hsl(var(--surface));
+        border-color: hsl(var(--border));
+        color: hsl(var(--foreground));
+    }
+
+    .p-dropdown:not(.p-disabled):hover {
+        border-color: hsl(var(--primary));
+    }
+
+    .p-dropdown .p-dropdown-label {
+        color: hsl(var(--foreground));
+    }
+
+    .p-dropdown .p-dropdown-trigger {
+        color: hsl(var(--foreground-muted));
+    }
+
+    .p-dropdown-panel {
+        background: hsl(var(--surface));
+        border-color: hsl(var(--border));
+    }
+
+    .p-dropdown-panel .p-dropdown-items .p-dropdown-item {
+        color: hsl(var(--foreground));
+    }
+
+    .p-dropdown-panel .p-dropdown-items .p-dropdown-item:hover {
+        background: hsl(var(--accent));
+        color: hsl(var(--accent-foreground));
+    }
+
+    .p-dropdown-panel .p-dropdown-items .p-dropdown-item.p-highlight {
+        background: hsl(var(--primary) / 0.15);
+        color: hsl(var(--primary));
+    }
+
+    // AutoComplete
+    .p-autocomplete .p-autocomplete-input {
+        background: hsl(var(--surface));
+        border-color: hsl(var(--border));
+        color: hsl(var(--foreground));
+    }
+
+    .p-autocomplete .p-autocomplete-input:hover {
+        border-color: hsl(var(--primary));
+    }
+
+    .p-autocomplete-panel {
+        background: hsl(var(--surface));
+        border-color: hsl(var(--border));
+    }
+
+    .p-autocomplete-panel .p-autocomplete-items .p-autocomplete-item {
+        color: hsl(var(--foreground));
+    }
+
+    .p-autocomplete-panel .p-autocomplete-items .p-autocomplete-item:hover {
+        background: hsl(var(--accent));
+    }
+
+    .p-autocomplete-panel .p-autocomplete-items .p-autocomplete-item.p-highlight {
+        background: hsl(var(--primary) / 0.15);
+        color: hsl(var(--primary));
+    }
+
+    // AutoComplete multiple mode (chip tokens)
+    .p-autocomplete-multiple-container {
+        background: hsl(var(--surface));
+        border-color: hsl(var(--border));
+        color: hsl(var(--foreground));
+    }
+
+    .p-autocomplete-multiple-container:hover {
+        border-color: hsl(var(--primary));
+    }
+
+    .p-autocomplete-multiple-container .p-autocomplete-token {
+        background: hsl(var(--primary) / 0.15);
+        color: hsl(var(--primary));
+    }
+
+    .p-autocomplete-multiple-container .p-autocomplete-token .p-autocomplete-token-icon {
+        color: hsl(var(--primary));
+    }
+
+    // ScrollPanel
+    .p-scrollpanel .p-scrollpanel-bar {
+        background: hsl(var(--border));
+    }
+
+    // Input text (general PrimeReact inputs)
+    .p-inputtext {
+        background: hsl(var(--surface));
+        border-color: hsl(var(--border));
+        color: hsl(var(--foreground));
+    }
+
+    .p-inputtext:hover {
+        border-color: hsl(var(--primary));
+    }
+
+    // InputTextarea
+    .p-inputtextarea {
+        background: hsl(var(--surface));
+        border-color: hsl(var(--border));
+        color: hsl(var(--foreground));
+    }
+
+    // Dialog
+    .p-dialog {
+        background: hsl(var(--surface));
+        color: hsl(var(--foreground));
+    }
+
+    .p-dialog .p-dialog-header {
+        background: hsl(var(--surface));
+        color: hsl(var(--foreground));
+        border-bottom-color: hsl(var(--border));
+    }
+
+    .p-dialog .p-dialog-header .p-dialog-header-icon {
+        color: hsl(var(--foreground-muted));
+    }
+
+    .p-dialog .p-dialog-content {
+        background: hsl(var(--surface));
+        color: hsl(var(--foreground));
+    }
+
+    .p-dialog .p-dialog-footer {
+        background: hsl(var(--surface));
+        border-top-color: hsl(var(--border));
+    }
+
+    // Checkbox
+    .p-checkbox .p-checkbox-box {
+        border-color: hsl(var(--border));
+        background: hsl(var(--surface));
+    }
+
+    .p-checkbox .p-checkbox-box.p-highlight {
+        background: hsl(var(--primary));
+        border-color: hsl(var(--primary));
+    }
+
+    // RadioButton
+    .p-radiobutton .p-radiobutton-box {
+        border-color: hsl(var(--border));
+        background: hsl(var(--surface));
+    }
+
+    .p-radiobutton .p-radiobutton-box.p-highlight {
+        background: hsl(var(--surface));
+        border-color: hsl(var(--primary));
+    }
+
+    .p-radiobutton .p-radiobutton-box .p-radiobutton-icon {
+        background: hsl(var(--primary));
+    }
+
+    // Button secondary
+    .p-button.p-button-secondary {
+        background: hsl(var(--muted));
+        color: hsl(var(--foreground));
+        border-color: hsl(var(--border));
+    }
+
+    // Button text / outlined variants
+    .p-button.p-button-text {
+        color: hsl(var(--primary));
+    }
+
+    .p-button.p-button-outlined {
+        color: hsl(var(--primary));
+        border-color: hsl(var(--primary));
+    }
+
+    // SplitButton
+    .p-splitbutton .p-splitbutton-menubutton {
+        border-left-color: hsl(var(--primary-foreground) / 0.3);
+    }
+
+    // TabView
+    .p-tabview .p-tabview-nav {
+        background: transparent;
+        border-color: hsl(var(--border));
+    }
+
+    .p-tabview .p-tabview-nav li .p-tabview-nav-link {
+        background: transparent;
+        color: hsl(var(--foreground-muted));
+    }
+
+    .p-tabview .p-tabview-nav li.p-highlight .p-tabview-nav-link {
+        background: transparent;
+        color: hsl(var(--primary));
+        border-color: hsl(var(--primary));
+    }
+
+    .p-tabview .p-tabview-nav li:not(.p-highlight) .p-tabview-nav-link:hover {
+        background: hsl(var(--primary) / 0.05);
+        color: hsl(var(--primary));
+    }
+
+    .p-tabview .p-tabview-panels {
+        background: hsl(var(--surface));
+        color: hsl(var(--foreground));
+    }
+
+    // Accordion
+    .p-accordion .p-accordion-header .p-accordion-header-link {
+        background: hsl(var(--surface));
+        color: hsl(var(--foreground));
+        border-color: hsl(var(--border));
+    }
+
+    .p-accordion .p-accordion-header:not(.p-disabled) .p-accordion-header-link:hover {
+        background: hsl(var(--muted));
+        border-color: hsl(var(--primary));
+        color: hsl(var(--foreground));
+    }
+
+    .p-accordion .p-accordion-header:not(.p-highlight):not(.p-disabled) .p-accordion-header-link {
+        background: hsl(var(--surface));
+    }
+
+    .p-accordion .p-accordion-header.p-highlight .p-accordion-header-link {
+        background: hsl(var(--muted));
+        border-color: hsl(var(--primary));
+        color: hsl(var(--foreground));
+    }
+
+    .p-accordion .p-accordion-content {
+        background: hsl(var(--surface));
+        color: hsl(var(--foreground));
+        border-color: hsl(var(--border));
+    }
+
+    // DataTable
+    .p-datatable .p-datatable-header {
+        background: hsl(var(--surface));
+        color: hsl(var(--foreground));
+        border-color: hsl(var(--border));
+    }
+
+    .p-datatable .p-datatable-thead > tr > th {
+        background: hsl(var(--surface));
+        color: hsl(var(--foreground));
+        border-color: hsl(var(--border));
+    }
+
+    .p-datatable .p-datatable-tbody > tr {
+        background: hsl(var(--surface));
+        color: hsl(var(--foreground));
+    }
+
+    .p-datatable .p-datatable-tbody > tr > td {
+        border-color: hsl(var(--border));
+    }
+
+    .p-datatable .p-datatable-tbody > tr:nth-child(even) {
+        background: hsl(var(--muted));
+    }
+
+    .p-datatable .p-datatable-tbody > tr:hover {
+        background: hsl(var(--accent));
+    }
+
+    .p-datatable .p-datatable-footer {
+        background: hsl(var(--surface));
+        border-color: hsl(var(--border));
+    }
+
+    // Paginator (used with DataTable)
+    .p-paginator {
+        background: hsl(var(--surface));
+        color: hsl(var(--foreground));
+        border-color: hsl(var(--border));
+    }
+
+    .p-paginator .p-paginator-pages .p-paginator-page {
+        color: hsl(var(--foreground-muted));
+    }
+
+    .p-paginator .p-paginator-pages .p-paginator-page.p-highlight {
+        background: hsl(var(--primary) / 0.15);
+        color: hsl(var(--primary));
+    }
+
+    // Calendar
+    .p-calendar .p-inputtext {
+        background: hsl(var(--surface));
+        border-color: hsl(var(--border));
+        color: hsl(var(--foreground));
+    }
+
+    .p-datepicker {
+        background: hsl(var(--surface));
+        color: hsl(var(--foreground));
+        border-color: hsl(var(--border));
+    }
+
+    .p-datepicker .p-datepicker-header {
+        background: hsl(var(--surface));
+        color: hsl(var(--foreground));
+        border-bottom-color: hsl(var(--border));
+    }
+
+    .p-datepicker table td > span {
+        color: hsl(var(--foreground));
+    }
+
+    .p-datepicker table td > span.p-highlight {
+        background: hsl(var(--primary));
+        color: hsl(var(--primary-foreground));
+    }
+
+    .p-datepicker table td > span:hover {
+        background: hsl(var(--accent));
+    }
+
+    // Badge
+    .p-badge {
+        color: hsl(var(--primary-foreground));
+    }
+
+    // Chip
+    .p-chip {
+        background: hsl(var(--muted));
+        color: hsl(var(--foreground));
+    }
+
+    // Toast
+    .p-toast .p-toast-message {
+        background: hsl(var(--surface));
+        border-color: hsl(var(--border));
+        color: hsl(var(--foreground));
+        box-shadow: 0 4px 16px hsl(var(--shadow-color) / 0.25);
+    }
+
+    // Tooltip
+    .p-tooltip .p-tooltip-text {
+        background: hsl(var(--surface-elevated));
+        color: hsl(var(--foreground));
+        box-shadow: 0 2px 8px hsl(var(--shadow-color) / 0.2);
+    }
 }

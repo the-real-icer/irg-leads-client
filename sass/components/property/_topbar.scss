@@ -4,7 +4,7 @@
     align-items: center;
     text-align: center;
     padding: .5rem 0;
-    border-bottom: 1px solid;
+    border-bottom: 1px solid hsl(var(--border));
 
     @media (max-width: 1200px) {
         padding: .5rem 0;
@@ -123,19 +123,6 @@
 
         @media (max-width: 1600px) {
             font-size: 1rem;
-        }
-    }
-
-    &__actions {
-        display: flex;
-
-        @media (max-width: 1000px) {
-            flex-direction: column;
-        }
-
-        @media (max-width: 700px) {
-            flex-direction: row;
-            margin-top: 1rem;
         }
     }
 

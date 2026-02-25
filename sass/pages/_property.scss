@@ -63,8 +63,8 @@
         display: flex;
         padding: 2rem 0;
         margin-top: 4.5rem;
-        border-top: 1px solid;
-        border-bottom: 1px solid;
+        border-top: 1px solid hsl(var(--border));
+        border-bottom: 1px solid hsl(var(--border));
 
         @media (max-width: 1000px) {
             flex-direction: column;

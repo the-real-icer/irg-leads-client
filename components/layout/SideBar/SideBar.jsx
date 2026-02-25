@@ -4,19 +4,18 @@
 // Redux
 import { useSelector } from 'react-redux';
 
-// // Third Party Components
-// import { Ripple } from 'primereact/ripple';
-
+import useTheme from '../../../hooks/useTheme';
 import SideBarLink from './SideBarLink';
 
-const SideBar = () => {
+const SideBar = ({ mobileOpen }) => {
     // __________________Redux State______________________\\
     const agent = useSelector((state) => state.agent);
+    const { theme, toggleTheme, mounted } = useTheme();
 
     return (
         <div
-            id="app-sidebar-3"
-            className="bg-gray-900 h-screen hidden lg:block flex-shrink-0 fixed left-0 top-0 z-1 border-right-1 border-gray-800 select-none"
+            id="app-sidebar"
+            className={`bg-sidebar h-screen flex-shrink-0 fixed left-0 top-0 z-[999] border-r border-sidebar-border select-none transition-transform duration-200 ease-in-out ${mobileOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}
             style={{ width: '280px' }}
         >
             <div className="flex flex-column h-full">
@@ -44,7 +43,7 @@ const SideBar = () => {
                             icon="pi pi-send mr-2"
                         />
                         <li>
-                                <span className="block p-3 text-600">LEADS</span>
+                                <span className="block p-3 text-sidebar-foreground/50 text-xs font-semibold tracking-wider">LEADS</span>
                         </li>
                         <SideBarLink name="Leads" url="/leads" icon="pi pi-users mr-2" />
                         <SideBarLink
@@ -57,7 +56,7 @@ const SideBar = () => {
                     {agent?.role === 'admin' && (
                         <ul className="list-none p-3 m-0">
                             <li>
-                                <span className="block p-3 text-600">ADMIN</span>
+                                <span className="block p-3 text-sidebar-foreground/50 text-xs font-semibold tracking-wider">ADMIN</span>
                             </li>
                             <SideBarLink
                                 name="Agents"
@@ -91,6 +90,19 @@ const SideBar = () => {
                             />
                         </ul>
                     )}
+                </div>
+
+                {/* Theme toggle — pinned to bottom */}
+                <div className="mt-auto flex-shrink-0 border-t border-sidebar-border px-4 py-3">
+                    <button
+                        onClick={toggleTheme}
+                        className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors duration-150 text-sm font-medium"
+                    >
+                        {mounted && (
+                            <i className={`pi ${theme === 'dark' ? 'pi-sun' : 'pi-moon'} text-base`} />
+                        )}
+                        {mounted && (theme === 'dark' ? 'Light Mode' : 'Dark Mode')}
+                    </button>
                 </div>
             </div>
         </div>

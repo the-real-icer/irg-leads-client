@@ -1,75 +1,315 @@
-.property_image_slider {
-    // cursor: pointer;
-    border-radius: 0.25rem;
-    height: 43.2rem;
-    width: 60rem;
+// ═══════════════════════════════════════════════════════════════
+// PROPERTY GALLERY — Grid + Lightbox
+// ═══════════════════════════════════════════════════════════════
 
-    &_container {
-        width: 60rem;
-        margin: 0 auto;
+// ── Container (responsive visibility) ──
+.property-gallery {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0.75rem 0;
+    position: relative;
 
-        @media (max-width: 1300px) {
-            width: 40rem;
+    @media (max-width: 1600px) { max-width: 900px; }
+    @media (max-width: 1300px) { max-width: 700px; }
+
+    // Desktop variant: visible 1280px+
+    &--desktop {
+        display: block;
+        @media (max-width: 1279px) { display: none; }
+    }
+
+    // Laptop variant: visible 1024–1279px
+    &--laptop {
+        display: none;
+        @media (min-width: 1024px) and (max-width: 1279px) { display: block; }
+    }
+
+    // Mobile variant: visible <1024px
+    &--mobile {
+        display: none;
+        @media (max-width: 1023px) {
+            display: block;
+            padding: 0;
+        }
+    }
+}
+
+// ── Photo Grid ──
+.property-gallery__grid {
+    position: relative;
+    overflow: hidden;
+    border-radius: 0.625rem;
+
+    // Desktop: hero (60%) + 2x2 grid of 4 (40%)
+    // 3 columns: hero spans col 1, side images fill cols 2-3 × rows 1-2
+    &--desktop {
+        display: grid;
+        grid-template-columns: 3fr 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+        gap: 4px;
+        height: 480px;
+
+        @media (min-width: 1536px) { height: 540px; }
+
+        .property-gallery__hero {
+            grid-row: 1 / 3;
+            grid-column: 1;
+            border-radius: 0.625rem 0 0 0.625rem;
+        }
+
+        // Default: all cells have no outer radius
+        .property-gallery__cell { border-radius: 0; }
+
+        // Full 4 side images: child order is hero(1), cell(2), cell(3), cell(4), cell(5)
+        // cell(2)=top-left of right, cell(3)=top-right → top-right corner
+        // cell(4)=bottom-left of right, cell(5)=bottom-right → bottom-right corner
+        .property-gallery__cell:nth-child(3) { border-radius: 0 0.625rem 0 0; }
+        .property-gallery__cell:nth-child(5) { border-radius: 0 0 0.625rem 0; }
+
+        // When exactly 3 side images (cols-3): hero + 3 cells
+        // cell(2)=top-left, cell(3)=top-right → top-right, cell(4)=bottom → spans or gets bottom-right
+        &.property-gallery__grid--cols-3 {
+            .property-gallery__cell:nth-child(3) { border-radius: 0 0.625rem 0 0; }
+            .property-gallery__cell:nth-child(4) { border-radius: 0 0 0.625rem 0; }
+        }
+
+        // When exactly 2 side images: 2 columns of right side, each takes a row
+        &.property-gallery__grid--cols-2 {
+            grid-template-columns: 3fr 2fr;
+            .property-gallery__cell:nth-child(2) { border-radius: 0 0.625rem 0 0; }
+            .property-gallery__cell:nth-child(3) { border-radius: 0 0 0.625rem 0; }
+        }
+
+        // When only 1 side image
+        &.property-gallery__grid--cols-1 {
+            grid-template-columns: 3fr 2fr;
+            grid-template-rows: 1fr;
+            .property-gallery__cell:nth-child(2) { border-radius: 0 0.625rem 0.625rem 0; }
+        }
+
+        // When 0 side images, hero takes full width
+        &.property-gallery__grid--cols-0 {
+            grid-template-columns: 1fr;
+            .property-gallery__hero { border-radius: 0.625rem; }
         }
     }
 
-    // @media (max-width: 1600px) {
-    //     height: 68.4rem;
-    //     width: 95rem;
-    // }
+    // Laptop: hero (65%) + 2 stacked (35%)
+    &--laptop {
+        display: grid;
+        grid-template-columns: 65fr 35fr;
+        grid-template-rows: 1fr 1fr;
+        gap: 4px;
+        height: 400px;
 
-    @media (max-width: 1300px) {
-        height: 25rem;
-        width: 40rem;
+        .property-gallery__hero {
+            grid-row: 1 / 3;
+            border-radius: 0.625rem 0 0 0.625rem;
+        }
+
+        .property-gallery__cell {
+            &:nth-child(2) { border-radius: 0 0.625rem 0 0; }
+            &:nth-child(3) { border-radius: 0 0 0.625rem 0; }
+        }
+
+        // Only 1 side image
+        &.property-gallery__grid--laptop-1 {
+            grid-template-rows: 1fr;
+            .property-gallery__cell:nth-child(2) { border-radius: 0 0.625rem 0.625rem 0; }
+        }
+    }
+}
+
+// ── Hero + Cell shared styles ──
+.property-gallery__hero,
+.property-gallery__cell {
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        transition: filter 200ms ease;
     }
 
-    // @media (max-width: 1200px) {
-    //     height: 61.2rem;
-    //     width: 85rem;
-    // }
+    &:hover img {
+        filter: brightness(0.85);
+    }
+}
 
-    // @media (max-width: 1100px) {
-    //     height: 57.6rem;
-    //     width: 80rem;
-    // }
+// ── Status Pill ──
+.property-gallery__status {
+    position: absolute;
+    top: 1.25rem;
+    left: 1rem;
+    z-index: 5;
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 0.3rem 0.875rem;
+    border-radius: 1.25rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
 
-    // @media (max-width: 1000px) {
-    //     height: 54rem;
-    //     width: 75rem;
-    // }
+    &--active { color: #fff; background: #16a34a; }
+    &--active_under_contract { color: #fff; background: #16a34a; }
+    &--pending { color: #fff; background: #c62828; }
+    &--coming_soon { color: #fff; background: #e65100; }
+    &--off_market { color: #fff; background: #616161; }
+}
 
-    // @media (max-width: 900px) {
-    //     height: 50.4rem;
-    //     width: 70rem;
-    // }
+// ── "View all X photos" Button ──
+.property-gallery__view-all {
+    position: absolute;
+    bottom: 1rem;
+    right: 1rem;
+    z-index: 5;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    background: #fff;
+    color: #1a1a1a;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    padding: 0.5rem 0.875rem;
+    border-radius: 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 150ms ease;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 
-    @media (max-width: 800px) {
-        height: 43.2rem;
-        width: 60rem;
+    &:hover {
+        background: #f0f0f0;
     }
 
-    @media (max-width: 700px) {
-        height: 36rem;
-        width: 50rem;
+    .pi {
+        font-size: 0.875rem;
+    }
+}
+
+// ── No Photo Placeholder ──
+.property-gallery__placeholder {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    background: hsl(var(--muted));
+    border-radius: 0.625rem;
+    color: hsl(var(--foreground-muted));
+    font-size: 1.125rem;
+
+    @media (max-width: 1600px) { max-width: 900px; }
+    @media (max-width: 1300px) { max-width: 700px; }
+}
+
+// ── Mobile Carousel Overrides (react-image-gallery) ──
+.property-gallery--mobile {
+    .image-gallery-slide .image-gallery-image {
+        max-height: 350px;
+        object-fit: contain;
+
+        @media (max-width: 600px) { max-height: 280px; }
+        @media (max-width: 425px) { max-height: 240px; }
     }
 
-    @media (max-width: 600px) {
-        height: 32.4rem;
-        width: 45rem;
+    .image-gallery-index {
+        background: rgba(0, 0, 0, 0.5);
+        color: #fff;
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-size: 0.8125rem;
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// FULLSCREEN LIGHTBOX
+// ═══════════════════════════════════════════════════════════════
+.property-gallery__lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 200000001;
+    background: rgba(0, 0, 0, 0.92);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: pgFadeIn 200ms ease;
+
+    &__inner {
+        position: relative;
+        width: 90%;
+        max-width: 1100px;
+        max-height: 90vh;
     }
 
-    @media (max-width: 500px) {
-        height: 28.8rem;
-        width: 40rem;
+    &__close {
+        position: absolute;
+        top: -44px;
+        right: 0;
+        background: none;
+        border: none;
+        color: #fff;
+        font-size: 2.5rem;
+        cursor: pointer;
+        z-index: 1;
+        line-height: 1;
+
+        &:hover { color: #ccc; }
     }
 
-    @media (max-width: 450px) {
-        height: 25.2rem;
-        width: 35rem;
+    // react-image-gallery overrides inside lightbox
+    .image-gallery-slide .image-gallery-image {
+        max-height: 65vh;
+        object-fit: contain;
     }
 
-    @media (max-width: 400px) {
-        height: 21.6rem;
-        width: 30rem;
+    .image-gallery-index {
+        background: rgba(0, 0, 0, 0.5);
+        color: #fff;
+        padding: 6px 14px;
+        border-radius: 4px;
+        font-size: 0.875rem;
     }
+
+    .image-gallery-thumbnail {
+        border: 3px solid transparent;
+        border-radius: 4px;
+        cursor: pointer;
+
+        &.active,
+        &:hover {
+            border-color: hsl(var(--primary));
+        }
+    }
+
+    .image-gallery-left-nav,
+    .image-gallery-right-nav {
+        padding: 0;
+
+        .image-gallery-svg {
+            height: 56px;
+            width: 32px;
+        }
+    }
+
+    .image-gallery-left-nav {
+        left: -60px;
+        @media (max-width: 1200px) { left: -40px; }
+        @media (max-width: 900px) { left: 0; }
+    }
+
+    .image-gallery-right-nav {
+        right: -60px;
+        @media (max-width: 1200px) { right: -40px; }
+        @media (max-width: 900px) { right: 0; }
+    }
+}
+
+@keyframes pgFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }

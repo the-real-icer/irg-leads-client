@@ -5,9 +5,8 @@ import PropTypes from 'prop-types';
 import { useSelector } from 'react-redux';
 
 // Third Party Components
-import { GoogleMap, Marker, Polygon, useJsApiLoader } from '@react-google-maps/api';
-
-const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+import { GoogleMap, Marker, Polygon } from '@react-google-maps/api';
+import useGoogleMaps from '../../../utils/useGoogleMaps';
 
 const polyOptions = {
     fillColor: 'lightgrey',
@@ -26,10 +25,7 @@ const SearchMap = ({ homes }) => {
     // __________________Redux State______________________\\
     const searchPage = useSelector((state) => state.searchPage);
 
-    const { isLoaded } = useJsApiLoader({
-        id: 'google-map-script',
-        googleMapsApiKey: apiKey,
-    });
+    const { isLoaded } = useGoogleMaps();
     // eslint-disable-next-line
     const [map, setMap] = React.useState(null);
     // eslint-disable-next-line

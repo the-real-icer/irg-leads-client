@@ -4,6 +4,8 @@ import { persistStore, persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 // import { composeWithDevTools } from '@redux-devtools/extension';
 
+import { RESET_STORE } from './actions/types';
+
 import agent from './reducers/agentReducer';
 import allLeadsPage from './reducers/allLeadsPageReducer';
 import clientSearchFilter from './reducers/clientSearchFilterReducer';
@@ -18,7 +20,7 @@ import selectedHomes from './reducers/selectedHomesReducer';
 import newsStories from './reducers/newsStoriesReducer';
 import theme from './reducers/themeReducer';
 
-const combinedReducer = combineReducers({
+const sliceReducers = combineReducers({
     agent,
     allLeadsPage,
     clientSearchFilter,
@@ -33,6 +35,15 @@ const combinedReducer = combineReducers({
     selectedHomes,
     theme,
 });
+
+// On RESET_STORE (logout), wipe all state except theme.
+// Each slice reducer receives undefined and returns its initial value.
+const combinedReducer = (state, action) => {
+    if (action.type === RESET_STORE) {
+        return sliceReducers({ theme: state?.theme }, action);
+    }
+    return sliceReducers(state, action);
+};
 
 const createStorage = () => {
     if (typeof window !== 'undefined') {

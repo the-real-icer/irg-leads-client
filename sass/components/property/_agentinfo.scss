@@ -1,17 +1,28 @@
+// ═══════════════════════════════════════════════════════════════
+// AGENT INFO — Right column on property page
+// ═══════════════════════════════════════════════════════════════
+
 .agent__info {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    gap: 0.5rem;
+    align-self: flex-start;
     padding: 1rem 1.5rem;
-    border-radius: 5px;
-    border: 1px solid black;
+    border-radius: 0.5rem;
+    border: 1px solid hsl(var(--border));
     width: 45rem;
     font-size: 1.3rem;
     font-weight: 400;
     text-align: center;
+    color: hsl(var(--foreground));
+
+    p {
+        margin: 0;
+    }
 
     @media (max-width: 1000px) {
         width: 45rem;
+        margin-top: 1.5rem;
     }
 
     @media (max-width: 700px) {

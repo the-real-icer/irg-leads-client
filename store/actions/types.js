@@ -50,6 +50,7 @@ export const CHANGE_SEARCH = 'CHANGE_SEARCH';
 // export const ADD_ALL_LEADS = 'ADD_ALL_LEADS';
 export const FETCH_LEADS = 'FETCH_LEADS';
 export const UPDATE_LEADS = 'UPDATE_LEADS';
+export const UPDATE_SINGLE_LEAD = 'UPDATE_SINGLE_LEAD';
 
 // Lead Profile Types
 export const ADD_LEAD = 'ADD_LEAD';
@@ -100,3 +101,6 @@ export const CLIENT_RESET_FILTERS = 'CLIENT_RESET_FILTERS';
 
 // News Stories Types
 export const ADD_NEWS_STORIES = 'ADD_NEWS_STORIES';
+
+// Store Reset (logout)
+export const RESET_STORE = 'RESET_STORE';

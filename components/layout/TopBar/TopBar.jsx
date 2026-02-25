@@ -1,338 +1,191 @@
-// React & NextJS
-import { useEffect, useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/router';
-// import Link from 'next/link';
+import { useSelector, useDispatch } from 'react-redux';
 
-// Redux & Connect
-import { connect } from 'react-redux';
-import { bindActionCreators } from 'redux';
-
-// Third Party Components
-import { StyleClass } from 'primereact/styleclass';
-import { Ripple } from 'primereact/ripple';
-import { InputText } from 'primereact/inputtext';
-// import { AutoComplete } from 'primereact/autocomplete';
-import { Badge } from 'primereact/badge';
-import { Avatar } from 'primereact/avatar';
-
-import {
-    setCenter,
-    setBounds,
-    setZoom,
-    changeSearch,
-    setPolygon,
-    // setLoadingHomes,
-} from '../../../store/actions/searchPage';
-
+import { RESET_STORE } from '../../../store/actions/types';
+import useTheme from '../../../hooks/useTheme';
 import PropertyQueueDialog from '../../PropertyQueue/PropertyQueueDialog';
 import SendToLeadDialog from '../../PropertyQueue/SendToLeadDialog';
+import NotificationBell from './NotificationBell';
+import TopBarSearch from './TopBarSearch';
 
-const TopBar = ({ irgAreas, agent, selectedHomes }) => {
+const TopBar = ({ onMobileMenuToggle }) => {
+    const router = useRouter();
+    const dispatch = useDispatch();
+    const agent = useSelector((state) => state.agent);
+    const selectedHomes = useSelector((state) => state.selectedHomes);
+    const { theme, toggleTheme, mounted } = useTheme();
+
     const [showQueueDialog, setShowQueueDialog] = useState(false);
     const [showSendDialog, setShowSendDialog] = useState(false);
+    const [profileOpen, setProfileOpen] = useState(false);
+    const profileRef = useRef(null);
 
-    const router = useRouter();
-
+    // Close profile dropdown on outside click
     useEffect(() => {
-        const _filteredAreas = [
-            {
-                label: 'Cities',
-                items: [],
-            },
-            {
-                label: 'Condo Buildings',
-                items: [],
-            },
-            {
-                label: 'Neighborhoods',
-                items: [],
-            },
-            {
-                label: 'Zipcodes',
-                items: [],
-            },
-            {
-                label: 'Properties',
-                items: [],
-            },
-        ];
-        // eslint-disable-next-line
-        for (const [types, areas] of Object.entries(irgAreas)) {
-            if (types === 'City') {
-                // eslint-disable-next-line
-                for (const area of areas) {
-                    _filteredAreas[0].items.push({
-                        label: area.name,
-                        value: area.name,
-                        type: 'City',
-                    });
-                }
-            } else if (types === 'CondoBuilding') {
-                // eslint-disable-next-line
-                for (const area of areas) {
-                    _filteredAreas[1].items.push({
-                        label: area.name,
-                        value: area.name,
-                        type: 'CondoBuilding',
-                    });
-                }
-            } else if (types === 'Neighborhood') {
-                // eslint-disable-next-line
-                for (const area of areas) {
-                    _filteredAreas[2].items.push({
-                        label: area.name,
-                        value: area.name,
-                        type: 'Neighborhood',
-                    });
-                }
-            } else if (types === 'Zip') {
-                // eslint-disable-next-line
-                for (const area of areas) {
-                    _filteredAreas[3].items.push({
-                        label: area.name,
-                        value: area.name,
-                        type: 'Zip',
-                    });
-                }
-            } else {
-                // eslint-disable-next-line
-                for (const area of areas) {
-                    _filteredAreas[4].items.push({
-                        label: `${area.address}, ${area.city}, ${area.state}, ${area.zip_code}`,
-                        value: `${area.address}, ${area.city}, ${area.state}, ${area.zip_code}`,
-                        type: 'Property',
-                        url: area.property_url,
-                    });
-                }
+        const handler = (e) => {
+            if (profileRef.current && !profileRef.current.contains(e.target)) {
+                setProfileOpen(false);
             }
-        }
-        // setGroupedAreas(_filteredAreas);
-    }, []); // eslint-disable-line
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, []);
 
-    // const searchCity = (event) => {
-    //     const { query } = event;
-    //     const _filteredCities = [];
-    //     // eslint-disable-next-line
-    //     for (const area of groupedAreas) {
-    //         const filteredItems = area.items.filter(
-    //             (item) => item.label.toLowerCase().indexOf(query.toLowerCase()) !== -1
-    //         );
-    //         if (filteredItems && filteredItems.length) {
-    //             _filteredCities.push({ ...area, ...{ items: filteredItems } });
-    //         }
-    //     }
-
-    //     setFilteredCities(_filteredCities);
-    // };
-
-    // const groupedItemTemplate = (item) => (
-    //     <div className="flex align-items-center country-item">
-    //         <div>{item.label}</div>
-    //     </div>
-    // );
-
-    // eslint-disable-next-line
-    const onSelect = (e) => {
-        // console.log(e.value);
-        const cleanurl = e.value.label.replace(/\s/g, '-').toLowerCase();
-
-        switch (e.value.type) {
-            case 'City':
-                return router.push(`/search/city/${cleanurl}`);
-            case 'Neighborhood':
-                return router.push(`/search/neighborhood/${cleanurl}`);
-            case 'CondoBuilding':
-                return router.push(`/search/condo-building/${cleanurl}`);
-            case 'Zip':
-                return router.push(`/search/zipcode/${cleanurl}`);
-            case 'Property':
-                return router.push(`/property/${e.value.url}`);
-            default:
-            // return;
-            // return Router.push(`/property/[property]`, `/property/${suggestion.url}`);
-        }
-    };
+    // Close profile dropdown on route change
+    useEffect(() => {
+        const handleRoute = () => setProfileOpen(false);
+        router.events.on('routeChangeStart', handleRoute);
+        return () => router.events.off('routeChangeStart', handleRoute);
+    }, [router.events]);
 
     const handleSendClick = () => {
         setShowQueueDialog(false);
         setShowSendDialog(true);
     };
 
-    const handleSendSuccess = () => {
-        setShowSendDialog(false);
-        setShowQueueDialog(false);
+    const handleSignOut = () => {
+        setProfileOpen(false);
+        dispatch({ type: RESET_STORE });
+        if (typeof window !== 'undefined') {
+            localStorage.removeItem('googleCredential');
+        }
+        router.push('/');
+    };
+
+    const queueCount = selectedHomes?.length || 0;
+
+    const getInitials = () => {
+        if (!agent?.name) return '?';
+        const parts = agent.name.trim().split(' ');
+        if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+        return parts[0][0].toUpperCase();
     };
 
     return (
         <>
-        <div
-            className="flex justify-content-between align-items-center px-5 surface-0 border-bottom-1 surface-border relative lg:static"
-            style={{ height: '60px' }}
-        >
-            <div className="flex">
-                <StyleClass
-                    // nodeRef={btnRef5}
-                    selector="#app-sidebar"
-                    enterClassName="hidden"
-                    enterActiveClassName="fadeinleft"
-                    leaveToClassName="hidden"
-                    leaveActiveClassName="fadeoutleft"
-                    hideOnOutsideClick
-                >
-                    <a
-                        // ref={btnRef5}
-                        className="p-ripple cursor-pointer block lg:hidden text-700 mr-3"
+            <header className="sticky top-0 z-[1020] h-[60px] flex items-center justify-between px-4 lg:px-6 bg-surface/80 backdrop-blur-md border-b border-border dark:border-border/50 transition-colors duration-200">
+                {/* ── Left: Hamburger + Search ──────────────────────── */}
+                <div className="flex items-center gap-3">
+                    {/* Mobile hamburger */}
+                    <button
+                        onClick={onMobileMenuToggle}
+                        className="lg:hidden flex items-center justify-center text-foreground-muted hover:text-foreground transition-colors duration-150"
+                        aria-label="Toggle menu"
                     >
-                        <i className="pi pi-bars text-4xl"></i>
-                        <Ripple />
-                    </a>
-                </StyleClass>
-                <span className="p-input-icon-left">
-                    <i className="pi pi-search"></i>
-                    <InputText className="border-none" placeholder="Search" />
-                </span>
-            </div>
-            <StyleClass
-                // nodeRef={btnRef6}
-                selector="@next"
-                enterClassName="hidden"
-                enterActiveClassName="fadein"
-                leaveToClassName="hidden"
-                leaveActiveClassName="fadeout"
-                hideOnOutsideClick
-            >
-                <a
-                    // ref={btnRef6}
-                    className="p-ripple cursor-pointer block lg:hidden text-700"
-                >
-                    <i className="pi pi-ellipsis-v text-2xl"></i>
-                    <Ripple />
-                </a>
-            </StyleClass>
-            <ul
-                className="list-none p-0 m-0 hidden lg:flex lg:align-items-center select-none lg:flex-row
-surface-section border-1 lg:border-none surface-border right-0 top-100 z-1 shadow-2 lg:shadow-none absolute lg:static"
-            >
-                <li style={{ overflow: 'visible' }}>
-                    <a
-                        className="p-ripple flex p-3 lg:px-3 lg:py-2 align-items-center text-600 hover:text-900 hover:surface-100 font-medium border-round cursor-pointer
-        transition-duration-150 transition-colors w-full"
+                        <i className="pi pi-bars text-xl" />
+                    </button>
+
+                    {/* Global search */}
+                    <TopBarSearch />
+                </div>
+
+                {/* ── Right: Queue, Alerts, Avatar, Theme ─────────── */}
+                <div className="flex items-center gap-3">
+                    {/* Queue */}
+                    <button
                         onClick={() => setShowQueueDialog(true)}
-                        style={{ overflow: 'visible' }}
+                        className="hidden lg:flex relative items-center justify-center text-foreground-muted hover:text-foreground transition-colors duration-150"
+                        title="Property Queue"
                     >
-                        <i className={`pi pi-inbox text-base lg:text-2xl mr-2 lg:mr-0${selectedHomes?.length > 0 ? ' p-overlay-badge' : ''}`}>
-                            {selectedHomes?.length > 0 && <Badge value={selectedHomes.length} severity="info" />}
-                        </i>
-                        <span className="block lg:hidden font-medium">Queue ({selectedHomes?.length || 0})</span>
-                        <Ripple />
-                    </a>
-                </li>
-                <li>
-                    <a
-                        className="p-ripple flex p-3 lg:px-3 lg:py-2 align-items-center text-600 hover:text-900 hover:surface-100 font-medium border-round cursor-pointer
-        transition-duration-150 transition-colors w-full"
+                        <i className="pi pi-inbox text-xl" />
+                        {queueCount > 0 && (
+                            <span className="absolute -top-2 -right-2.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-secondary text-secondary-foreground text-[10px] font-bold leading-none">
+                                {queueCount}
+                            </span>
+                        )}
+                    </button>
+
+                    {/* Reminders */}
+                    <NotificationBell />
+
+                    {/* Profile avatar */}
+                    <div className="relative" ref={profileRef}>
+                        <button
+                            onClick={() => setProfileOpen(!profileOpen)}
+                            className="flex items-center justify-center cursor-pointer"
+                        >
+                            {agent?.image ? (
+                                <img
+                                    src={agent.image}
+                                    alt={agent?.name || 'Profile'}
+                                    className="rounded-full object-cover"
+                                    style={{ width: '32px', height: '32px', minWidth: '32px', minHeight: '32px' }}
+                                />
+                            ) : (
+                                <div
+                                    className="rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-semibold"
+                                    style={{ width: '32px', height: '32px', minWidth: '32px', minHeight: '32px' }}
+                                >
+                                    {getInitials()}
+                                </div>
+                            )}
+                        </button>
+
+                        {/* Dropdown */}
+                        {profileOpen && (
+                            <div className="absolute right-0 top-full mt-2 w-56 py-1.5 bg-surface rounded-lg shadow-dropdown border border-border z-[1060] animate-slide-down">
+                                <div className="px-3 py-2.5 border-b border-border-subtle">
+                                    <p className="text-sm font-semibold text-foreground truncate">
+                                        {agent?.name}
+                                    </p>
+                                    <p className="text-xs text-foreground-muted truncate mt-0.5">
+                                        {agent?.email}
+                                    </p>
+                                </div>
+                                <div className="py-1">
+                                    <button
+                                        onClick={() => {
+                                            setProfileOpen(false);
+                                            router.push('/profile');
+                                        }}
+                                        className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-foreground hover:bg-accent transition-colors duration-100"
+                                    >
+                                        <i className="pi pi-user text-sm text-foreground-muted" />
+                                        My Profile
+                                    </button>
+                                </div>
+                                <div className="border-t border-border-subtle my-1" />
+                                <button
+                                    onClick={handleSignOut}
+                                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-danger hover:bg-danger/10 transition-colors duration-100"
+                                >
+                                    <i className="pi pi-sign-out text-sm" />
+                                    Sign Out
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Divider — desktop only */}
+                    <div className="hidden md:block w-px h-5 bg-border mx-1" />
+
+                    {/* Theme toggle — desktop only (mobile toggle lives in sidebar) */}
+                    <button
+                        onClick={toggleTheme}
+                        className="hidden md:flex items-center justify-center text-foreground-muted hover:text-foreground transition-colors duration-150"
+                        title={mounted && theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+                        aria-label="Toggle theme"
                     >
-                        <i className="pi pi-bell text-base lg:text-2xl mr-2 lg:mr-0 p-overlay-badge">
-                            <Badge severity="danger" />
-                        </i>
-                        <span className="block lg:hidden font-medium">Notifications</span>
-                        <Ripple />
-                    </a>
-                </li>
-                <li className="border-top-1 surface-border lg:border-top-none">
-                    <a
-                        className="p-ripple flex p-3 lg:px-3 lg:py-2 align-items-center hover:surface-100 font-medium border-round cursor-pointer
-        transition-duration-150 transition-colors w-full"
-                        onClick={() => router.push('/profile')}
-                    >
-                        <Avatar image={agent?.image} className="mr-2" shape="circle" />
-                        <span className="hidden lg:block text-900 font-medium text-sm">
-                            {agent?.name || ''}
-                        </span>
-                        <Ripple />
-                    </a>
-                </li>
-            </ul>
-        </div>
-        <PropertyQueueDialog
-            visible={showQueueDialog}
-            onHide={() => setShowQueueDialog(false)}
-            onSendClick={handleSendClick}
-        />
-        <SendToLeadDialog
-            visible={showSendDialog}
-            onHide={() => setShowSendDialog(false)}
-        />
+                        {mounted && (
+                            <i className={`pi ${theme === 'dark' ? 'pi-sun' : 'pi-moon'} text-xl`} />
+                        )}
+                    </button>
+                </div>
+            </header>
+
+            {/* Dialogs */}
+            <PropertyQueueDialog
+                visible={showQueueDialog}
+                onHide={() => setShowQueueDialog(false)}
+                onSendClick={handleSendClick}
+            />
+            <SendToLeadDialog
+                visible={showSendDialog}
+                onHide={() => setShowSendDialog(false)}
+            />
         </>
-        // <div
-        //     className="flex justify-content-between align-items-center px-5 surface-0 border-bottom-1 surface-border relative lg:static"
-        //     style={{ height: '60px' }}
-        // >
-        //     <div className="flex">
-        //         <StyleClass
-        //             nodeRef={btnRef14}
-        //             selector="#app-sidebar-3"
-        //             enterClassName="hidden"
-        //             enterActiveClassName="fadeinleft"
-        //             leaveToClassName="hidden"
-        //             leaveActiveClassName="fadeoutleft"
-        //             hideOnOutsideClick
-        //         >
-        //             <a
-        //                 ref={btnRef14}
-        //                 className="p-ripple cursor-pointer block lg:hidden text-700 mr-3"
-        //             >
-        //                 <i className="pi pi-bars text-4xl"></i>
-        //                 <Ripple />
-        //             </a>
-        //         </StyleClass>
-        //         <span className="p-input-icon-left">
-        //             <i className="pi pi-search"></i>
-        //             <InputText className="border-none w-10rem sm:w-20rem" placeholder="Search" />
-        //         </span>
-        //     {/* <span className="p-input-icon-left"> */}
-        //     {/* <i className="pi pi-search"></i> */}
-        //   {/* <InputText className="border-none" placeholder="Search" /> */}
-        //  {/* <AutoComplete
-        // value={selectedCity}
-        // suggestions={filteredCities}
-        // completeMethod={searchCity}
-        // field="label"
-        // optionGroupLabel="label"
-        // optionGroupChildren="items"
-        // optionGroupTemplate={groupedItemTemplate}
-        // onChange={(e) => setSelectedCity(e.value)}
-        // onSelect={onSelect}
-        // forceSelection
-        // autoHighlight
-        // placeholder="Search"
-        // virtualScrollerOptions={{ itemSize: 38 }}
-        // inputClassName="topbar_input"
-        // // inputStyle="width: 550px;"
-        //             /> */}
-        // {/* </span> */}
-        // {/* </div>
-        // </div> */}
     );
 };
 
-function mapDispatchToProps(dispatch) {
-    return {
-        changeSearch: bindActionCreators(changeSearch, dispatch),
-        setZoom: bindActionCreators(setZoom, dispatch),
-        setCenter: bindActionCreators(setCenter, dispatch),
-        setBounds: bindActionCreators(setBounds, dispatch),
-        setPolygon: bindActionCreators(setPolygon, dispatch),
-    };
-}
-
-function mapStateToProps(state) {
-    return {
-        searchPage: state.searchPage,
-        irgAreas: state.irgAreas,
-        agent: state.agent,
-        selectedHomes: state.selectedHomes,
-    };
-}
-
-export default connect(mapStateToProps, mapDispatchToProps)(TopBar);
+export default TopBar;

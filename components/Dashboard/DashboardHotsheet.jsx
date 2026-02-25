@@ -51,6 +51,10 @@ const DashboardHotsheet = () => {
     const [expanded, setExpanded] = useState(false);
     const scrollRef = useRef(null);
 
+    // Scroll arrow visibility
+    const [canScrollLeft, setCanScrollLeft] = useState(false);
+    const [canScrollRight, setCanScrollRight] = useState(false);
+
     // Autocomplete
     const [suggestions, setSuggestions] = useState([]);
 
@@ -225,12 +229,35 @@ const DashboardHotsheet = () => {
         fetchProperties(selectedArea.name, selectedArea.type, limit, hours);
     };
 
-    // Scroll handlers
+    // Scroll state updater
+    const updateScrollState = useCallback(() => {
+        const el = scrollRef.current;
+        if (!el) return;
+        setCanScrollLeft(el.scrollLeft > 0);
+        setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+    }, []);
+
+    // Attach scroll listener and update on property/view changes
+    useEffect(() => {
+        const el = scrollRef.current;
+        if (!el || expanded) return;
+        updateScrollState();
+        el.addEventListener('scroll', updateScrollState, { passive: true });
+        return () => el.removeEventListener('scroll', updateScrollState);
+    }, [properties, expanded, updateScrollState]);
+
+    // Scroll handlers — setTimeout ensures state refreshes after smooth scroll completes
     const scrollLeft = () => {
-        if (scrollRef.current) scrollRef.current.scrollBy({ left: -320, behavior: 'smooth' });
+        if (scrollRef.current) {
+            scrollRef.current.scrollBy({ left: -320, behavior: 'smooth' });
+            setTimeout(updateScrollState, 350);
+        }
     };
     const scrollRight = () => {
-        if (scrollRef.current) scrollRef.current.scrollBy({ left: 320, behavior: 'smooth' });
+        if (scrollRef.current) {
+            scrollRef.current.scrollBy({ left: 320, behavior: 'smooth' });
+            setTimeout(updateScrollState, 350);
+        }
     };
 
     // Render skeleton loading cards
@@ -294,17 +321,17 @@ const DashboardHotsheet = () => {
             {loading && properties.length === 0 ? (
                 renderSkeletons()
             ) : error ? (
-                <div style={{ textAlign: 'center', padding: '3rem', color: '#6c757d' }}>
-                    <i className="pi pi-exclamation-triangle" style={{ fontSize: '2.5rem', marginBottom: '1rem', display: 'block', color: '#e74c3c' }}></i>
+                <div style={{ textAlign: 'center', padding: '3rem', color: 'hsl(var(--foreground-muted))' }}>
+                    <i className="pi pi-exclamation-triangle" style={{ fontSize: '2.5rem', marginBottom: '1rem', display: 'block', color: 'hsl(var(--danger))' }}></i>
                     <p style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>{error}</p>
                     <button
                         onClick={handleRetry}
                         style={{
                             padding: '0.5rem 1.5rem',
                             borderRadius: '6px',
-                            border: '1px solid #667eea',
-                            background: '#667eea',
-                            color: 'white',
+                            border: '1px solid hsl(var(--primary))',
+                            background: 'hsl(var(--primary))',
+                            color: 'hsl(var(--primary-foreground))',
                             cursor: 'pointer',
                             fontSize: '0.9rem',
                             fontWeight: '600',
@@ -329,11 +356,6 @@ const DashboardHotsheet = () => {
                                                 {property.property_sub_type}
                                             </span>
                                         )}
-                                        {property.mls_number && (
-                                            <span className="dashboard-hotsheet__card-meta-mls">
-                                                MLS# {property.mls_number}
-                                            </span>
-                                        )}
                                         {property.date_created && (
                                             <span className="dashboard-hotsheet__card-meta-time">
                                                 {getTimeSinceListed(property.date_created)}
@@ -345,7 +367,12 @@ const DashboardHotsheet = () => {
                         </div>
                     ) : (
                         <div className="dashboard-hotsheet__slider">
-                            <button className="dashboard-hotsheet__slider-arrow dashboard-hotsheet__slider-arrow--left" onClick={scrollLeft} aria-label="Scroll left">
+                            <button
+                                className="dashboard-hotsheet__slider-arrow dashboard-hotsheet__slider-arrow--left"
+                                onClick={scrollLeft}
+                                aria-label="Scroll left"
+                                style={{ opacity: canScrollLeft ? 1 : 0, pointerEvents: canScrollLeft ? 'auto' : 'none' }}
+                            >
                                 <i className="pi pi-chevron-left" />
                             </button>
                             <div className="dashboard-hotsheet__slider-track" ref={scrollRef}>
@@ -361,11 +388,6 @@ const DashboardHotsheet = () => {
                                                     {property.property_sub_type}
                                                 </span>
                                             )}
-                                            {property.mls_number && (
-                                                <span className="dashboard-hotsheet__card-meta-mls">
-                                                    MLS# {property.mls_number}
-                                                </span>
-                                            )}
                                             {property.date_created && (
                                                 <span className="dashboard-hotsheet__card-meta-time">
                                                     {getTimeSinceListed(property.date_created)}
@@ -375,7 +397,12 @@ const DashboardHotsheet = () => {
                                     </div>
                                 ))}
                             </div>
-                            <button className="dashboard-hotsheet__slider-arrow dashboard-hotsheet__slider-arrow--right" onClick={scrollRight} aria-label="Scroll right">
+                            <button
+                                className="dashboard-hotsheet__slider-arrow dashboard-hotsheet__slider-arrow--right"
+                                onClick={scrollRight}
+                                aria-label="Scroll right"
+                                style={{ opacity: canScrollRight ? 1 : 0, pointerEvents: canScrollRight ? 'auto' : 'none' }}
+                            >
                                 <i className="pi pi-chevron-right" />
                             </button>
                         </div>
@@ -390,7 +417,7 @@ const DashboardHotsheet = () => {
                     )}
                 </>
             ) : (
-                <div style={{ textAlign: 'center', padding: '3rem', color: '#6c757d' }}>
+                <div style={{ textAlign: 'center', padding: '3rem', color: 'hsl(var(--foreground-muted))' }}>
                     <i className="pi pi-home" style={{ fontSize: '3rem', marginBottom: '1rem', display: 'block' }}></i>
                     <p style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>
                         No new listings found in {selectedArea.label || areaInput} in the {timeLabel.toLowerCase()}.

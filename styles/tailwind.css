@@ -1,0 +1,42 @@
+/*
+   Tailwind CSS entry point.
+   design-tokens.css is imported separately in _app.jsx so the
+   CSS custom properties are available to both Tailwind AND legacy SCSS.
+*/
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    *,
+    *::before,
+    *::after {
+        border-width: 0;
+        border-style: solid;
+        @apply border-border;
+    }
+    button {
+        background: transparent;
+    }
+    body {
+        @apply bg-background text-foreground;
+        font-family: var(--font-inter), Inter, system-ui, -apple-system, sans-serif;
+    }
+}
+
+/* ── Theme transition ────────────────────────────────────────────
+   Applied momentarily during theme switch for a smooth 200ms fade.
+   Removed after animation completes to avoid performance overhead.
+   ─────────────────────────────────────────────────────────────── */
+html.theme-transition,
+html.theme-transition *,
+html.theme-transition *::before,
+html.theme-transition *::after {
+    transition: background-color 200ms ease,
+                color 200ms ease,
+                border-color 200ms ease,
+                box-shadow 200ms ease,
+                fill 200ms ease !important;
+    transition-delay: 0s !important;
+}

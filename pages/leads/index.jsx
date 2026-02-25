@@ -266,12 +266,12 @@ const Leads = () => {
                         margin: 0,
                         fontSize: '1.75rem',
                         fontWeight: '600',
-                        color: '#2c3e50'
+                        color: 'hsl(var(--foreground))'
                     }}>
                         Leads
                     </h2>
                     <span className="p-input-icon-left">
-                        <i className="pi pi-search" style={{ color: '#6c757d' }} />
+                        <i className="pi pi-search" style={{ color: 'hsl(var(--foreground-muted))' }} />
                         <InputText
                             value={globalFilterValue}
                             onChange={onGlobalFilterChange}
@@ -292,16 +292,16 @@ const Leads = () => {
                         alignItems: 'center',
                         gap: '1rem',
                         padding: '1rem 1.25rem',
-                        backgroundColor: '#f8f9fa',
+                        backgroundColor: 'hsl(var(--muted))',
                         borderRadius: '10px',
-                        border: '1px solid #e9ecef'
+                        border: '1px solid hsl(var(--border))'
                     }}
                 >
                     <div style={{
                         display: 'flex',
                         alignItems: 'center',
                         gap: '0.5rem',
-                        color: '#495057',
+                        color: 'hsl(var(--foreground-muted))',
                         fontSize: '0.9rem',
                         fontWeight: '600',
                         minWidth: '60px'

@@ -11,7 +11,9 @@ import { Toast } from 'primereact/toast';
 // IRG Components
 import MainLayout from '../../components/layout/MainLayout';
 import TopBar from '../../components/Property/TopBar/TopBar';
-import ImageSlider from '../../components/Property/ImageSlider/ImageSlider';
+import PropertyGallery from '../../components/Property/PropertyGallery/PropertyGallery';
+import QueueButton from '../../components/Property/TopBar/QueueButton';
+import UserActions from '../../components/Property/TopBar/UserActions';
 import AdminBar from '../../components/Property/AdminBar/AdminBar';
 import PropertyMap from '../../components/Property/PropertyMap/PropertyMap';
 import PropertyFeatures from '../../components/Property/PropertyFeatures/PropertyFeatures';
@@ -65,15 +67,26 @@ const Address = () => {
                     position="top-right"
                     baseZIndex={200000000}
                 />
-                {property && <TopBar property={property} handleToastMessage={handleToastMessage} />}
-                {property && agent.role === 'admin' && (
-                    <AdminBar
-                        property={property}
-                        setProperty={setProperty}
-                        handleToastMessage={handleToastMessage}
-                    />
+                {property && <TopBar property={property} />}
+                {property && (
+                    <div className="property__action-bar">
+                        <div className="property__action-bar__left">
+                            <QueueButton property={property} />
+                        </div>
+                        <div className="property__action-bar__right">
+                            {agent.role === 'admin' ? (
+                                <AdminBar
+                                    property={property}
+                                    setProperty={setProperty}
+                                    handleToastMessage={handleToastMessage}
+                                />
+                            ) : (
+                                <UserActions property={property} />
+                            )}
+                        </div>
+                    </div>
                 )}
-                {property && <ImageSlider property={property} />}
+                {property && <PropertyGallery property={property} />}
                 {property && <PropertyFeatures property={property} />}
                 {property && <PropertyMap property={property} />}
             </div>

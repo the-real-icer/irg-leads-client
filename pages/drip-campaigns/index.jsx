@@ -11,11 +11,9 @@ const Dropdown = dynamic(() => import('primereact/dropdown').then((mod) => mod.D
     ssr: false,
 });
 const Chip = dynamic(() => import('primereact/chip').then((mod) => mod.Chip), { ssr: false });
-const ProgressBar = dynamic(() => import('primereact/progressbar').then((mod) => mod.ProgressBar), {
-    ssr: false,
-});
 
 import MainLayout from '../../components/layout/MainLayout';
+import CampaignPreviewDialog from '../../components/DripCampaigns/CampaignPreviewDialog';
 import IrgApi from '../../assets/irgApi';
 import showToast from '../../utils/showToast';
 
@@ -38,9 +36,21 @@ const timeframeOptions = [
 
 const getTypeBadgeColor = (type) => {
     const colors = {
-        Buyer: { bg: '#dbeafe', color: '#1d4ed8', border: '#93c5fd' },
-        Seller: { bg: '#dcfce7', color: '#15803d', border: '#86efac' },
-        Both: { bg: '#f3e8ff', color: '#7c3aed', border: '#c4b5fd' },
+        Buyer: {
+            bg: 'hsl(var(--primary) / 0.12)',
+            color: 'hsl(var(--primary))',
+            border: 'hsl(var(--primary) / 0.35)',
+        },
+        Seller: {
+            bg: 'hsl(var(--success) / 0.12)',
+            color: 'hsl(var(--success))',
+            border: 'hsl(var(--success) / 0.35)',
+        },
+        Both: {
+            bg: 'hsl(var(--secondary) / 0.12)',
+            color: 'hsl(var(--secondary))',
+            border: 'hsl(var(--secondary) / 0.35)',
+        },
     };
     return colors[type] || colors.Both;
 };
@@ -54,6 +64,7 @@ const DripCampaigns = () => {
     const [loading, setLoading] = useState(true);
     const [typeFilter, setTypeFilter] = useState('');
     const [timeframeFilter, setTimeframeFilter] = useState('');
+    const [previewCampaign, setPreviewCampaign] = useState(null);
 
     const fetchCampaigns = async () => {
         if (!isLoggedIn) return;
@@ -111,10 +122,17 @@ const DripCampaigns = () => {
                     }}
                 >
                     <div>
-                        <h1 style={{ fontSize: '1.75rem', fontWeight: '700', color: '#2c3e50', margin: 0 }}>
+                        <h1
+                            style={{
+                                fontSize: '1.75rem',
+                                fontWeight: '700',
+                                color: 'hsl(var(--foreground))',
+                                margin: 0,
+                            }}
+                        >
                             Drip Campaigns
                         </h1>
-                        <p style={{ color: '#6c757d', margin: '0.5rem 0 0 0' }}>
+                        <p style={{ color: 'hsl(var(--foreground-muted))', margin: '0.5rem 0 0 0' }}>
                             Create and manage automated email sequences for your leads
                         </p>
                     </div>
@@ -157,9 +175,11 @@ const DripCampaigns = () => {
                     <div style={{ textAlign: 'center', padding: '4rem' }}>
                         <i
                             className="pi pi-spin pi-spinner"
-                            style={{ fontSize: '3rem', color: '#667eea' }}
+                            style={{ fontSize: '3rem', color: 'hsl(var(--primary))' }}
                         />
-                        <p style={{ color: '#6c757d', marginTop: '1rem' }}>Loading campaigns...</p>
+                        <p style={{ color: 'hsl(var(--foreground-muted))', marginTop: '1rem' }}>
+                            Loading campaigns...
+                        </p>
                     </div>
                 ) : campaigns.length > 0 ? (
                     <div
@@ -175,11 +195,13 @@ const DripCampaigns = () => {
                                 <Card
                                     key={campaign._id}
                                     style={{
-                                        boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
+                                        boxShadow: '0 2px 12px hsl(var(--shadow-color) / 0.08)',
                                         borderRadius: '12px',
                                         transition: 'transform 0.2s, box-shadow 0.2s',
                                         cursor: 'pointer',
                                     }}
+                                    onClick={() => setPreviewCampaign(campaign)}
+                                    className="drip-campaign-card"
                                 >
                                     <div style={{ padding: '0.5rem' }}>
                                         <div
@@ -194,7 +216,7 @@ const DripCampaigns = () => {
                                                 style={{
                                                     fontSize: '1.2rem',
                                                     fontWeight: '700',
-                                                    color: '#2c3e50',
+                                                    color: 'hsl(var(--foreground))',
                                                     margin: 0,
                                                 }}
                                             >
@@ -229,8 +251,8 @@ const DripCampaigns = () => {
                                                 icon="pi pi-clock"
                                                 style={{
                                                     fontSize: '0.8rem',
-                                                    backgroundColor: '#f1f5f9',
-                                                    color: '#475569',
+                                                    backgroundColor: 'hsl(var(--muted))',
+                                                    color: 'hsl(var(--foreground-muted))',
                                                 }}
                                             />
                                             <Chip
@@ -238,8 +260,8 @@ const DripCampaigns = () => {
                                                 icon="pi pi-envelope"
                                                 style={{
                                                     fontSize: '0.8rem',
-                                                    backgroundColor: '#f1f5f9',
-                                                    color: '#475569',
+                                                    backgroundColor: 'hsl(var(--muted))',
+                                                    color: 'hsl(var(--foreground-muted))',
                                                 }}
                                             />
                                         </div>
@@ -248,7 +270,7 @@ const DripCampaigns = () => {
                                             <p
                                                 style={{
                                                     fontSize: '0.85rem',
-                                                    color: '#6c757d',
+                                                    color: 'hsl(var(--foreground-muted))',
                                                     margin: '0 0 1rem 0',
                                                 }}
                                             >
@@ -260,17 +282,27 @@ const DripCampaigns = () => {
                                             style={{
                                                 display: 'flex',
                                                 gap: '0.5rem',
-                                                borderTop: '1px solid #e2e8f0',
+                                                borderTop: '1px solid hsl(var(--border))',
                                                 paddingTop: '1rem',
                                             }}
                                         >
                                             <Button
+                                                label="Preview"
+                                                icon="pi pi-eye"
+                                                className="p-button-sm p-button-text"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setPreviewCampaign(campaign);
+                                                }}
+                                            />
+                                            <Button
                                                 label="Edit"
                                                 icon="pi pi-pencil"
                                                 className="p-button-sm p-button-outlined"
-                                                onClick={() =>
-                                                    router.push(`/drip-campaigns/edit/${campaign._id}`)
-                                                }
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    router.push(`/drip-campaigns/edit/${campaign._id}`);
+                                                }}
                                             />
                                             {(campaign.created_by?._id === agent?._id ||
                                                 agent?.role === 'admin') && (
@@ -296,7 +328,7 @@ const DripCampaigns = () => {
                         style={{
                             textAlign: 'center',
                             padding: '4rem',
-                            backgroundColor: '#f8f9fa',
+                            backgroundColor: 'hsl(var(--muted))',
                             borderRadius: '12px',
                         }}
                     >
@@ -304,16 +336,16 @@ const DripCampaigns = () => {
                             className="pi pi-send"
                             style={{
                                 fontSize: '3rem',
-                                color: '#6c757d',
+                                color: 'hsl(var(--foreground-muted))',
                                 opacity: 0.5,
                                 display: 'block',
                                 marginBottom: '1rem',
                             }}
                         />
-                        <h3 style={{ color: '#495057', marginBottom: '0.5rem' }}>
+                        <h3 style={{ color: 'hsl(var(--foreground))', marginBottom: '0.5rem' }}>
                             No campaigns yet
                         </h3>
-                        <p style={{ color: '#6c757d', marginBottom: '1.5rem' }}>
+                        <p style={{ color: 'hsl(var(--foreground-muted))', marginBottom: '1.5rem' }}>
                             Create your first drip campaign to start automating lead engagement
                         </p>
                         <Button
@@ -325,6 +357,13 @@ const DripCampaigns = () => {
                     </div>
                 )}
             </div>
+
+            {/* Campaign Preview Dialog */}
+            <CampaignPreviewDialog
+                visible={!!previewCampaign}
+                campaign={previewCampaign}
+                onHide={() => setPreviewCampaign(null)}
+            />
         </MainLayout>
     );
 };

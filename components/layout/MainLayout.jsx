@@ -1,5 +1,6 @@
 // React & NextJS
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
 
 // Redux
 import { useSelector, useDispatch } from 'react-redux';
@@ -31,15 +32,24 @@ const MainLayout = (props) => {
 
     const newProperties = useSelector((state) => state.newProperties);
 
+    // __________________Mobile Sidebar______________________\\
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const router = useRouter();
+
+    // Close mobile menu on route change
+    useEffect(() => {
+        const handleRouteChange = () => setMobileMenuOpen(false);
+        router.events.on('routeChangeStart', handleRouteChange);
+        return () => router.events.off('routeChangeStart', handleRouteChange);
+    }, [router.events]);
+
     // _____________________Hooks_____________________\\
     const dispatch = useDispatch();
 
-    // UseEffect to run once to fetch all the leads for the agent & News stories
-    // TODO - Reimplement after date format
+    // Fetch leads whenever the authenticated agent changes
     useEffect(() => {
-        if (agent?._id && allLeadsPage.length === 0) {
+        if (agent?._id && isLoggedIn) {
             dispatch(fetchLeads(agent._id, isLoggedIn));
-            // dispatch(fetchNewStories());
         }
     }, [agent?._id]); // eslint-disable-line
 
@@ -90,11 +100,20 @@ const MainLayout = (props) => {
     return (
         <React.Fragment>
             <MainHead />
-            <div className="min-h-screen flex relative surface-ground">
-                <SideBar />
-                <div className="min-h-screen flex flex-column flex-auto" style={{ marginLeft: '280px' }}>
-                    <TopBar />
-                    <main className="flex-auto" style={{ overflowY: 'auto' }}>{children}</main>
+            <div className="min-h-screen flex relative bg-background">
+                {/* Mobile overlay */}
+                {mobileMenuOpen && (
+                    <div
+                        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[998] lg:hidden transition-opacity duration-200"
+                        onClick={() => setMobileMenuOpen(false)}
+                    />
+                )}
+
+                <SideBar mobileOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />
+
+                <div className="min-h-screen flex flex-column flex-auto min-w-0 lg:ml-[280px]">
+                    <TopBar onMobileMenuToggle={() => setMobileMenuOpen((prev) => !prev)} />
+                    <main className="flex-auto" style={{ overflowY: 'auto', overflowX: 'hidden', scrollbarGutter: 'stable' }}>{children}</main>
                 </div>
             </div>
         </React.Fragment>

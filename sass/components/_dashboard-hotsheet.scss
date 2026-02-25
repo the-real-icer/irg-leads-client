@@ -41,7 +41,7 @@
     &__count {
         font-size: 0.9rem;
         font-weight: 600;
-        color: #6c757d;
+        color: hsl(var(--foreground-muted));
         margin-left: auto;
         white-space: nowrap;
     }
@@ -62,6 +62,7 @@
         padding: 0.5rem 0.25rem;
         -ms-overflow-style: none;
         scrollbar-width: none;
+        -webkit-overflow-scrolling: touch; // smooth iOS momentum scrolling
 
         &::-webkit-scrollbar {
             display: none;
@@ -77,28 +78,34 @@
         height: 2.25rem;
         border-radius: 50%;
         border: none;
-        background: rgba(255, 255, 255, 0.95);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        background: hsl(var(--surface-elevated));
+        backdrop-filter: blur(8px);
+        box-shadow: 0 2px 8px hsl(var(--shadow-color) / 0.15);
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        color: #495057;
+        color: hsl(var(--foreground));
         font-size: 0.9rem;
-        transition: all 0.2s ease;
+        transition: opacity 0.2s ease, background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 
         &:hover {
-            background: #667eea;
-            color: white;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.35);
+            background: hsl(var(--primary));
+            color: hsl(var(--primary-foreground));
+            box-shadow: 0 4px 12px hsl(var(--primary) / 0.35);
         }
 
         &--left {
-            left: -0.25rem;
+            left: 0.5rem;
         }
 
         &--right {
-            right: -0.25rem;
+            right: 0.5rem;
+        }
+
+        // Hide arrows on mobile — touch scrolling handles it
+        @media (max-width: 768px) {
+            display: none;
         }
     }
 
@@ -123,18 +130,18 @@
         gap: 0.5rem;
         padding: 0.45rem 1.25rem;
         border-radius: 20px;
-        border: 1px solid #dee2e6;
-        background: white;
-        color: #495057;
+        border: 1px solid hsl(var(--border));
+        background: hsl(var(--surface));
+        color: hsl(var(--foreground));
         font-size: 0.85rem;
         font-weight: 600;
         cursor: pointer;
         transition: all 0.2s ease;
 
         &:hover {
-            border-color: #667eea;
-            color: #667eea;
-            background: #f8f9ff;
+            border-color: hsl(var(--primary));
+            color: hsl(var(--primary));
+            background: hsl(var(--accent));
         }
     }
 
@@ -142,6 +149,8 @@
     &__card-wrapper {
         position: relative;
         flex-shrink: 0;
+        width: 18rem; // match PrpCard width
+        overflow: hidden;
     }
 
     &__new-badge {
@@ -149,8 +158,8 @@
         top: 0.5rem;
         left: 0.5rem;
         z-index: 2;
-        background: #22c55e;
-        color: white;
+        background: hsl(var(--success));
+        color: hsl(var(--success-foreground));
         font-size: 0.7rem;
         font-weight: 700;
         padding: 0.2rem 0.5rem;
@@ -162,16 +171,17 @@
     &__card-meta {
         padding: 0.25rem 0.75rem 0.5rem;
         font-size: 0.8rem;
-        color: #6c757d;
+        color: hsl(var(--foreground-muted));
         display: flex;
         flex-wrap: wrap;
         gap: 0.4rem 0.75rem;
         align-items: center;
+        max-width: 100%;
     }
 
     &__card-meta-type {
         font-weight: 600;
-        color: #495057;
+        color: hsl(var(--foreground));
     }
 
     &__card-meta-mls {
@@ -189,11 +199,12 @@
         flex-shrink: 0;
         border-radius: 12px;
         overflow: hidden;
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        box-shadow: 0 2px 12px hsl(var(--shadow-color) / 0.08);
+        background: hsl(var(--surface));
 
         &-img {
             height: 14rem;
-            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background: linear-gradient(90deg, hsl(var(--muted)) 25%, hsl(var(--border)) 50%, hsl(var(--muted)) 75%);
             background-size: 200% 100%;
             animation: dashboard-hotsheet-shimmer 1.5s infinite;
         }
@@ -205,7 +216,7 @@
                 height: 0.875rem;
                 border-radius: 4px;
                 margin-bottom: 0.5rem;
-                background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+                background: linear-gradient(90deg, hsl(var(--muted)) 25%, hsl(var(--border)) 50%, hsl(var(--muted)) 75%);
                 background-size: 200% 100%;
                 animation: dashboard-hotsheet-shimmer 1.5s infinite;
 
@@ -227,8 +238,8 @@
             font-size: 0.7rem;
             font-weight: 700;
             text-transform: uppercase;
-            color: #667eea;
-            background: #eff0ff;
+            color: hsl(var(--primary));
+            background: hsl(var(--primary) / 0.1);
             padding: 0.1rem 0.35rem;
             border-radius: 3px;
             white-space: nowrap;
@@ -236,7 +247,7 @@
 
         &-label {
             font-size: 0.9rem;
-            color: #2c3e50;
+            color: hsl(var(--foreground));
         }
     }
 }

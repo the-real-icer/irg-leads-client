@@ -5,9 +5,6 @@ import PropTypes from 'prop-types';
 // Redux
 import { useSelector, useDispatch } from 'react-redux';
 
-// Third Party Components
-import { Button } from 'primereact/button';
-
 import ConfirmOffMarketDialog from './ConfirmOffMarketDialog';
 import PropertyCoordinatesDialog from './PropertyCoordinatesDialog';
 import EditDialog from './EditDialog';
@@ -15,8 +12,6 @@ import EditDialog from './EditDialog';
 // IRG API - HOOKS - INFO - UTILS
 import IrgApi from '../../../assets/irgApi';
 import { fetchNewProperties, removeNewProperty, updateNewProperty } from '../../../store/actions';
-
-const btnStyle = { fontSize: '1.2rem', fontWeight: '400', margin: '.5rem' };
 
 const AdminBar = (props) => {
     const { property, setProperty, handleToastMessage } = props;
@@ -246,7 +241,7 @@ const AdminBar = (props) => {
     };
 
     return (
-        <div className="admin_bar">
+        <>
             <ConfirmOffMarketDialog
                 showConfirmDialog={showConfirmDialog}
                 setShowConfirmDialog={setShowConfirmDialog}
@@ -276,42 +271,50 @@ const AdminBar = (props) => {
                 isDuplicate={isDuplicate}
             />
             {!property.ready_to_display && (
-                <Button
-                    label="Approve Property"
-                    className="p-button-lg p-button-success"
+                <button
+                    className="property__action-btn property__action-btn--success"
                     onClick={() => handleApproveClick(property.mls_number, property.address)}
-                    style={btnStyle}
-                />
+                    type="button"
+                >
+                    <i className="pi pi-check" />
+                    Approve Property
+                </button>
             )}
-            <Button
-                label="Edit Address & Url"
-                className="p-button-lg p-button-primary"
+            <button
+                className="property__action-btn property__action-btn--secondary"
                 onClick={handleEditClick}
-                style={btnStyle}
-            />
-
-            <Button
-                label="Edit Coordinates"
-                className="p-button-lg p-button-help"
+                type="button"
+            >
+                <i className="pi pi-pencil" />
+                Edit Address &amp; URL
+            </button>
+            <button
+                className="property__action-btn property__action-btn--secondary"
                 onClick={handleCoordsClick}
-                style={btnStyle}
-            />
+                type="button"
+            >
+                <i className="pi pi-map-marker" />
+                Edit Coordinates
+            </button>
             {property.ready_to_display === true && (
-                <Button
-                    label="Change Display Back"
-                    className="p-button-lg p-button-warning"
+                <button
+                    className="property__action-btn property__action-btn--warning"
                     onClick={handleDisplayClick}
-                    style={btnStyle}
-                />
+                    type="button"
+                >
+                    <i className="pi pi-replay" />
+                    Change Display Back
+                </button>
             )}
-            <Button
-                label="Change To Off Market"
-                icon="pi pi-trash"
-                className="p-button-lg p-button-danger"
+            <button
+                className="property__action-btn property__action-btn--danger"
                 onClick={handleOffMarket}
-                style={btnStyle}
-            />
-        </div>
+                type="button"
+            >
+                <i className="pi pi-trash" />
+                Change to Off Market
+            </button>
+        </>
     );
 };
 

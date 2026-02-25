@@ -178,7 +178,7 @@ export function switchTheme(theme) {
 export function fetchIrgAreas() {
     return async function fetchIrgAreasThunk(dispatch) {
         try {
-            const response = await IrgApi.get('/irgareas/all-irg-areas');
+            const response = await IrgApi.get('/irg-areas/all-irg-areas');
             dispatch({ type: FETCH_IRG_AREAS, payload: response.data.data });
         } catch (error) {
             console.error(error.message); // eslint-disable-line

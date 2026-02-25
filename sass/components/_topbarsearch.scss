@@ -1,0 +1,297 @@
+// ========== TopBar Global Search ==========
+
+.topbar-search {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+// ── Desktop wrapper ──
+.topbar-search__desktop {
+    display: none;
+    position: relative;
+
+    @media (min-width: 1024px) {
+        display: flex;
+        align-items: center;
+    }
+}
+
+// ── Input wrapper ──
+.topbar-search__input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.topbar-search__icon {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.85rem;
+    color: hsl(var(--foreground-muted));
+    pointer-events: none;
+    z-index: 1;
+}
+
+.topbar-search__input {
+    width: 18rem;
+    height: 2.25rem;
+    padding: 0 2rem 0 2.25rem;
+    border-radius: 0.375rem;
+    border: 1px solid transparent;
+    background: hsl(var(--muted));
+    color: hsl(var(--foreground));
+    font-size: 0.875rem;
+    outline: none;
+    transition: all 0.15s ease;
+
+    &::placeholder {
+        color: hsl(var(--foreground-muted) / 0.6);
+    }
+
+    &:focus {
+        background: hsl(var(--surface));
+        border-color: hsl(var(--ring) / 0.3);
+        box-shadow: 0 0 0 2px hsl(var(--ring) / 0.15);
+    }
+
+    @media (min-width: 1280px) {
+        width: 20rem;
+    }
+}
+
+.topbar-search__clear {
+    position: absolute;
+    right: 0.375rem;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border: none;
+    background: none;
+    color: hsl(var(--foreground-muted));
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    transition: color 0.1s ease, background 0.1s ease;
+
+    &:hover {
+        color: hsl(var(--foreground));
+        background: hsl(var(--muted));
+    }
+}
+
+// ── Dropdown ──
+.topbar-search__dropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    min-width: 320px;
+    max-height: 420px;
+    overflow-y: auto;
+    background: hsl(var(--surface));
+    border: 1px solid hsl(var(--border));
+    border-radius: 0.625rem;
+    box-shadow: 0 10px 30px -5px hsl(var(--shadow-color) / 0.15),
+                0 4px 6px -4px hsl(var(--shadow-color) / 0.1);
+    z-index: 1060;
+    padding: 0.25rem 0;
+}
+
+// ── Sections ──
+.topbar-search__section {
+    &:not(:first-child) {
+        border-top: 1px solid hsl(var(--border));
+    }
+}
+
+.topbar-search__section-label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 0.75rem 0.35rem;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: hsl(var(--foreground-muted));
+
+    i {
+        font-size: 0.7rem;
+    }
+}
+
+// ── Result items ──
+.topbar-search__item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: none;
+    background: none;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.1s ease;
+    min-height: 44px;
+    color: hsl(var(--foreground));
+
+    &:hover,
+    &--active {
+        background: hsl(var(--accent));
+    }
+
+    &--active {
+        outline: 2px solid hsl(var(--ring) / 0.5);
+        outline-offset: -2px;
+    }
+}
+
+.topbar-search__item-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+    flex: 1;
+}
+
+.topbar-search__item-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+}
+
+.topbar-search__item-name {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: hsl(var(--foreground));
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+    min-width: 0;
+}
+
+.topbar-search__item-meta {
+    font-size: 0.75rem;
+    color: hsl(var(--foreground-muted));
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.topbar-search__item-status {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.1rem 0.45rem;
+    border-radius: 10px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    white-space: nowrap;
+    flex-shrink: 0;
+    text-transform: capitalize;
+}
+
+// ── Empty + Loading states ──
+.topbar-search__empty,
+.topbar-search__loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1.5rem 1rem;
+    color: hsl(var(--foreground-muted));
+    font-size: 0.85rem;
+
+    i {
+        font-size: 1rem;
+        opacity: 0.5;
+    }
+}
+
+// ── Mobile trigger ──
+.topbar-search__mobile-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: none;
+    color: hsl(var(--foreground-muted));
+    cursor: pointer;
+    padding: 0.375rem;
+    border-radius: 0.375rem;
+    font-size: 1rem;
+    transition: color 0.15s ease;
+
+    &:hover {
+        color: hsl(var(--foreground));
+    }
+
+    @media (min-width: 1024px) {
+        display: none;
+    }
+}
+
+// ── Mobile overlay ──
+.topbar-search__mobile-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1070;
+    background: hsl(var(--surface));
+    border-bottom: 1px solid hsl(var(--border));
+    box-shadow: 0 4px 12px hsl(var(--shadow-color) / 0.1);
+
+    .topbar-search__dropdown {
+        position: static;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+        border-top: 1px solid hsl(var(--border));
+        max-height: calc(100vh - 60px);
+        min-width: unset;
+    }
+}
+
+.topbar-search__mobile-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 0.75rem;
+    height: 60px;
+}
+
+.topbar-search__mobile-back {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: none;
+    background: none;
+    color: hsl(var(--foreground-muted));
+    cursor: pointer;
+    border-radius: 0.375rem;
+    font-size: 1rem;
+    flex-shrink: 0;
+    transition: color 0.15s ease;
+
+    &:hover {
+        color: hsl(var(--foreground));
+    }
+}
+
+.topbar-search__input-wrap--mobile {
+    flex: 1;
+
+    .topbar-search__input {
+        width: 100%;
+    }
+}

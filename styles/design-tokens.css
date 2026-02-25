@@ -1,0 +1,152 @@
+/* =================================================================
+   ICE REALTY GROUP — Design Tokens
+   Single source of truth for the CRM design system.
+   =================================================================
+
+   BRAND COLORS:
+     Navy:       #163D5C
+     Green:      #8EDD65  (vibrant)
+     Green Soft: #9ACF87
+     Green Muted:#AACE8A
+     White:      #FFFFFF
+
+   COLOR FORMAT:  HSL channels only — e.g., "207 62% 22%"
+
+   Usage in Tailwind:    bg-primary, text-foreground, border-border
+   Usage in CSS/SCSS:    color: hsl(var(--foreground));
+   Usage with opacity:   background: hsl(var(--primary) / 0.5);
+
+   DARK MODE:  Add class="dark" to <html> or <body>.
+               All semantic tokens auto-switch.
+   ================================================================= */
+
+
+/* ── LIGHT MODE ──────────────────────────────────────────────────── */
+
+:root {
+    /* ── Backgrounds ─────────────────────────────────────────────── */
+    --background:            40 20% 98%;       /* warm off-white (#FAFAF8)      */
+    --surface:               0 0% 100%;        /* clean white for cards          */
+    --surface-elevated:      0 0% 100%;        /* elevated (differentiated by shadow) */
+
+    /* ── Foregrounds ─────────────────────────────────────────────── */
+    --foreground:            207 45% 14%;      /* brand-tinted near-black        */
+    --foreground-muted:      207 12% 46%;      /* medium gray, navy undertone    */
+
+    /* ── Primary (Brand Navy #163D5C) ────────────────────────────── */
+    --primary:               207 62% 22%;      /* #163D5C — brand anchor        */
+    --primary-foreground:    0 0% 100%;        /* white on navy                 */
+    --primary-hover:         207 62% 28%;      /* lighter navy on hover         */
+
+    /* ── Secondary (Brand Green #8EDD65) ─────────────────────────── */
+    --secondary:             100 64% 63%;      /* #8EDD65 — vibrant green       */
+    --secondary-foreground:  207 62% 22%;      /* navy text on green            */
+    --secondary-hover:       100 64% 55%;      /* deeper green on hover         */
+
+    /* ── Accent (Subtle green-tinted surface) ────────────────────── */
+    --accent:                100 30% 96%;      /* whisper-green hover surface   */
+    --accent-foreground:     207 62% 22%;      /* navy on accent surface        */
+
+    /* ── Semantic ────────────────────────────────────────────────── */
+    --success:               160 84% 31%;      /* #059669 emerald               */
+    --success-foreground:    0 0% 100%;
+    --warning:               32 95% 44%;       /* #D97706 amber                 */
+    --warning-foreground:    0 0% 100%;
+    --danger:                0 72% 51%;        /* #DC2626 red                   */
+    --danger-foreground:     0 0% 100%;
+
+    /* ── Muted ───────────────────────────────────────────────────── */
+    --muted:                 210 14% 96%;      /* subtle gray background        */
+    --muted-foreground:      207 12% 46%;      /* de-emphasized text            */
+
+    /* ── UI Chrome ───────────────────────────────────────────────── */
+    --border:                210 13% 91%;      /* default border (#E5E7EB)      */
+    --border-subtle:         210 14% 96%;      /* lighter dividers              */
+    --input:                 210 13% 91%;      /* input field borders           */
+    --ring:                  207 62% 22%;      /* focus ring = brand navy       */
+
+    /* ── Shadows ─────────────────────────────────────────────────── */
+    --shadow-color:          207 15% 70%;      /* navy-tinted shadow base       */
+
+    /* ── Sidebar (brand navy) ────────────────────────────────────── */
+    --sidebar:               207 62% 15%;      /* darker brand navy             */
+    --sidebar-foreground:    0 0% 100%;        /* white text                    */
+    --sidebar-border:        207 50% 20%;      /* sidebar dividers              */
+    --sidebar-accent:        207 62% 22%;      /* active item = brand navy      */
+    --sidebar-accent-foreground: 0 0% 100%;
+
+    /* ── Radius ──────────────────────────────────────────────────── */
+    --radius:                0.375rem;         /* 6px — modern, not bubbly      */
+}
+
+
+/* ── DARK MODE ───────────────────────────────────────────────────── */
+
+.dark {
+    /* ── Backgrounds (brand navy layering: bg > surface > elevated) ─ */
+    --background:            207 50% 8%;       /* deepest brand navy (#0B1520)  */
+    --surface:               207 42% 13%;      /* navy surface (#132231)        */
+    --surface-elevated:      207 38% 18%;      /* elevated navy (#1C2E40)       */
+
+    /* ── Foregrounds ─────────────────────────────────────────────── */
+    --foreground:            100 20% 96%;      /* near-white, hint of green     */
+    --foreground-muted:      207 16% 62%;      /* muted slate                   */
+
+    /* ── Primary (lighter navy for dark backgrounds) ─────────────── */
+    --primary:               207 55% 55%;      /* lifted brand navy for contrast */
+    --primary-foreground:    0 0% 100%;        /* white on primary              */
+    --primary-hover:         207 55% 62%;      /* lighter on hover              */
+
+    /* ── Secondary (green stays vibrant on dark) ─────────────────── */
+    --secondary:             100 68% 65%;      /* slightly lifted #8EDD65       */
+    --secondary-foreground:  207 50% 8%;       /* dark navy text on green       */
+    --secondary-hover:       100 68% 72%;      /* brighter green on hover       */
+
+    /* ── Accent ──────────────────────────────────────────────────── */
+    --accent:                207 38% 18%;      /* elevated navy as accent       */
+    --accent-foreground:     100 20% 96%;
+
+    /* ── Semantic ────────────────────────────────────────────────── */
+    --success:               160 84% 39%;      /* #10B981 — brighter emerald    */
+    --success-foreground:    0 0% 100%;
+    --warning:               38 92% 50%;       /* #F59E0B — brighter amber      */
+    --warning-foreground:    0 0% 100%;
+    --danger:                0 84% 60%;        /* #EF4444 — brighter red        */
+    --danger-foreground:     0 0% 100%;
+
+    /* ── Muted ───────────────────────────────────────────────────── */
+    --muted:                 207 38% 18%;
+    --muted-foreground:      207 16% 47%;
+
+    /* ── UI Chrome ───────────────────────────────────────────────── */
+    --border:                207 35% 21%;      /* dark navy border              */
+    --border-subtle:         207 42% 13%;
+    --input:                 207 35% 21%;
+    --ring:                  207 55% 55%;      /* lifted navy focus ring        */
+
+    /* ── Shadows (deeper for dark backgrounds) ───────────────────── */
+    --shadow-color:          207 50% 3%;       /* near-black, navy tint         */
+
+    /* ── Sidebar ─────────────────────────────────────────────────── */
+    --sidebar:               207 55% 5%;       /* deepest navy                  */
+    --sidebar-foreground:    0 0% 100%;
+    --sidebar-border:        207 40% 14%;
+    --sidebar-accent:        207 42% 13%;
+    --sidebar-accent-foreground: 100 20% 96%;
+}
+
+
+/* ── LEAD STATUS COLORS (same in both modes) ─────────────────────── */
+
+:root,
+.dark {
+    --status-watch:          37 56% 49%;       /* #C58C33                       */
+    --status-hot:            16 93% 53%;       /* #F75117                       */
+    --status-qualify:        88 44% 45%;       /* #81A441                       */
+    --status-new:            44 80% 54%;       /* #E9B929                       */
+    --status-nurture:        210 83% 49%;      /* #1581E2                       */
+    --status-trash:          0 0% 27%;         /* #444444                       */
+    --status-archive:        270 38% 49%;      /* #744CAC                       */
+    --status-pending:        337 55% 69%;      /* #DB85AC                       */
+    --status-closed:         160 38% 50%;      /* #4FAF92                       */
+}

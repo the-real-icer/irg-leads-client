@@ -1,5 +1,5 @@
 // React & NextJS
-import { useCallback } from 'react';
+import { useCallback, memo } from 'react';
 import Link from 'next/link';
 import PropTypes from 'prop-types';
 
@@ -13,7 +13,7 @@ import { Button } from 'primereact/button';
 import showToast from '../../utils/showToast';
 import { addSelectedHome, removeSelectedHome } from '../../store/actions';
 
-const PrpCard = ({ property, handleOpenMapDialog }) => {
+const PrpCard = memo(({ property, handleOpenMapDialog }) => {
     // __________________Redux State______________________\\
     const selectedHomes = useSelector((state) => state.selectedHomes);
 
@@ -57,6 +57,7 @@ const PrpCard = ({ property, handleOpenMapDialog }) => {
                         src={goodImage}
                         alt={`${property.address} - ${property.city} Home for Sale`}
                         className="PrpCard__Img PrpCard__Img__Main"
+                        loading="lazy"
                     />
                 </div>
             </Link>
@@ -95,7 +96,9 @@ const PrpCard = ({ property, handleOpenMapDialog }) => {
             </div>
         </div>
     );
-};
+}, (prev, next) => prev.property._id === next.property._id);
+
+PrpCard.displayName = 'PrpCard';
 
 PrpCard.propTypes = {
     property: PropTypes.shape({

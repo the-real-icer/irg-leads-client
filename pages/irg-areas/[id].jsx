@@ -7,7 +7,8 @@ import { useRouter } from 'next/router';
 import { useSelector } from 'react-redux';
 
 // Google Maps
-import { GoogleMap, Polygon, Marker, useJsApiLoader } from '@react-google-maps/api';
+import { GoogleMap, Polygon, Marker } from '@react-google-maps/api';
+import useGoogleMaps from '../../utils/useGoogleMaps';
 
 // Dynamically import PrimeReact components
 const Button = dynamic(() => import('primereact/button').then((mod) => mod.Button), { ssr: false });
@@ -77,11 +78,7 @@ const AreaDetail = () => {
     ];
 
     // Google Maps setup
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-    const { isLoaded } = useJsApiLoader({
-        id: 'google-map-script',
-        googleMapsApiKey: apiKey,
-    });
+    const { isLoaded } = useGoogleMaps();
 
     const mapContainerStyle = {
         width: '100%',

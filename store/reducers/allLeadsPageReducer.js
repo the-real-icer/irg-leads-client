@@ -1,4 +1,4 @@
-import { FETCH_LEADS, UPDATE_LEADS } from '../actions/types';
+import { FETCH_LEADS, UPDATE_LEADS, UPDATE_SINGLE_LEAD } from '../actions/types';
 
 export default (state = [], action) => {
     switch (action.type) {
@@ -8,6 +8,10 @@ export default (state = [], action) => {
             return action.payload;
         case UPDATE_LEADS:
             return [...action.payload];
+        case UPDATE_SINGLE_LEAD:
+            return state.map((lead) =>
+                lead._id === action.payload._id ? action.payload : lead
+            );
         default:
             return state;
     }

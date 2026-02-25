@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import dynamic from 'next/dynamic';
+import NoteIconWithPreview from './NoteIconWithPreview';
 
 const Button = dynamic(() => import('primereact/button').then((mod) => mod.Button), { ssr: false });
 const Chip = dynamic(() => import('primereact/chip').then((mod) => mod.Chip), { ssr: false });
@@ -43,7 +44,7 @@ const showingStatusConfig = {
     completed: { label: 'Showing Completed', severity: 'info' },
 };
 
-const AgentPropertyCard = ({ delivery, onOpenNotes, onShowingAction }) => {
+const AgentPropertyCard = ({ delivery, onOpenNotes, onShowingAction, leadId, isLoggedIn }) => {
     const property = delivery.property;
     if (!property) return null;
 
@@ -69,10 +70,12 @@ const AgentPropertyCard = ({ delivery, onOpenNotes, onShowingAction }) => {
                     {channelLabels[delivery.channel] || delivery.channel}
                 </span>
                 {/* Reaction badge */}
-                {reactionInfo && (
+                {reactionInfo ? (
                     <span className={`agent-card__reaction ${reactionInfo.className}`}>
                         <i className={reactionInfo.icon}></i> {reactionInfo.label}
                     </span>
+                ) : (
+                    <span className="agent-card__reaction reaction-none">No Response</span>
                 )}
             </div>
 
@@ -93,15 +96,12 @@ const AgentPropertyCard = ({ delivery, onOpenNotes, onShowingAction }) => {
 
             {/* Actions */}
             <div className="agent-card__actions">
-                {/* Notes button */}
-                <Button
-                    icon="pi pi-comment"
-                    className="p-button-text p-button-sm"
-                    onClick={onOpenNotes}
-                    tooltip="Notes"
-                    tooltipOptions={{ position: 'top' }}
-                    badge={delivery.unread_notes > 0 ? String(delivery.unread_notes) : null}
-                    badgeClassName="p-badge-danger"
+                {/* Notes icon with hover preview */}
+                <NoteIconWithPreview
+                    delivery={delivery}
+                    leadId={leadId}
+                    isLoggedIn={isLoggedIn}
+                    onOpenNotes={onOpenNotes}
                 />
 
                 {/* Showing request status + actions */}
@@ -151,6 +151,8 @@ AgentPropertyCard.propTypes = {
     delivery: PropTypes.object.isRequired,
     onOpenNotes: PropTypes.func.isRequired,
     onShowingAction: PropTypes.func.isRequired,
+    leadId: PropTypes.string.isRequired,
+    isLoggedIn: PropTypes.string.isRequired,
 };
 
 export default AgentPropertyCard;

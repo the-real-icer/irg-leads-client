@@ -3,7 +3,8 @@
 import PropTypes from 'prop-types';
 
 // Third Party Components
-import { GoogleMap, Marker, useJsApiLoader } from '@react-google-maps/api';
+import { GoogleMap, Marker } from '@react-google-maps/api';
+import useGoogleMaps from '../../../utils/useGoogleMaps';
 
 const PropertyMap = ({ property }) => {
     // _________________________________Constants__________________________\\
@@ -24,12 +25,7 @@ const PropertyMap = ({ property }) => {
         };
     }
 
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-
-    const { isLoaded, loadError } = useJsApiLoader({
-        id: 'google-map-script',
-        googleMapsApiKey: apiKey,
-    });
+    const { isLoaded, loadError } = useGoogleMaps();
 
     const renderMap = () => (
         <div className="property__page__container">

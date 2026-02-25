@@ -26,6 +26,8 @@ const AgentProfile = () => {
 
     // __________________Redux State______________________\\
     const isLoggedIn = useSelector((state) => state.isLoggedIn);
+    const currentAgent = useSelector((state) => state.agent);
+    const isAdmin = currentAgent?.role === 'admin';
 
     // ________________Component State_________________\\
     const [agent, setAgent] = useState(null);
@@ -46,7 +48,9 @@ const AgentProfile = () => {
         dre_license: '',
         role: 'agent',
         image: '',
+        commissionSplit: '',
     });
+    const [commissionSplitError, setCommissionSplitError] = useState('');
 
     const roleOptions = [
         { label: 'Agent', value: 'agent' },
@@ -82,6 +86,7 @@ const AgentProfile = () => {
                         dre_license: agentData.dre_license || '',
                         role: agentData.role || 'agent',
                         image: agentData.image || '',
+                        commissionSplit: agentData.commissionSplit != null ? String(agentData.commissionSplit) : '',
                     });
                 }
             } catch (error) {
@@ -123,11 +128,30 @@ const AgentProfile = () => {
             return;
         }
 
+        // Commission split validation
+        if (formData.commissionSplit !== '' && formData.commissionSplit !== null && formData.commissionSplit !== undefined) {
+            const splitVal = parseFloat(formData.commissionSplit);
+            if (isNaN(splitVal) || splitVal < 0 || splitVal > 100) {
+                setCommissionSplitError('Please enter a valid percentage between 0 and 100');
+                showToast('error', 'Commission split must be between 0 and 100', 'Validation Error');
+                return;
+            }
+            setCommissionSplitError('');
+        }
+
+        // Parse commission split for submission
+        const submitData = { ...formData };
+        if (submitData.commissionSplit !== '' && submitData.commissionSplit !== null && submitData.commissionSplit !== undefined) {
+            submitData.commissionSplit = parseFloat(submitData.commissionSplit);
+        } else {
+            delete submitData.commissionSplit;
+        }
+
         try {
             setSaving(true);
             const response = await IrgApi.patch(
                 `/agents/${id}`,
-                formData,
+                submitData,
                 {
                     headers: {
                         Authorization: `Bearer ${isLoggedIn}`,
@@ -441,6 +465,45 @@ const AgentProfile = () => {
                                         style={{ width: '100%' }}
                                     />
                                 </div>
+
+                                {/* Commission Split (Admin Only) */}
+                                {isAdmin && (
+                                    <div>
+                                        <label htmlFor="commissionSplit" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#495057' }}>
+                                            Commission Split
+                                        </label>
+                                        <div style={{ position: 'relative' }}>
+                                            <InputText
+                                                id="commissionSplit"
+                                                value={formData.commissionSplit}
+                                                onChange={(e) => {
+                                                    const val = e.target.value.replace(/[^0-9.]/g, '');
+                                                    handleChange('commissionSplit', val);
+                                                    if (commissionSplitError) setCommissionSplitError('');
+                                                }}
+                                                placeholder="e.g., 50"
+                                                style={{ width: '100%', paddingRight: '2rem' }}
+                                                className={commissionSplitError ? 'p-invalid' : ''}
+                                            />
+                                            {formData.commissionSplit && (
+                                                <span style={{
+                                                    position: 'absolute',
+                                                    right: '0.75rem',
+                                                    top: '50%',
+                                                    transform: 'translateY(-50%)',
+                                                    color: '#6c757d',
+                                                    fontSize: '0.9rem',
+                                                    pointerEvents: 'none',
+                                                }}>%</span>
+                                            )}
+                                        </div>
+                                        {commissionSplitError && (
+                                            <small style={{ color: '#e74c3c', fontSize: '0.8rem', marginTop: '0.25rem', display: 'block' }}>
+                                                {commissionSplitError}
+                                            </small>
+                                        )}
+                                    </div>
+                                )}
 
                                 {/* Submit Buttons */}
                                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #dee2e6' }}>

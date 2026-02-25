@@ -1,11 +1,10 @@
 // React & NextJS
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { useSelector } from 'react-redux';
 import { useRouter } from 'next/router';
 
 // Dynamically import PrimeReact components
-const Card = dynamic(() => import('primereact/card').then((mod) => mod.Card), { ssr: false });
 const InputText = dynamic(() => import('primereact/inputtext').then((mod) => mod.InputText), {
     ssr: false,
 });
@@ -22,6 +21,7 @@ const Button = dynamic(() => import('primereact/button').then((mod) => mod.Butto
 const AutoComplete = dynamic(() => import('primereact/autocomplete').then((mod) => mod.AutoComplete), {
     ssr: false,
 });
+const Dialog = dynamic(() => import('primereact/dialog').then((mod) => mod.Dialog), { ssr: false });
 
 // IRG Components
 import MainLayout from '../../../components/layout/MainLayout';
@@ -30,114 +30,158 @@ import MainLayout from '../../../components/layout/MainLayout';
 import IrgApi from '../../../assets/irgApi';
 import showToast from '../../../utils/showToast';
 
+// ── Constants ────────────────────────────────────────────────────
+const financingOptions = [
+    { label: 'Cash', value: 'cash' },
+    { label: 'Conventional', value: 'conventional' },
+    { label: 'FHA', value: 'fha' },
+    { label: 'VA', value: 'va' },
+    { label: 'Seller-Financed', value: 'seller-financed' },
+    { label: 'USDA', value: 'usda' },
+    { label: 'Other', value: 'other' },
+];
+
+const clientCreditCategories = [
+    { label: 'Closing Costs', value: 'Closing Costs' },
+    { label: 'Home Warranty', value: 'Home Warranty' },
+    { label: 'Repairs', value: 'Repairs' },
+    { label: 'General', value: 'General' },
+];
+
+const REPRESENTATION_OPTIONS = [
+    { value: 'buyer', label: 'Buyer' },
+    { value: 'seller', label: 'Seller' },
+    { value: 'both', label: 'Both' },
+];
+
+const statusOptions = [
+    { label: 'Pending', value: 'Pending' },
+    { label: 'In Escrow', value: 'In Escrow' },
+    { label: 'Closed', value: 'Closed' },
+    { label: 'Cancelled', value: 'Cancelled' },
+];
+
+// ── Helper: format currency ──────────────────────────────────────
+const formatCurrency = (value) => {
+    if (!value && value !== 0) return '';
+    const digits = String(value).replace(/\D/g, '');
+    if (!digits) return '';
+    return '$' + Number(digits).toLocaleString('en-US');
+};
+
 const EditTransaction = () => {
     const router = useRouter();
     const { id } = router.query;
 
-    // Redux state
+    // ── Redux ────────────────────────────────────────────────────
     const isLoggedIn = useSelector((state) => state.isLoggedIn);
     const agent = useSelector((state) => state.agent);
+    const allLeads = useSelector((state) => state.allLeadsPage);
 
-    // Loading state
+    // ── Loading & action states ──────────────────────────────────
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false);
+    const [deleting, setDeleting] = useState(false);
+    const [soldConfirmVisible, setSoldConfirmVisible] = useState(false);
+    const [markingSold, setMarkingSold] = useState(false);
 
-    // Property search state
+    // ── Property search state ────────────────────────────────────
     const [propertySearch, setPropertySearch] = useState('');
     const [propertySearchSuggestions, setPropertySearchSuggestions] = useState([]);
     const [selectedProperty, setSelectedProperty] = useState(null);
     const [searchLoading, setSearchLoading] = useState(false);
 
-    // Link to lead state
-    const [linkToLead, setLinkToLead] = useState(false);
-    const [leadSearch, setLeadSearch] = useState('');
-    const [leadSearchSuggestions, setLeadSearchSuggestions] = useState([]);
+    // ── Representation (buyer / seller / both) ───────────────────
+    const [representation, setRepresentation] = useState('buyer');
 
-    // Seller lead state (for double-ended transactions)
-    const [doubleEnded, setDoubleEnded] = useState(false);
-    const [sellerLeadSearch, setSellerLeadSearch] = useState('');
-    const [sellerLeadSearchSuggestions, setSellerLeadSearchSuggestions] = useState([]);
+    // ── Buyer lead link state ────────────────────────────────────
+    const [linkBuyerLead, setLinkBuyerLead] = useState(false);
+    const [buyerLeadInput, setBuyerLeadInput] = useState('');
+    const [selectedBuyerLead, setSelectedBuyerLead] = useState(null);
+    const [buyerLeadSuggestions, setBuyerLeadSuggestions] = useState([]);
+    const [buyerAutoFilled, setBuyerAutoFilled] = useState(false);
 
-    // Client information state
-    const [clientInfo, setClientInfo] = useState({
+    // ── Seller lead link state ───────────────────────────────────
+    const [linkSellerLead, setLinkSellerLead] = useState(false);
+    const [sellerLeadInput, setSellerLeadInput] = useState('');
+    const [selectedSellerLead, setSelectedSellerLead] = useState(null);
+    const [sellerLeadSuggestions, setSellerLeadSuggestions] = useState([]);
+    const [sellerAutoFilled, setSellerAutoFilled] = useState(false);
+
+    // ── Client information — buyer side ──────────────────────────
+    const [buyerInfo, setBuyerInfo] = useState({
         firstName: '',
         lastName: '',
         phone: '',
         email: '',
     });
 
-    // Transaction information state
+    // ── Client information — seller side ─────────────────────────
+    const [sellerInfo, setSellerInfo] = useState({
+        firstName: '',
+        lastName: '',
+        phone: '',
+        email: '',
+    });
+
+    // ── Transaction information state ────────────────────────────
     const [transactionInfo, setTransactionInfo] = useState({
         price: '',
         financing: null,
-        acceptanceDate: null,
-        expectedCloseDate: null,
         escrowLength: '',
-        leadSource: '',
         referralFee: false,
         referralFeeAmt: 0,
-        totalEstimatedCommission: '',
         buyersAgentCommissionPct: '',
         estimatedAgentCommission: '',
         status: 'Pending',
-        actualClosingDate: null,
     });
 
-    // Contingencies state
+    // ── Inline validation errors ───────────────────────────────
+    const [escrowLengthError, setEscrowLengthError] = useState('');
+
+    // ── Dates state ──────────────────────────────────────────────
+    const [acceptanceDate, setAcceptanceDate] = useState(null);
+    const [expectedCloseDate, setExpectedCloseDate] = useState(null);
+    const [actualClosingDate, setActualClosingDate] = useState(null);
+
+    // ── Contingencies state ──────────────────────────────────────
     const [contingencies, setContingencies] = useState({
         inspection: false,
         appraisal: false,
         financing: false,
+        propertySale: false,
     });
 
-    // Contingency dates state
     const [contingencyDates, setContingencyDates] = useState({
         inspectionDue: null,
         appraisalDue: null,
         financingDue: null,
+        propertySaleDue: null,
     });
 
-    // Client credits state (array of credit objects)
+    // ── Client credits ───────────────────────────────────────────
     const [clientCredits, setClientCredits] = useState([]);
     const [showClientCredits, setShowClientCredits] = useState(false);
 
-    // Financing options
-    const financingOptions = [
-        { label: 'Cash', value: 'cash' },
-        { label: 'Conventional', value: 'conventional' },
-        { label: 'FHA', value: 'fha' },
-        { label: 'VA', value: 'va' },
-        { label: 'Seller-Financed', value: 'seller-financed' },
-        { label: 'Other', value: 'other' },
-    ];
+    // ── Debounce ref ─────────────────────────────────────────────
+    const searchTimeoutRef = useRef(null);
 
-    // Status options
-    const statusOptions = [
-        { label: 'Pending', value: 'Pending' },
-        { label: 'In Escrow', value: 'In Escrow' },
-        { label: 'Closed', value: 'Closed' },
-        { label: 'Cancelled', value: 'Cancelled' },
-    ];
+    // ── Memoized recent leads (sorted by last_visit) ─────────────
+    const recentLeads = useMemo(() => {
+        return [...(allLeads || [])]
+            .sort((a, b) => {
+                const da = a.last_visit ? new Date(a.last_visit) : new Date(0);
+                const db = b.last_visit ? new Date(b.last_visit) : new Date(0);
+                return db - da;
+            })
+            .slice(0, 5);
+    }, [allLeads]);
 
-    // Credit categories
-    const clientCreditCategories = [
-        { label: 'Closing Costs', value: 'Closing Costs' },
-        { label: 'Home Warranty', value: 'Home Warranty' },
-        { label: 'Repairs', value: 'Repairs' },
-        { label: 'General', value: 'General' },
-    ];
+    // ══════════════════════════════════════════════════════════════
+    // FETCH TRANSACTION ON MOUNT
+    // ══════════════════════════════════════════════════════════════
 
-    // Lead source options
-    const leadSourceOptions = [
-        { label: 'Referral', value: 'Referral' },
-        { label: 'Open House', value: 'Open House' },
-        { label: 'Online', value: 'Online' },
-        { label: 'Cold Call', value: 'Cold Call' },
-        { label: 'Past Client', value: 'Past Client' },
-        { label: 'Other', value: 'Other' },
-    ];
-
-    // Fetch transaction data on mount
     useEffect(() => {
         if (!id || !isLoggedIn) return;
 
@@ -148,58 +192,103 @@ const EditTransaction = () => {
                     headers: { Authorization: `Bearer ${isLoggedIn}` },
                 });
 
-                if (response.data.status === 'success' && response.data.data && response.data.data[0]) {
+                if (response.data.status === 'success' && response.data.data?.[0]) {
                     const txn = response.data.data[0];
 
-                    // Set selected property
-                    if (txn.property) {
+                    // Property (now populated from backend)
+                    if (txn.property && typeof txn.property === 'object') {
                         setSelectedProperty(txn.property);
+                        const unitNum = txn.property.unit_number ? ` #${txn.property.unit_number}` : '';
+                        setPropertySearch(
+                            `${txn.property.address}${unitNum}, ${txn.property.city}, ${txn.property.state} ${txn.property.zip_code} (MLS# ${txn.property.mls_number})`,
+                        );
                     }
 
-                    // Set transaction info
+                    // Derive representation from doubleEnded + lead fields
+                    let rep = 'buyer';
+                    if (txn.doubleEnded) {
+                        rep = 'both';
+                    } else if (txn.sellerLead && !txn.lead) {
+                        rep = 'seller';
+                    }
+                    setRepresentation(rep);
+
+                    // Buyer lead (now populated from backend)
+                    if (txn.lead && typeof txn.lead === 'object') {
+                        setLinkBuyerLead(true);
+                        setSelectedBuyerLead(txn.lead);
+                        setBuyerLeadInput(`${txn.lead.first_name || ''} ${txn.lead.last_name || ''}`.trim());
+                        setBuyerInfo({
+                            firstName: txn.lead.first_name || '',
+                            lastName: txn.lead.last_name || '',
+                            phone: txn.lead.phone_number || '',
+                            email: txn.lead.email || '',
+                        });
+                        setBuyerAutoFilled(true);
+                    }
+
+                    // Seller lead (now populated from backend)
+                    if (txn.sellerLead && typeof txn.sellerLead === 'object') {
+                        setLinkSellerLead(true);
+                        setSelectedSellerLead(txn.sellerLead);
+                        setSellerLeadInput(`${txn.sellerLead.first_name || ''} ${txn.sellerLead.last_name || ''}`.trim());
+                        setSellerInfo({
+                            firstName: txn.sellerLead.first_name || '',
+                            lastName: txn.sellerLead.last_name || '',
+                            phone: txn.sellerLead.phone_number || '',
+                            email: txn.sellerLead.email || '',
+                        });
+                        setSellerAutoFilled(true);
+                    }
+
+                    // Transaction info
                     setTransactionInfo({
-                        price: txn.salesPrice || '',
-                        financing: txn.financing ? 'conventional' : 'cash',
-                        acceptanceDate: txn.acceptanceDate ? new Date(txn.acceptanceDate) : null,
-                        expectedCloseDate: txn.anticipatedClosingDate ? new Date(txn.anticipatedClosingDate) : null,
-                        escrowLength: txn.escrowLength || '',
-                        leadSource: txn.leadSource || '',
+                        price: txn.salesPrice ? String(txn.salesPrice) : '',
+                        financing: txn.financing === false ? 'cash' : (txn.financing ? 'conventional' : null),
+                        escrowLength: txn.escrowLength ? String(txn.escrowLength) : '',
                         referralFee: txn.referralFee || false,
                         referralFeeAmt: txn.referralFeeAmt || 0,
-                        totalEstimatedCommission: txn.totalEstimatedCommission || '',
-                        buyersAgentCommissionPct: txn.buyersAgentCommissionPct || '',
-                        estimatedAgentCommission: txn.estimatedAgentCommission || '',
+                        buyersAgentCommissionPct: txn.buyersAgentCommissionPct ? String(txn.buyersAgentCommissionPct) : '',
+                        estimatedAgentCommission: txn.estimatedAgentCommission ? String(txn.estimatedAgentCommission) : '',
                         status: txn.status || 'Pending',
-                        actualClosingDate: txn.actualClosingDate ? new Date(txn.actualClosingDate) : null,
                     });
 
-                    // Set client credits
-                    if (txn.clientCredits && txn.clientCredits.length > 0) {
+                    // Dates
+                    setAcceptanceDate(txn.acceptanceDate ? new Date(txn.acceptanceDate) : null);
+                    setExpectedCloseDate(txn.anticipatedClosingDate ? new Date(txn.anticipatedClosingDate) : null);
+                    setActualClosingDate(txn.actualClosingDate ? new Date(txn.actualClosingDate) : null);
+
+                    // Contingencies
+                    const hasInspection = !!txn.inspectionContingencyDate;
+                    const hasAppraisal = !!txn.appraisalContingencyDate;
+                    const hasLoan = !!txn.loanContingencyDate;
+                    const hasPropertySale = !!txn.propertySaleContingencyDate;
+                    setContingencies({
+                        inspection: hasInspection,
+                        appraisal: hasAppraisal,
+                        financing: hasLoan,
+                        propertySale: hasPropertySale,
+                    });
+                    setContingencyDates({
+                        inspectionDue: hasInspection ? new Date(txn.inspectionContingencyDate) : null,
+                        appraisalDue: hasAppraisal ? new Date(txn.appraisalContingencyDate) : null,
+                        financingDue: hasLoan ? new Date(txn.loanContingencyDate) : null,
+                        propertySaleDue: hasPropertySale ? new Date(txn.propertySaleContingencyDate) : null,
+                    });
+
+                    // Client credits
+                    if (txn.clientCredits?.length > 0) {
                         setClientCredits(
                             txn.clientCredits.map((credit, idx) => ({
                                 ...credit,
                                 id: Date.now() + idx,
-                            }))
+                            })),
                         );
                         setShowClientCredits(true);
                     }
-
-                    // Set double-ended
-                    if (txn.doubleEnded) {
-                        setDoubleEnded(true);
-                        if (txn.sellerLead) {
-                            setSellerLeadSearch(txn.sellerLead);
-                        }
-                    }
-
-                    // Set buyer lead
-                    if (txn.lead) {
-                        setLinkToLead(true);
-                        setLeadSearch(txn.lead);
-                    }
                 }
             } catch (error) {
-                console.error('Fetch transaction error:', error);
+                console.error('Fetch transaction error:', error); // eslint-disable-line
                 showToast('error', 'Failed to load transaction', 'Error');
             } finally {
                 setLoading(false);
@@ -209,127 +298,268 @@ const EditTransaction = () => {
         fetchTransaction();
     }, [id, isLoggedIn]);
 
-    // Refs for timeouts
-    const propertySearchTimeout = useRef(null);
-    const leadSearchTimeout = useRef(null);
+    // ══════════════════════════════════════════════════════════════
+    // HANDLERS — Property Search
+    // ══════════════════════════════════════════════════════════════
 
-    // Handler for property search
-    const handlePropertySearch = (event) => {
+    const handlePropertySearch = useCallback((event) => {
         const query = event.query;
-        setPropertySearch(query);
 
-        if (propertySearchTimeout.current) {
-            clearTimeout(propertySearchTimeout.current);
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
         }
 
-        if (query.length < 2) {
+        if (!query || query.trim().length < 2) {
             setPropertySearchSuggestions([]);
             return;
         }
 
-        propertySearchTimeout.current = setTimeout(async () => {
+        searchTimeoutRef.current = setTimeout(async () => {
+            setSearchLoading(true);
             try {
-                setSearchLoading(true);
-                const response = await IrgApi.get(`/mls-properties/search?q=${encodeURIComponent(query)}`);
-
+                const response = await IrgApi.get(`/mlsproperties/search?q=${encodeURIComponent(query)}`);
                 if (response.data.status === 'success') {
-                    setPropertySearchSuggestions(response.data.data || []);
+                    const properties = response.data.data;
+                    const formattedSuggestions = properties.map((prop) => {
+                        const unitNum = prop.unit_number ? ` #${prop.unit_number}` : '';
+                        return {
+                            label: `${prop.address}${unitNum}, ${prop.city}, ${prop.state} ${prop.zip_code} (MLS# ${prop.mls_number})`,
+                            value: prop,
+                        };
+                    });
+                    setPropertySearchSuggestions(formattedSuggestions);
+                    if (formattedSuggestions.length === 0) {
+                        showToast('info', 'No properties found matching your search', 'No Results');
+                    }
                 }
             } catch (error) {
-                console.error('Property search error:', error);
+                console.error('Property search error:', error); // eslint-disable-line
+                showToast('error', 'Failed to search properties', 'Search Error');
+                setPropertySearchSuggestions([]);
             } finally {
                 setSearchLoading(false);
             }
         }, 300);
-    };
+    }, []);
 
-    // Handler for property selection
-    const handlePropertySelect = (property) => {
-        setSelectedProperty(property);
-        setPropertySearch(property.address);
-    };
+    useEffect(() => {
+        return () => {
+            if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+        };
+    }, []);
 
-    // Handler for lead search (placeholder)
-    const handleLeadSearch = (_event) => {
-        setLeadSearchSuggestions([]);
-    };
+    const handlePropertySelect = useCallback((e) => {
+        if (e.value && e.value.value) {
+            const property = e.value.value;
+            setSelectedProperty(property);
+            setPropertySearch(e.value.label);
+            showToast('success', 'Property selected', 'Success');
+        }
+    }, []);
 
-    // Handler for seller lead search (placeholder)
-    const handleSellerLeadSearch = (_event) => {
-        setSellerLeadSearchSuggestions([]);
-    };
+    const handleClearProperty = useCallback(() => {
+        setSelectedProperty(null);
+        setPropertySearch('');
+        setPropertySearchSuggestions([]);
+    }, []);
 
-    // Handler for client info changes
-    const handleClientInfoChange = (field, value) => {
-        setClientInfo((prev) => ({ ...prev, [field]: value }));
-    };
+    // ══════════════════════════════════════════════════════════════
+    // HANDLERS — Lead Search (shared logic)
+    // ══════════════════════════════════════════════════════════════
 
-    // Handler for transaction info changes
+    const handleLeadSearch = useCallback(
+        (event, setSuggestions) => {
+            const query = (event.query || '').toLowerCase().trim();
+            if (!query) {
+                setSuggestions(recentLeads);
+                return;
+            }
+            const filtered = (allLeads || []).filter((lead) => {
+                const fullName = `${lead.first_name || ''} ${lead.last_name || ''}`.toLowerCase();
+                return fullName.includes(query);
+            });
+            setSuggestions(filtered.slice(0, 10));
+        },
+        [allLeads, recentLeads],
+    );
+
+    const handleBuyerLeadSearch = useCallback(
+        (event) => handleLeadSearch(event, setBuyerLeadSuggestions),
+        [handleLeadSearch],
+    );
+
+    const handleSellerLeadSearch = useCallback(
+        (event) => handleLeadSearch(event, setSellerLeadSuggestions),
+        [handleLeadSearch],
+    );
+
+    const handleBuyerLeadSelect = useCallback((e) => {
+        const lead = e.value;
+        if (lead && lead._id) {
+            setSelectedBuyerLead(lead);
+            setBuyerLeadInput(`${lead.first_name} ${lead.last_name}`);
+            setBuyerInfo({
+                firstName: lead.first_name || '',
+                lastName: lead.last_name || '',
+                phone: lead.phone_number || '',
+                email: lead.email || '',
+            });
+            setBuyerAutoFilled(true);
+        }
+    }, []);
+
+    const handleSellerLeadSelect = useCallback((e) => {
+        const lead = e.value;
+        if (lead && lead._id) {
+            setSelectedSellerLead(lead);
+            setSellerLeadInput(`${lead.first_name} ${lead.last_name}`);
+            setSellerInfo({
+                firstName: lead.first_name || '',
+                lastName: lead.last_name || '',
+                phone: lead.phone_number || '',
+                email: lead.email || '',
+            });
+            setSellerAutoFilled(true);
+        }
+    }, []);
+
+    const leadItemTemplate = (lead) => (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.125rem', padding: '0.125rem 0' }}>
+            <span style={{ fontWeight: '600', color: 'hsl(var(--foreground))', fontSize: '0.9rem' }}>
+                {lead.first_name} {lead.last_name}
+            </span>
+            <span style={{ fontSize: '0.8rem', color: 'hsl(var(--foreground-muted))' }}>
+                {lead.email || ''}
+            </span>
+        </div>
+    );
+
+    // ══════════════════════════════════════════════════════════════
+    // HANDLERS — Transaction Info
+    // ══════════════════════════════════════════════════════════════
+
     const handleTransactionInfoChange = (field, value) => {
         setTransactionInfo((prev) => ({ ...prev, [field]: value }));
     };
 
-    // Handler for contingency changes
-    const handleContingencyChange = (field, checked) => {
-        setContingencies((prev) => ({ ...prev, [field]: checked }));
+    // ══════════════════════════════════════════════════════════════
+    // HANDLERS — Contingencies
+    // ══════════════════════════════════════════════════════════════
+
+    const handleContingencyChange = (field, value) => {
+        setContingencies((prev) => ({ ...prev, [field]: value }));
+        if (!value) {
+            const dateField = `${field}Due`;
+            setContingencyDates((prev) => ({ ...prev, [dateField]: null }));
+        }
     };
 
-    // Handler for contingency date changes
     const handleContingencyDateChange = (field, value) => {
         setContingencyDates((prev) => ({ ...prev, [field]: value }));
     };
 
-    // Handler to add a new client credit
+    // ══════════════════════════════════════════════════════════════
+    // HANDLERS — Client Credits
+    // ══════════════════════════════════════════════════════════════
+
     const handleAddClientCredit = () => {
         setClientCredits((prev) => [...prev, { category: 'General', amount: 0, id: Date.now() }]);
     };
 
-    // Handler to remove a client credit
-    const handleRemoveClientCredit = (id) => {
-        setClientCredits((prev) => prev.filter((credit) => credit.id !== id));
+    const handleRemoveClientCredit = (creditId) => {
+        setClientCredits((prev) => prev.filter((credit) => credit.id !== creditId));
     };
 
-    // Handler to update a client credit
-    const handleUpdateClientCredit = (id, field, value) => {
+    const handleUpdateClientCredit = (creditId, field, value) => {
         setClientCredits((prev) =>
-            prev.map((credit) => (credit.id === id ? { ...credit, [field]: value } : credit))
+            prev.map((credit) => (credit.id === creditId ? { ...credit, [field]: value } : credit)),
         );
     };
 
-    // Handler for client credits checkbox
     const handleClientCreditsCheckbox = (checked) => {
         setShowClientCredits(checked);
-        if (!checked) {
-            setClientCredits([]);
-        }
+        if (!checked) setClientCredits([]);
     };
 
-    // Calculate agent commission based on sales price and percentage
+    // ══════════════════════════════════════════════════════════════
+    // COMMISSION — Auto-calculation
+    // ══════════════════════════════════════════════════════════════
+
     const calculateAgentCommission = useCallback((salesPrice, percentage) => {
         if (!salesPrice || !percentage) return 0;
         const price = parseFloat(salesPrice);
         const pct = parseFloat(percentage);
         if (isNaN(price) || isNaN(pct) || price <= 0 || pct <= 0) return 0;
-        return (price * (pct / 100)).toFixed(2);
+        return (price * pct / 100).toFixed(2);
     }, []);
 
-    // Auto-calculate agent commission when price or percentage changes
     useEffect(() => {
         if (transactionInfo.price && transactionInfo.buyersAgentCommissionPct) {
             const calculated = calculateAgentCommission(
                 transactionInfo.price,
-                transactionInfo.buyersAgentCommissionPct
+                transactionInfo.buyersAgentCommissionPct,
             );
             if (calculated !== transactionInfo.estimatedAgentCommission) {
-                setTransactionInfo((prev) => ({
-                    ...prev,
-                    estimatedAgentCommission: calculated,
-                }));
+                setTransactionInfo((prev) => ({ ...prev, estimatedAgentCommission: calculated }));
+            }
+        } else if (!transactionInfo.price || !transactionInfo.buyersAgentCommissionPct) {
+            if (transactionInfo.estimatedAgentCommission !== '') {
+                setTransactionInfo((prev) => ({ ...prev, estimatedAgentCommission: '' }));
             }
         }
     }, [transactionInfo.price, transactionInfo.buyersAgentCommissionPct, calculateAgentCommission]);
 
-    // Handler for form submission
+    // ══════════════════════════════════════════════════════════════
+    // HANDLERS — Delete Transaction
+    // ══════════════════════════════════════════════════════════════
+
+    const handleDelete = async () => {
+        try {
+            setDeleting(true);
+            await IrgApi.delete(`/transactions/single-transaction/${id}`, {
+                headers: { Authorization: `Bearer ${isLoggedIn}` },
+            });
+            showToast('success', 'Transaction deleted successfully', 'Deleted');
+            router.push('/transactions');
+        } catch (error) {
+            console.error('Delete transaction error:', error); // eslint-disable-line
+            showToast('error', error.response?.data?.message || 'Failed to delete transaction', 'Error');
+        } finally {
+            setDeleting(false);
+            setDeleteConfirmVisible(false);
+        }
+    };
+
+    // ══════════════════════════════════════════════════════════════
+    // HANDLERS — Mark as Sold
+    // ══════════════════════════════════════════════════════════════
+
+    const handleMarkSold = async () => {
+        try {
+            setMarkingSold(true);
+            const response = await IrgApi.patch(
+                `/transactions/single-transaction/${id}/status`,
+                { status: 'Closed', actualClosingDate: new Date() },
+                { headers: { Authorization: `Bearer ${isLoggedIn}` } },
+            );
+            if (response.data.status === 'success') {
+                setTransactionInfo((prev) => ({ ...prev, status: 'Closed' }));
+                setActualClosingDate(new Date());
+                showToast('success', 'Transaction marked as Sold', 'Success');
+            }
+        } catch (error) {
+            console.error('Mark sold error:', error); // eslint-disable-line
+            showToast('error', error.response?.data?.message || 'Failed to update status', 'Error');
+        } finally {
+            setMarkingSold(false);
+            setSoldConfirmVisible(false);
+        }
+    };
+
+    // ══════════════════════════════════════════════════════════════
+    // SUBMIT
+    // ══════════════════════════════════════════════════════════════
+
     const handleSubmit = async () => {
         // Validation
         if (!selectedProperty) {
@@ -337,7 +567,7 @@ const EditTransaction = () => {
             return;
         }
 
-        if (!transactionInfo.acceptanceDate || !transactionInfo.expectedCloseDate) {
+        if (!acceptanceDate || !expectedCloseDate) {
             showToast('error', 'Acceptance date and expected close date are required', 'Validation Error');
             return;
         }
@@ -347,55 +577,72 @@ const EditTransaction = () => {
             return;
         }
 
-        if (!transactionInfo.escrowLength || parseInt(transactionInfo.escrowLength) <= 0) {
-            showToast('error', 'Escrow length is required', 'Validation Error');
+        const escrowVal = String(transactionInfo.escrowLength).trim();
+        if (!escrowVal || isNaN(escrowVal) || Number(escrowVal) <= 0 || !Number.isFinite(Number(escrowVal))) {
+            setEscrowLengthError('Please enter a valid number of days');
+            showToast('error', 'Escrow length must be a valid positive number', 'Validation Error');
             return;
         }
-
-        if (!transactionInfo.leadSource) {
-            showToast('error', 'Lead source is required', 'Validation Error');
-            return;
-        }
-
-        if (!transactionInfo.totalEstimatedCommission || parseFloat(transactionInfo.totalEstimatedCommission) <= 0) {
-            showToast('error', 'Total estimated commission is required', 'Validation Error');
-            return;
-        }
+        setEscrowLengthError('');
 
         // If status is Closed, require actual closing date
-        if (transactionInfo.status === 'Closed' && !transactionInfo.actualClosingDate) {
+        if (transactionInfo.status === 'Closed' && !actualClosingDate) {
             showToast('error', 'Actual closing date is required for closed transactions', 'Validation Error');
             return;
         }
 
-        // Prepare transaction data
+        // Determine lead associations based on representation
+        let leadId;
+        let sellerLeadId;
+        const isDoubleEnded = representation === 'both';
+
+        if (representation === 'buyer' || representation === 'both') {
+            if (linkBuyerLead && selectedBuyerLead) {
+                leadId = selectedBuyerLead._id;
+            }
+        }
+
+        if (representation === 'seller') {
+            if (linkSellerLead && selectedSellerLead) {
+                sellerLeadId = selectedSellerLead._id;
+            }
+        }
+
+        if (representation === 'both') {
+            if (linkSellerLead && selectedSellerLead) {
+                sellerLeadId = selectedSellerLead._id;
+            }
+        }
+
         const transactionData = {
             property: selectedProperty._id,
             address: selectedProperty.address,
             city: selectedProperty.city,
             state: selectedProperty.state,
             zipCode: parseInt(selectedProperty.zip_code),
-            lead: linkToLead && leadSearch ? leadSearch._id : undefined,
+            lead: leadId,
             salesPrice: parseFloat(transactionInfo.price),
             financing: transactionInfo.financing !== 'cash',
-            acceptanceDate: transactionInfo.acceptanceDate,
-            anticipatedClosingDate: transactionInfo.expectedCloseDate,
+            acceptanceDate: acceptanceDate,
+            anticipatedClosingDate: expectedCloseDate,
             escrowLength: parseInt(transactionInfo.escrowLength),
-            leadSource: transactionInfo.leadSource,
             referralFee: transactionInfo.referralFee,
             referralFeeAmt: transactionInfo.referralFee ? parseFloat(transactionInfo.referralFeeAmt || 0) : 0,
-            totalEstimatedCommission: parseFloat(transactionInfo.totalEstimatedCommission),
             estimatedAgentCommission: parseFloat(transactionInfo.estimatedAgentCommission || 0),
             buyersAgentCommissionPct: parseFloat(transactionInfo.buyersAgentCommissionPct || 0),
             clientCredits: clientCredits.map((credit) => ({
                 category: credit.category,
                 amount: parseFloat(credit.amount || 0),
             })),
-            sellerLead: doubleEnded && sellerLeadSearch ? sellerLeadSearch._id : undefined,
-            doubleEnded: doubleEnded,
-            status: transactionInfo.status,
-            actualClosingDate: transactionInfo.actualClosingDate || undefined,
+            sellerLead: sellerLeadId,
+            doubleEnded: isDoubleEnded,
             agent: agent._id,
+            status: transactionInfo.status,
+            actualClosingDate: actualClosingDate || undefined,
+            inspectionContingencyDate: contingencies.inspection ? contingencyDates.inspectionDue : undefined,
+            appraisalContingencyDate: contingencies.appraisal ? contingencyDates.appraisalDue : undefined,
+            loanContingencyDate: contingencies.financing ? contingencyDates.financingDue : undefined,
+            propertySaleContingencyDate: contingencies.propertySale ? contingencyDates.propertySaleDue : undefined,
         };
 
         try {
@@ -408,28 +655,171 @@ const EditTransaction = () => {
                         Authorization: `Bearer ${isLoggedIn}`,
                         'Content-Type': 'application/json',
                     },
-                }
+                },
             );
 
             if (response.data.status === 'success') {
                 showToast('success', 'Transaction updated successfully', 'Success');
-                // Redirect back to dashboard
                 router.push('/transactions');
             }
         } catch (error) {
-            console.error('Transaction update error:', error);
+            console.error('Transaction update error:', error); // eslint-disable-line
             showToast('error', error.response?.data?.message || 'Failed to update transaction', 'Error');
         } finally {
             setSaving(false);
         }
     };
 
+    // ══════════════════════════════════════════════════════════════
+    // RENDER — Lead Autocomplete + Client Fields Block
+    // ══════════════════════════════════════════════════════════════
+
+    const renderClientBlock = (side) => {
+        const isBuyer = side === 'buyer';
+        const linkLead = isBuyer ? linkBuyerLead : linkSellerLead;
+        const setLinkLead = isBuyer ? setLinkBuyerLead : setLinkSellerLead;
+        const leadInput = isBuyer ? buyerLeadInput : sellerLeadInput;
+        const setLeadInput = isBuyer ? setBuyerLeadInput : setSellerLeadInput;
+        const leadSuggestions = isBuyer ? buyerLeadSuggestions : sellerLeadSuggestions;
+        const handleSearch = isBuyer ? handleBuyerLeadSearch : handleSellerLeadSearch;
+        const handleSelect = isBuyer ? handleBuyerLeadSelect : handleSellerLeadSelect;
+        const info = isBuyer ? buyerInfo : sellerInfo;
+        const setInfo = isBuyer ? setBuyerInfo : setSellerInfo;
+        const autoFilled = isBuyer ? buyerAutoFilled : sellerAutoFilled;
+        const setAutoFilled = isBuyer ? setBuyerAutoFilled : setSellerAutoFilled;
+        const sideLabel = isBuyer ? 'Buyer' : 'Seller';
+        const idPrefix = isBuyer ? 'buyer' : 'seller';
+
+        const handleInfoChange = (field, value) => {
+            setInfo((prev) => ({ ...prev, [field]: value }));
+            setAutoFilled(false);
+        };
+
+        const handleToggleLead = (checked) => {
+            setLinkLead(checked);
+            if (!checked) {
+                setLeadInput('');
+                if (isBuyer) setSelectedBuyerLead(null);
+                else setSelectedSellerLead(null);
+            }
+        };
+
+        return (
+            <>
+                {/* Link to Lead */}
+                <div className="txn-new__lead-link">
+                    <Checkbox
+                        inputId={`${idPrefix}-link-lead`}
+                        checked={linkLead}
+                        onChange={(e) => handleToggleLead(e.checked)}
+                    />
+                    <label htmlFor={`${idPrefix}-link-lead`}>
+                        Link {sideLabel} to an Existing Lead
+                    </label>
+                </div>
+
+                {/* Lead Autocomplete */}
+                {linkLead && (
+                    <div className="txn-new__lead-search">
+                        <AutoComplete
+                            id={`${idPrefix}-lead-search`}
+                            value={leadInput}
+                            suggestions={leadSuggestions}
+                            completeMethod={handleSearch}
+                            onChange={(e) => {
+                                if (typeof e.value === 'string') {
+                                    setLeadInput(e.value);
+                                }
+                            }}
+                            onSelect={handleSelect}
+                            itemTemplate={leadItemTemplate}
+                            field="first_name"
+                            placeholder={`Search for a ${sideLabel.toLowerCase()} lead by name...`}
+                            emptyMessage="No leads found"
+                            style={{ width: '100%' }}
+                            inputStyle={{ width: '100%' }}
+                            panelStyle={{ zIndex: 1100 }}
+                            delay={100}
+                            minLength={0}
+                        />
+                    </div>
+                )}
+
+                {/* Client Fields */}
+                <div className="txn-new__grid">
+                    <div className={`txn-new__field${autoFilled ? ' txn-new__input--autofilled' : ''}`}>
+                        <label className="txn-new__label" htmlFor={`${idPrefix}-first-name`}>
+                            First Name
+                        </label>
+                        <InputText
+                            id={`${idPrefix}-first-name`}
+                            value={info.firstName}
+                            onChange={(e) => handleInfoChange('firstName', e.target.value)}
+                            placeholder="Enter first name"
+                            style={{ width: '100%' }}
+                        />
+                    </div>
+
+                    <div className={`txn-new__field${autoFilled ? ' txn-new__input--autofilled' : ''}`}>
+                        <label className="txn-new__label" htmlFor={`${idPrefix}-last-name`}>
+                            Last Name
+                        </label>
+                        <InputText
+                            id={`${idPrefix}-last-name`}
+                            value={info.lastName}
+                            onChange={(e) => handleInfoChange('lastName', e.target.value)}
+                            placeholder="Enter last name"
+                            style={{ width: '100%' }}
+                        />
+                    </div>
+
+                    <div className={`txn-new__field${autoFilled ? ' txn-new__input--autofilled' : ''}`}>
+                        <label className="txn-new__label" htmlFor={`${idPrefix}-phone`}>
+                            Phone
+                        </label>
+                        <InputText
+                            id={`${idPrefix}-phone`}
+                            value={info.phone}
+                            onChange={(e) => handleInfoChange('phone', e.target.value)}
+                            placeholder="Enter phone number"
+                            style={{ width: '100%' }}
+                        />
+                    </div>
+
+                    <div className={`txn-new__field${autoFilled ? ' txn-new__input--autofilled' : ''}`}>
+                        <label className="txn-new__label" htmlFor={`${idPrefix}-email`}>
+                            Email
+                        </label>
+                        <InputText
+                            id={`${idPrefix}-email`}
+                            value={info.email}
+                            onChange={(e) => handleInfoChange('email', e.target.value)}
+                            placeholder="Enter email address"
+                            style={{ width: '100%' }}
+                            type="email"
+                        />
+                    </div>
+                </div>
+            </>
+        );
+    };
+
+    // ══════════════════════════════════════════════════════════════
+    // RENDER
+    // ══════════════════════════════════════════════════════════════
+
     if (loading) {
         return (
             <MainLayout>
-                <div style={{ padding: '3rem', textAlign: 'center' }}>
-                    <i className="pi pi-spin pi-spinner" style={{ fontSize: '3rem', color: '#667eea' }}></i>
-                    <p style={{ marginTop: '1rem', color: '#6c757d' }}>Loading transaction...</p>
+                <div className="txn-new">
+                    <div className="txn-new__header">
+                        <h1 className="txn-new__title">Edit Transaction</h1>
+                        <p className="txn-new__subtitle">Loading transaction data...</p>
+                    </div>
+                    <div className="txn-new__card" style={{ textAlign: 'center', padding: '3rem' }}>
+                        <i className="pi pi-spin pi-spinner" style={{ fontSize: '2rem', color: 'hsl(var(--primary))' }}></i>
+                        <p style={{ marginTop: '1rem', color: 'hsl(var(--foreground-muted))' }}>Loading transaction...</p>
+                    </div>
                 </div>
             </MainLayout>
         );
@@ -437,88 +827,129 @@ const EditTransaction = () => {
 
     return (
         <MainLayout>
-            <div style={{ padding: '1.5rem', maxWidth: '1200px', margin: '0 auto' }}>
-                {/* Page Header */}
-                <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                        <h1
-                            style={{
-                                fontSize: '2rem',
-                                fontWeight: '700',
-                                color: '#2c3e50',
-                                marginBottom: '0.5rem',
-                            }}
-                        >
-                            Edit Transaction
-                        </h1>
-                        <p style={{ fontSize: '1rem', color: '#6c757d' }}>
-                            Update the details for this transaction
-                        </p>
-                    </div>
-                    <Button
-                        label="Back to Dashboard"
-                        icon="pi pi-arrow-left"
-                        className="p-button-text"
-                        onClick={() => router.push('/transactions')}
-                    />
+            <div className="txn-new">
+                {/* ── Page Header ─────────────────────────────────── */}
+                <div className="txn-new__header">
+                    <h1 className="txn-new__title">Edit Transaction</h1>
+                    <p className="txn-new__subtitle">Update the details for this transaction</p>
                 </div>
 
-                {/* Property Section */}
-                <Card
-                    title="Property"
-                    style={{
-                        marginBottom: '1.5rem',
-                        boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
-                        borderRadius: '12px',
-                    }}
-                >
-                    {selectedProperty && (
-                        <div
-                            style={{
-                                padding: '1rem',
-                                backgroundColor: '#f8f9fa',
-                                borderRadius: '8px',
-                                marginBottom: '1rem',
+                {/* ════════════════════════════════════════════════════
+                    SECTION 1 — PROPERTY
+                    ════════════════════════════════════════════════════ */}
+                <div className="txn-new__card">
+                    <h2 className="txn-new__card-title">Property</h2>
+
+                    <div className="txn-new__field">
+                        <label className="txn-new__label" htmlFor="property-search">
+                            Search by Address or MLS Number
+                        </label>
+                        <AutoComplete
+                            id="property-search"
+                            value={propertySearch}
+                            suggestions={propertySearchSuggestions}
+                            completeMethod={handlePropertySearch}
+                            onChange={(e) => {
+                                if (typeof e.value === 'string') {
+                                    setPropertySearch(e.value);
+                                } else {
+                                    handlePropertySelect(e);
+                                }
                             }}
-                        >
-                            <div style={{ fontWeight: '700', fontSize: '1.1rem', marginBottom: '0.5rem' }}>
-                                {selectedProperty.address}
-                            </div>
-                            <div style={{ color: '#6c757d', fontSize: '0.9rem' }}>
-                                {selectedProperty.city}, {selectedProperty.state} {selectedProperty.zip_code}
-                            </div>
-                            {selectedProperty.mls_number && (
-                                <div style={{ color: '#6c757d', fontSize: '0.9rem', marginTop: '0.25rem' }}>
-                                    MLS#: {selectedProperty.mls_number}
+                            field="label"
+                            placeholder="Enter property address or MLS number (min 2 characters)"
+                            style={{ width: '100%' }}
+                            inputStyle={{ width: '100%' }}
+                            disabled={selectedProperty !== null}
+                            loading={searchLoading}
+                        />
+                    </div>
+
+                    {/* Selected Property Display */}
+                    {selectedProperty && (
+                        <div className="txn-new__selected-property">
+                            <div className="txn-new__selected-property-inner">
+                                <div className="txn-new__selected-property-content">
+                                    <img
+                                        src={selectedProperty.listing_pics?.replace(/http:/, 'https:') || '/No-Photo-Light-Large.jpg'}
+                                        alt={selectedProperty.address}
+                                        className="txn-new__selected-property-img"
+                                    />
+                                    <div className="txn-new__selected-property-details">
+                                        <div className="txn-new__selected-property-address">
+                                            {selectedProperty.address}
+                                            {selectedProperty.unit_number && ` #${selectedProperty.unit_number}`}
+                                        </div>
+                                        <div className="txn-new__selected-property-location">
+                                            {selectedProperty.city}, {selectedProperty.state} {selectedProperty.zip_code}
+                                        </div>
+                                        <div className="txn-new__selected-property-meta">
+                                            <span><strong>MLS#:</strong> {selectedProperty.mls_number}</span>
+                                            <span><strong>Status:</strong> {selectedProperty.status}</span>
+                                            <span><strong>Price:</strong> {selectedProperty.price}</span>
+                                        </div>
+                                        <div className="txn-new__selected-property-meta" style={{ marginTop: '0.25rem' }}>
+                                            <span>{selectedProperty.bedrooms} Beds</span>
+                                            <span>|</span>
+                                            <span>{selectedProperty.bathrooms} Baths</span>
+                                            <span>|</span>
+                                            <span>{selectedProperty.sqft} SqFt</span>
+                                        </div>
+                                    </div>
                                 </div>
-                            )}
+                                <Button
+                                    icon="pi pi-times"
+                                    className="p-button-rounded p-button-text p-button-danger"
+                                    onClick={handleClearProperty}
+                                    tooltip="Clear selection"
+                                    tooltipOptions={{ position: 'left' }}
+                                />
+                            </div>
                         </div>
                     )}
-                </Card>
+                </div>
 
-                {/* Status & Transaction Information */}
-                <Card
-                    title="Transaction Details"
-                    style={{
-                        marginBottom: '1.5rem',
-                        boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
-                        borderRadius: '12px',
-                    }}
-                >
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-                        {/* Transaction Status */}
-                        <div>
-                            <label
-                                htmlFor="status"
-                                style={{
-                                    display: 'block',
-                                    marginBottom: '0.5rem',
-                                    fontWeight: '600',
-                                    color: '#495057',
-                                }}
-                            >
-                                Transaction Status *
-                            </label>
+                {/* ════════════════════════════════════════════════════
+                    SECTION 2 — ACTION BAR
+                    ════════════════════════════════════════════════════ */}
+                <div className="txn-edit__action-bar">
+                    <Button
+                        label={deleting ? 'Deleting...' : 'Delete Transaction'}
+                        icon={deleting ? 'pi pi-spin pi-spinner' : 'pi pi-trash'}
+                        className="p-button-outlined p-button-danger"
+                        onClick={() => setDeleteConfirmVisible(true)}
+                        disabled={saving || deleting || markingSold}
+                    />
+                    <div className="txn-edit__action-bar__right">
+                        {transactionInfo.status !== 'Closed' && transactionInfo.status !== 'Cancelled' && (
+                            <Button
+                                label={markingSold ? 'Updating...' : 'Mark as Sold'}
+                                icon={markingSold ? 'pi pi-spin pi-spinner' : 'pi pi-check-circle'}
+                                className="txn-edit__btn-sold"
+                                onClick={() => setSoldConfirmVisible(true)}
+                                disabled={saving || deleting || markingSold}
+                            />
+                        )}
+                        <Button
+                            label={saving ? 'Saving...' : 'Save Changes'}
+                            icon={saving ? 'pi pi-spin pi-spinner' : 'pi pi-check'}
+                            className="txn-new__btn-submit"
+                            onClick={handleSubmit}
+                            disabled={saving || deleting || markingSold}
+                        />
+                    </div>
+                </div>
+
+                {/* ════════════════════════════════════════════════════
+                    SECTION 3 — TRANSACTION INFORMATION
+                    ════════════════════════════════════════════════════ */}
+                <div className="txn-new__card">
+                    <h2 className="txn-new__card-title">Transaction Information</h2>
+
+                    {/* Status Dropdown (edit-only) */}
+                    <div className="txn-new__grid" style={{ marginBottom: '1.5rem' }}>
+                        <div className="txn-new__field">
+                            <label className="txn-new__label" htmlFor="status">Transaction Status</label>
                             <Dropdown
                                 id="status"
                                 value={transactionInfo.status}
@@ -529,67 +960,86 @@ const EditTransaction = () => {
                             />
                         </div>
 
-                        {/* Actual Closing Date (if Closed) */}
+                        {/* Actual Closing Date (shown when Closed) */}
                         {transactionInfo.status === 'Closed' && (
-                            <div>
-                                <label
-                                    htmlFor="actualClosingDate"
-                                    style={{
-                                        display: 'block',
-                                        marginBottom: '0.5rem',
-                                        fontWeight: '600',
-                                        color: '#495057',
-                                    }}
-                                >
+                            <div className="txn-new__field">
+                                <label className="txn-new__label" htmlFor="actual-closing-date">
                                     Actual Closing Date *
                                 </label>
                                 <Calendar
-                                    id="actualClosingDate"
-                                    value={transactionInfo.actualClosingDate}
-                                    onChange={(e) => handleTransactionInfoChange('actualClosingDate', e.value)}
+                                    id="actual-closing-date"
+                                    value={actualClosingDate}
+                                    onChange={(e) => setActualClosingDate(e.value)}
+                                    placeholder="Select date"
+                                    style={{ width: '100%' }}
                                     showIcon
                                     dateFormat="mm/dd/yy"
-                                    style={{ width: '100%' }}
                                 />
                             </div>
                         )}
+                    </div>
 
-                        {/* Sales Price */}
-                        <div>
-                            <label
-                                htmlFor="price"
-                                style={{
-                                    display: 'block',
-                                    marginBottom: '0.5rem',
-                                    fontWeight: '600',
-                                    color: '#495057',
-                                }}
-                            >
-                                Sales Price *
-                            </label>
+                    {/* Representation Selector */}
+                    <div className="txn-new__field" style={{ marginBottom: '1.5rem' }}>
+                        <label className="txn-new__label">Are You Representing:</label>
+                        <div className="txn-new__rep-group">
+                            {REPRESENTATION_OPTIONS.map((opt) => (
+                                <div key={opt.value} className="txn-new__rep-option">
+                                    <input
+                                        type="radio"
+                                        id={`rep-${opt.value}`}
+                                        name="representation"
+                                        value={opt.value}
+                                        checked={representation === opt.value}
+                                        onChange={() => setRepresentation(opt.value)}
+                                    />
+                                    <label htmlFor={`rep-${opt.value}`} className="txn-new__rep-label">
+                                        {opt.label}
+                                    </label>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Input Grid */}
+                    <div className="txn-new__grid">
+                        {/* Price */}
+                        <div className="txn-new__field">
+                            <label className="txn-new__label" htmlFor="price">Price *</label>
                             <InputText
                                 id="price"
-                                value={transactionInfo.price}
-                                onChange={(e) => handleTransactionInfoChange('price', e.target.value)}
-                                placeholder="Enter sales price"
+                                value={formatCurrency(transactionInfo.price)}
+                                onChange={(e) => {
+                                    const raw = e.target.value.replace(/\D/g, '');
+                                    handleTransactionInfoChange('price', raw);
+                                }}
+                                placeholder="$0"
                                 style={{ width: '100%' }}
-                                type="number"
                             />
                         </div>
 
-                        {/* Financing Type */}
-                        <div>
-                            <label
-                                htmlFor="financing"
-                                style={{
-                                    display: 'block',
-                                    marginBottom: '0.5rem',
-                                    fontWeight: '600',
-                                    color: '#495057',
+                        {/* Escrow Length */}
+                        <div className="txn-new__field">
+                            <label className="txn-new__label" htmlFor="escrow-length">Escrow Length (Days) *</label>
+                            <InputText
+                                id="escrow-length"
+                                value={transactionInfo.escrowLength}
+                                onChange={(e) => {
+                                    handleTransactionInfoChange('escrowLength', e.target.value);
+                                    if (escrowLengthError) setEscrowLengthError('');
                                 }}
-                            >
-                                Financing Type
-                            </label>
+                                placeholder="e.g., 30"
+                                style={{ width: '100%' }}
+                                className={escrowLengthError ? 'p-invalid' : ''}
+                            />
+                            {escrowLengthError && (
+                                <span className="txn-new__error">{escrowLengthError}</span>
+                            )}
+                        </div>
+
+                        {/* Financing */}
+                        <div className="txn-new__field">
+                            <label className="txn-new__label" htmlFor="financing">Financing Type</label>
                             <Dropdown
                                 id="financing"
                                 value={transactionInfo.financing}
@@ -600,317 +1050,370 @@ const EditTransaction = () => {
                             />
                         </div>
 
-                        {/* Acceptance Date */}
-                        <div>
-                            <label
-                                htmlFor="acceptanceDate"
-                                style={{
-                                    display: 'block',
-                                    marginBottom: '0.5rem',
-                                    fontWeight: '600',
-                                    color: '#495057',
-                                }}
-                            >
-                                Acceptance Date *
-                            </label>
-                            <Calendar
-                                id="acceptanceDate"
-                                value={transactionInfo.acceptanceDate}
-                                onChange={(e) => handleTransactionInfoChange('acceptanceDate', e.value)}
-                                showIcon
-                                dateFormat="mm/dd/yy"
-                                style={{ width: '100%' }}
-                            />
-                        </div>
-
-                        {/* Expected Close Date */}
-                        <div>
-                            <label
-                                htmlFor="expectedCloseDate"
-                                style={{
-                                    display: 'block',
-                                    marginBottom: '0.5rem',
-                                    fontWeight: '600',
-                                    color: '#495057',
-                                }}
-                            >
-                                Expected Close Date *
-                            </label>
-                            <Calendar
-                                id="expectedCloseDate"
-                                value={transactionInfo.expectedCloseDate}
-                                onChange={(e) => handleTransactionInfoChange('expectedCloseDate', e.value)}
-                                showIcon
-                                dateFormat="mm/dd/yy"
-                                style={{ width: '100%' }}
-                            />
-                        </div>
-
-                        {/* Escrow Length */}
-                        <div>
-                            <label
-                                htmlFor="escrowLength"
-                                style={{
-                                    display: 'block',
-                                    marginBottom: '0.5rem',
-                                    fontWeight: '600',
-                                    color: '#495057',
-                                }}
-                            >
-                                Escrow Length (days) *
-                            </label>
-                            <InputText
-                                id="escrowLength"
-                                value={transactionInfo.escrowLength}
-                                onChange={(e) => handleTransactionInfoChange('escrowLength', e.target.value)}
-                                placeholder="Enter escrow length"
-                                style={{ width: '100%' }}
-                                type="number"
-                            />
-                        </div>
-
-                        {/* Lead Source */}
-                        <div>
-                            <label
-                                htmlFor="leadSource"
-                                style={{
-                                    display: 'block',
-                                    marginBottom: '0.5rem',
-                                    fontWeight: '600',
-                                    color: '#495057',
-                                }}
-                            >
-                                Lead Source *
-                            </label>
-                            <Dropdown
-                                id="leadSource"
-                                value={transactionInfo.leadSource}
-                                options={leadSourceOptions}
-                                onChange={(e) => handleTransactionInfoChange('leadSource', e.value)}
-                                placeholder="Select lead source"
-                                style={{ width: '100%' }}
-                            />
-                        </div>
-
-                        {/* Total Estimated Commission */}
-                        <div>
-                            <label
-                                htmlFor="totalEstimatedCommission"
-                                style={{
-                                    display: 'block',
-                                    marginBottom: '0.5rem',
-                                    fontWeight: '600',
-                                    color: '#495057',
-                                }}
-                            >
-                                Total Estimated Commission *
-                            </label>
-                            <InputText
-                                id="totalEstimatedCommission"
-                                value={transactionInfo.totalEstimatedCommission}
-                                onChange={(e) => handleTransactionInfoChange('totalEstimatedCommission', e.target.value)}
-                                placeholder="Enter total commission"
-                                style={{ width: '100%' }}
-                                type="number"
-                            />
-                        </div>
-
-                        {/* Referral Fee Checkbox */}
-                        <div style={{ display: 'flex', alignItems: 'center', paddingTop: '2rem' }}>
-                            <Checkbox
-                                inputId="referralFee"
-                                checked={transactionInfo.referralFee}
-                                onChange={(e) => handleTransactionInfoChange('referralFee', e.checked)}
-                            />
-                            <label
-                                htmlFor="referralFee"
-                                style={{ marginLeft: '0.5rem', fontWeight: '600', color: '#495057', cursor: 'pointer' }}
-                            >
-                                Referral Fee
-                            </label>
-                        </div>
-
-                        {/* Referral Fee Amount */}
-                        {transactionInfo.referralFee && (
-                            <div>
-                                <label
-                                    htmlFor="referralFeeAmt"
-                                    style={{
-                                        display: 'block',
-                                        marginBottom: '0.5rem',
-                                        fontWeight: '600',
-                                        color: '#495057',
-                                    }}
-                                >
-                                    Referral Fee Amount
-                                </label>
+                        {/* Agent Commission % */}
+                        <div className="txn-new__field">
+                            <label className="txn-new__label" htmlFor="agent-commission-pct">Agent Commission (%)</label>
+                            <div className="txn-new__input-wrap">
                                 <InputText
-                                    id="referralFeeAmt"
-                                    value={transactionInfo.referralFeeAmt}
-                                    onChange={(e) => handleTransactionInfoChange('referralFeeAmt', e.target.value)}
-                                    placeholder="Enter referral fee amount"
-                                    style={{ width: '100%' }}
-                                    type="number"
+                                    id="agent-commission-pct"
+                                    value={transactionInfo.buyersAgentCommissionPct}
+                                    onChange={(e) => {
+                                        const val = e.target.value.replace(/[^0-9.]/g, '');
+                                        handleTransactionInfoChange('buyersAgentCommissionPct', val);
+                                    }}
+                                    placeholder="e.g., 2.5"
+                                    style={{ width: '100%', paddingRight: '2rem' }}
+                                    step="0.01"
+                                />
+                                {transactionInfo.buyersAgentCommissionPct && (
+                                    <span className="txn-new__input-suffix">%</span>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Referral Fee */}
+                    <div className="txn-new__checkbox-row" style={{ marginTop: '1.5rem' }}>
+                        <Checkbox
+                            inputId="referral-fee"
+                            checked={transactionInfo.referralFee}
+                            onChange={(e) => handleTransactionInfoChange('referralFee', e.checked)}
+                        />
+                        <label htmlFor="referral-fee">Referral Fee</label>
+                    </div>
+
+                    {transactionInfo.referralFee && (
+                        <div className="txn-new__field" style={{ marginTop: '1rem', maxWidth: '50%' }}>
+                            <label className="txn-new__label" htmlFor="referral-fee-amt">Referral Fee Amount</label>
+                            <InputText
+                                id="referral-fee-amt"
+                                value={transactionInfo.referralFeeAmt}
+                                onChange={(e) => handleTransactionInfoChange('referralFeeAmt', e.target.value)}
+                                placeholder="Enter amount"
+                                style={{ width: '100%' }}
+                                type="number"
+                            />
+                        </div>
+                    )}
+
+                    {/* Client Credits */}
+                    <div className="txn-new__checkbox-row" style={{ marginTop: '1.5rem' }}>
+                        <Checkbox
+                            inputId="client-credits"
+                            checked={showClientCredits}
+                            onChange={(e) => handleClientCreditsCheckbox(e.checked)}
+                        />
+                        <label htmlFor="client-credits">Client Credits</label>
+                    </div>
+
+                    {showClientCredits && (
+                        <div className="txn-new__credits-section">
+                            <div className="txn-new__credits-header">
+                                <h4 className="txn-new__credits-title">Client Credits</h4>
+                                <Button
+                                    icon="pi pi-plus"
+                                    label="Add Credit"
+                                    className="p-button-sm"
+                                    onClick={handleAddClientCredit}
                                 />
                             </div>
-                        )}
 
-                        {/* Buyer's Agent Commission Percentage */}
-                        <div>
-                            <label
-                                htmlFor="agent-commission-pct"
-                                style={{
-                                    display: 'block',
-                                    marginBottom: '0.5rem',
-                                    fontWeight: '600',
-                                    color: '#495057',
-                                }}
-                            >
-                                Buyer's Agent Commission (%)
-                            </label>
-                            <InputText
-                                id="agent-commission-pct"
-                                value={transactionInfo.buyersAgentCommissionPct}
-                                onChange={(e) => handleTransactionInfoChange('buyersAgentCommissionPct', e.target.value)}
-                                placeholder="e.g., 2.5"
-                                style={{ width: '100%' }}
-                                type="number"
-                                step="0.01"
-                            />
+                            {clientCredits.length === 0 ? (
+                                <p className="txn-new__credits-empty">
+                                    No credits added. Click &quot;Add Credit&quot; to begin.
+                                </p>
+                            ) : (
+                                clientCredits.map((credit) => (
+                                    <div key={credit.id} className="txn-new__credit-row">
+                                        <div className="txn-new__field">
+                                            <label className="txn-new__label" style={{ fontSize: '0.8rem' }}>Category</label>
+                                            <Dropdown
+                                                value={credit.category}
+                                                options={clientCreditCategories}
+                                                onChange={(e) => handleUpdateClientCredit(credit.id, 'category', e.value)}
+                                                style={{ width: '100%' }}
+                                            />
+                                        </div>
+                                        <div className="txn-new__field">
+                                            <label className="txn-new__label" style={{ fontSize: '0.8rem' }}>Amount</label>
+                                            <InputText
+                                                value={credit.amount}
+                                                onChange={(e) => handleUpdateClientCredit(credit.id, 'amount', e.target.value)}
+                                                placeholder="Enter amount"
+                                                style={{ width: '100%' }}
+                                                type="number"
+                                                step="0.01"
+                                            />
+                                        </div>
+                                        <Button
+                                            icon="pi pi-trash"
+                                            className="p-button-danger p-button-text"
+                                            onClick={() => handleRemoveClientCredit(credit.id)}
+                                            tooltip="Remove credit"
+                                        />
+                                    </div>
+                                ))
+                            )}
                         </div>
+                    )}
 
-                        {/* Estimated Agent Commission (Read-only calculated field) */}
-                        <div>
-                            <label
-                                htmlFor="estimated-agent-commission"
-                                style={{
-                                    display: 'block',
-                                    marginBottom: '0.5rem',
-                                    fontWeight: '600',
-                                    color: '#495057',
-                                }}
-                            >
+                    {/* Estimated Agent Commission (calculated) */}
+                    <div className="txn-new__commission-display">
+                        <div className="txn-new__field">
+                            <label className="txn-new__label" htmlFor="estimated-agent-commission">
                                 Estimated Agent Commission
+                                <span className="txn-new__label--muted" style={{ fontWeight: 400, fontSize: '0.8rem', marginLeft: '0.5rem' }}>
+                                    (calculated)
+                                </span>
                             </label>
                             <InputText
                                 id="estimated-agent-commission"
-                                value={transactionInfo.estimatedAgentCommission}
-                                placeholder="Auto-calculated"
-                                style={{ width: '100%', backgroundColor: '#f8f9fa' }}
+                                value={transactionInfo.estimatedAgentCommission ? formatCurrency(Math.round(parseFloat(transactionInfo.estimatedAgentCommission))) : ''}
+                                placeholder="Price x Commission %"
+                                style={{ width: '100%', backgroundColor: 'hsl(var(--muted))', fontWeight: 600 }}
                                 disabled
                             />
                         </div>
                     </div>
-
-                    {/* Client Credits Section */}
-                    <div style={{ marginTop: '2rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-                            <Checkbox
-                                inputId="client-credits"
-                                checked={showClientCredits}
-                                onChange={(e) => handleClientCreditsCheckbox(e.checked)}
-                            />
-                            <label htmlFor="client-credits" style={{ fontWeight: '600', color: '#495057', cursor: 'pointer' }}>
-                                Client Credits
-                            </label>
-                        </div>
-
-                        {showClientCredits && (
-                            <div style={{ padding: '1rem', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                                    <h4 style={{ margin: 0, color: '#495057' }}>Client Credits</h4>
-                                    <Button icon="pi pi-plus" label="Add Credit" className="p-button-sm" onClick={handleAddClientCredit} />
-                                </div>
-
-                                {clientCredits.length === 0 ? (
-                                    <p style={{ color: '#6c757d', fontStyle: 'italic' }}>No credits added. Click "Add Credit" to begin.</p>
-                                ) : (
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                        {clientCredits.map((credit) => (
-                                            <div
-                                                key={credit.id}
-                                                style={{
-                                                    display: 'grid',
-                                                    gridTemplateColumns: '2fr 2fr auto',
-                                                    gap: '1rem',
-                                                    alignItems: 'end',
-                                                    padding: '0.75rem',
-                                                    backgroundColor: 'white',
-                                                    borderRadius: '4px',
-                                                }}
-                                            >
-                                                <div>
-                                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#495057', fontSize: '0.9rem' }}>
-                                                        Category
-                                                    </label>
-                                                    <Dropdown
-                                                        value={credit.category}
-                                                        options={clientCreditCategories}
-                                                        onChange={(e) => handleUpdateClientCredit(credit.id, 'category', e.value)}
-                                                        style={{ width: '100%' }}
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#495057', fontSize: '0.9rem' }}>
-                                                        Amount
-                                                    </label>
-                                                    <InputText
-                                                        value={credit.amount}
-                                                        onChange={(e) => handleUpdateClientCredit(credit.id, 'amount', e.target.value)}
-                                                        placeholder="Enter amount"
-                                                        style={{ width: '100%' }}
-                                                        type="number"
-                                                        step="0.01"
-                                                    />
-                                                </div>
-                                                <Button
-                                                    icon="pi pi-trash"
-                                                    className="p-button-danger p-button-text"
-                                                    onClick={() => handleRemoveClientCredit(credit.id)}
-                                                    tooltip="Remove credit"
-                                                />
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Double-Ended Transaction */}
-                    <div style={{ marginTop: '2rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <Checkbox inputId="double-ended" checked={doubleEnded} onChange={(e) => setDoubleEnded(e.checked)} />
-                            <label htmlFor="double-ended" style={{ fontWeight: '600', color: '#495057', cursor: 'pointer' }}>
-                                Double-Ended Transaction
-                            </label>
-                        </div>
-                    </div>
-                </Card>
-
-                {/* Submit Buttons */}
-                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
-                    <Button
-                        label="Cancel"
-                        icon="pi pi-times"
-                        className="p-button-secondary"
-                        onClick={() => router.push('/transactions')}
-                        disabled={saving}
-                    />
-                    <Button
-                        label={saving ? 'Saving...' : 'Save Changes'}
-                        icon={saving ? 'pi pi-spin pi-spinner' : 'pi pi-check'}
-                        onClick={handleSubmit}
-                        disabled={saving}
-                        style={{
-                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                            border: 'none',
-                            padding: '0.75rem 2rem',
-                            fontSize: '1rem',
-                            fontWeight: '600',
-                        }}
-                    />
                 </div>
+
+                {/* ════════════════════════════════════════════════════
+                    SECTION 4 — CLIENT INFORMATION
+                    ════════════════════════════════════════════════════ */}
+                <div className="txn-new__card">
+                    <h2 className="txn-new__card-title">Client Information</h2>
+
+                    {representation === 'buyer' && renderClientBlock('buyer')}
+
+                    {representation === 'seller' && renderClientBlock('seller')}
+
+                    {representation === 'both' && (
+                        <div className="txn-new__dual-clients">
+                            <div className="txn-new__client-panel">
+                                <h3 className="txn-new__client-panel-title">Buyer Side</h3>
+                                {renderClientBlock('buyer')}
+                            </div>
+                            <div className="txn-new__client-panel">
+                                <h3 className="txn-new__client-panel-title">Seller Side</h3>
+                                {renderClientBlock('seller')}
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* ════════════════════════════════════════════════════
+                    SECTION 5 — TRANSACTION DATES
+                    ════════════════════════════════════════════════════ */}
+                <div className="txn-new__card">
+                    <h2 className="txn-new__card-title">Transaction Dates</h2>
+
+                    <div className="txn-new__grid">
+                        <div className="txn-new__field">
+                            <label className="txn-new__label" htmlFor="acceptance-date">Acceptance Date *</label>
+                            <Calendar
+                                id="acceptance-date"
+                                value={acceptanceDate}
+                                onChange={(e) => setAcceptanceDate(e.value)}
+                                placeholder="Select date"
+                                style={{ width: '100%' }}
+                                showIcon
+                                dateFormat="mm/dd/yy"
+                            />
+                        </div>
+                        <div className="txn-new__field">
+                            <label className="txn-new__label" htmlFor="close-date">Expected Close Date *</label>
+                            <Calendar
+                                id="close-date"
+                                value={expectedCloseDate}
+                                onChange={(e) => setExpectedCloseDate(e.value)}
+                                placeholder="Select date"
+                                style={{ width: '100%' }}
+                                showIcon
+                                dateFormat="mm/dd/yy"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* ════════════════════════════════════════════════════
+                    SECTION 6 — CONTINGENCIES IN PLACE
+                    ════════════════════════════════════════════════════ */}
+                <div className="txn-new__card">
+                    <h2 className="txn-new__card-title">Contingencies In Place</h2>
+
+                    <div className="txn-new__contingency-checks">
+                        <div className="txn-new__contingency-item">
+                            <Checkbox
+                                inputId="inspection-contingency"
+                                checked={contingencies.inspection}
+                                onChange={(e) => handleContingencyChange('inspection', e.checked)}
+                            />
+                            <label htmlFor="inspection-contingency">Inspection Contingency</label>
+                        </div>
+
+                        <div className="txn-new__contingency-item">
+                            <Checkbox
+                                inputId="appraisal-contingency"
+                                checked={contingencies.appraisal}
+                                onChange={(e) => handleContingencyChange('appraisal', e.checked)}
+                            />
+                            <label htmlFor="appraisal-contingency">Appraisal Contingency</label>
+                        </div>
+
+                        <div className="txn-new__contingency-item">
+                            <Checkbox
+                                inputId="financing-contingency"
+                                checked={contingencies.financing}
+                                onChange={(e) => handleContingencyChange('financing', e.checked)}
+                            />
+                            <label htmlFor="financing-contingency">Financing Contingency</label>
+                        </div>
+
+                        <div className="txn-new__contingency-item">
+                            <Checkbox
+                                inputId="property-sale-contingency"
+                                checked={contingencies.propertySale}
+                                onChange={(e) => handleContingencyChange('propertySale', e.checked)}
+                            />
+                            <label htmlFor="property-sale-contingency">Contingency of Property Sale</label>
+                        </div>
+                    </div>
+
+                    {/* Contingency Date Pickers (conditional) */}
+                    {(contingencies.inspection || contingencies.appraisal || contingencies.financing || contingencies.propertySale) && (
+                        <div className="txn-new__contingency-dates">
+                            {contingencies.inspection && (
+                                <div className="txn-new__field">
+                                    <label className="txn-new__label" htmlFor="inspection-due">
+                                        Inspection Contingency Due
+                                    </label>
+                                    <Calendar
+                                        id="inspection-due"
+                                        value={contingencyDates.inspectionDue}
+                                        onChange={(e) => handleContingencyDateChange('inspectionDue', e.value)}
+                                        placeholder="Select date"
+                                        style={{ width: '100%' }}
+                                        showIcon
+                                        dateFormat="mm/dd/yy"
+                                    />
+                                </div>
+                            )}
+
+                            {contingencies.appraisal && (
+                                <div className="txn-new__field">
+                                    <label className="txn-new__label" htmlFor="appraisal-due">
+                                        Appraisal Contingency Due
+                                    </label>
+                                    <Calendar
+                                        id="appraisal-due"
+                                        value={contingencyDates.appraisalDue}
+                                        onChange={(e) => handleContingencyDateChange('appraisalDue', e.value)}
+                                        placeholder="Select date"
+                                        style={{ width: '100%' }}
+                                        showIcon
+                                        dateFormat="mm/dd/yy"
+                                    />
+                                </div>
+                            )}
+
+                            {contingencies.financing && (
+                                <div className="txn-new__field">
+                                    <label className="txn-new__label" htmlFor="financing-due">
+                                        Financing Contingency Due
+                                    </label>
+                                    <Calendar
+                                        id="financing-due"
+                                        value={contingencyDates.financingDue}
+                                        onChange={(e) => handleContingencyDateChange('financingDue', e.value)}
+                                        placeholder="Select date"
+                                        style={{ width: '100%' }}
+                                        showIcon
+                                        dateFormat="mm/dd/yy"
+                                    />
+                                </div>
+                            )}
+
+                            {contingencies.propertySale && (
+                                <div className="txn-new__field">
+                                    <label className="txn-new__label" htmlFor="property-sale-due">
+                                        Property Sale Contingency Due
+                                    </label>
+                                    <Calendar
+                                        id="property-sale-due"
+                                        value={contingencyDates.propertySaleDue}
+                                        onChange={(e) => handleContingencyDateChange('propertySaleDue', e.value)}
+                                        placeholder="Select date"
+                                        style={{ width: '100%' }}
+                                        showIcon
+                                        dateFormat="mm/dd/yy"
+                                    />
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+
+                {/* ── Delete Confirmation Dialog ──────────────────── */}
+                <Dialog
+                    visible={deleteConfirmVisible}
+                    onHide={() => setDeleteConfirmVisible(false)}
+                    header="Delete Transaction"
+                    style={{ width: '450px' }}
+                    modal
+                    footer={
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+                            <Button
+                                label="Cancel"
+                                className="p-button-text"
+                                onClick={() => setDeleteConfirmVisible(false)}
+                                disabled={deleting}
+                            />
+                            <Button
+                                label={deleting ? 'Deleting...' : 'Delete'}
+                                icon={deleting ? 'pi pi-spin pi-spinner' : 'pi pi-trash'}
+                                className="p-button-danger"
+                                onClick={handleDelete}
+                                disabled={deleting}
+                            />
+                        </div>
+                    }
+                >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <i className="pi pi-exclamation-triangle" style={{ fontSize: '2rem', color: 'hsl(var(--danger))' }} />
+                        <span>Are you sure you want to delete this transaction? This cannot be undone.</span>
+                    </div>
+                </Dialog>
+
+                {/* ── Sold Confirmation Dialog ────────────────────── */}
+                <Dialog
+                    visible={soldConfirmVisible}
+                    onHide={() => setSoldConfirmVisible(false)}
+                    header="Mark as Sold"
+                    style={{ width: '450px' }}
+                    modal
+                    footer={
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+                            <Button
+                                label="Cancel"
+                                className="p-button-text"
+                                onClick={() => setSoldConfirmVisible(false)}
+                                disabled={markingSold}
+                            />
+                            <Button
+                                label={markingSold ? 'Updating...' : 'Mark as Sold'}
+                                icon={markingSold ? 'pi pi-spin pi-spinner' : 'pi pi-check-circle'}
+                                className="txn-edit__btn-sold"
+                                onClick={handleMarkSold}
+                                disabled={markingSold}
+                            />
+                        </div>
+                    }
+                >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <i className="pi pi-check-circle" style={{ fontSize: '2rem', color: '#22c55e' }} />
+                        <span>Mark this transaction as Sold? This will update the status to Closed.</span>
+                    </div>
+                </Dialog>
             </div>
         </MainLayout>
     );

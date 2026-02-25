@@ -4,7 +4,8 @@ import PropTypes from 'prop-types';
 // Third Party Components
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
-import { GoogleMap, Marker, useJsApiLoader } from '@react-google-maps/api';
+import { GoogleMap, Marker } from '@react-google-maps/api';
+import useGoogleMaps from '../../utils/useGoogleMaps';
 
 const MapDialog = ({ showMapDialog, handleCloseMapDialog, property }) => {
     // _________________________________Constants__________________________\\
@@ -25,12 +26,7 @@ const MapDialog = ({ showMapDialog, handleCloseMapDialog, property }) => {
         };
     }
 
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-
-    const { isLoaded } = useJsApiLoader({
-        id: 'google-map-script',
-        googleMapsApiKey: apiKey,
-    });
+    const { isLoaded } = useGoogleMaps();
 
     const renderMap = () => (
                 <GoogleMap mapContainerStyle={containerStyle} center={center} zoom={18}>

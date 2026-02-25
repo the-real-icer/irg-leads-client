@@ -7,10 +7,8 @@ import dynamic from 'next/dynamic';
 import 'react-quill-new/dist/quill.snow.css';
 
 // Redux
-import {
-    useSelector,
-    // useDispatch
-} from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { UPDATE_SINGLE_LEAD } from '../../store/actions/types';
 
 // Dynamically Import Third Party Components
 const Card = dynamic(() => import('primereact/card').then((mod) => mod.Card), { ssr: false });
@@ -24,9 +22,6 @@ const Avatar = dynamic(() => import('primereact/avatar').then((mod) => mod.Avata
     ssr: false,
 });
 const ScrollPanel = dynamic(() => import('primereact/scrollpanel').then((mod) => mod.ScrollPanel), {
-    ssr: false,
-});
-const SplitButton = dynamic(() => import('primereact/splitbutton').then((mod) => mod.SplitButton), {
     ssr: false,
 });
 const Toast = dynamic(() => import('primereact/toast').then((mod) => mod.Toast), { ssr: false });
@@ -67,7 +62,6 @@ const ReactQuill = dynamic(() => import('react-quill-new'), {
 // IRG Components
 import MainLayout from '../../components/layout/MainLayout';
 import PrpCard from '../../components/prpCard/PrpCard';
-import LeadDashboard from '../../components/LeadDashboard/LeadDashboard';
 
 // IRG API
 import IrgApi from '../../assets/irgApi';
@@ -80,10 +74,13 @@ const Lead = () => {
     const leads = useSelector((state) => state.allLeadsPage);
     const isLoggedIn = useSelector((state) => state.isLoggedIn);
     const agent = useSelector((state) => state.agent);
+    const dispatch = useDispatch();
 
     const [lead, setLead] = useState({});
     const [activeIndex, setActiveIndex] = useState(0);
     const [category, setCategory] = useState('');
+    const [statusOpen, setStatusOpen] = useState(false);
+    const statusRef = useRef(null);
     const [showViewedHomesDialog, setShowViewedHomesDialog] = useState(false);
     const [showFavoritedHomesDialog, setShowFavoritedHomesDialog] = useState(false);
     const [showSavedSearchesDialog, setShowSavedSearchesDialog] = useState(false);
@@ -169,15 +166,31 @@ const Lead = () => {
     const leadId = router.asPath.replace(/\/lead\//, '');
 
     useEffect(() => {
-        const ld = leads.filter((l) => {
-            if (l._id === leadId) {
-                return l;
+        // Instant: show cached Redux data while API fetch is in-flight
+        const cached = leads.find((l) => l._id === leadId);
+        if (cached) setLead(cached);
+
+        // Always fetch fresh from DB as source of truth
+        const fetchLead = async () => {
+            try {
+                const response = await IrgApi.post(
+                    '/users/user',
+                    { userId: leadId },
+                    { headers: { Authorization: `Bearer ${isLoggedIn}` } }
+                );
+                if (response.data.status === 'success') {
+                    setLead(response.data.data);
+                    dispatch({ type: UPDATE_SINGLE_LEAD, payload: response.data.data });
+                }
+            } catch (error) {
+                console.error('Error fetching lead:', error);
             }
-            return null;
-        });
-        setLead(ld[0]);
+        };
+
+        if (leadId && isLoggedIn) fetchLead();
+
         return () => setLead({});
-    }, []); // eslint-disable-line
+    }, [leadId]); // eslint-disable-line
 
     useEffect(() => {
         if (lead?.backend_profile?.lead_category) {
@@ -187,6 +200,24 @@ const Lead = () => {
             setCategory(cat);
         }
     }, [lead]);
+
+    // Close status dropdown on click-outside or Escape
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (statusRef.current && !statusRef.current.contains(e.target)) {
+                setStatusOpen(false);
+            }
+        };
+        const handleEscape = (e) => {
+            if (e.key === 'Escape') setStatusOpen(false);
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener('keydown', handleEscape);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('keydown', handleEscape);
+        };
+    }, []);
 
     // Fetch emails when lead email is available
     useEffect(() => {
@@ -232,62 +263,47 @@ const Lead = () => {
         });
     };
 
-    const updateStatus = (newStatus) => {
-        showToast('success', `New Status: ${newStatus}`, 'Updated');
-    };
-
-    const items = [
-        {
-            label: 'New',
-            command: () => updateStatus('New'),
-        },
-        {
-            label: 'Nurture',
-            command: () => updateStatus('Nurture'),
-        },
-        {
-            label: 'Watch',
-            command: () => updateStatus('Watch'),
-        },
-        {
-            label: 'Qualify',
-            command: () => updateStatus('Qualify'),
-        },
-        {
-            label: 'Pending',
-            command: () => updateStatus('Pending'),
-        },
-        {
-            label: 'Closed',
-            command: () => updateStatus('Closed'),
-        },
-        {
-            label: 'Hot',
-            command: () => updateStatus('Hot'),
-        },
-        {
-            label: 'Archive',
-            command: () => updateStatus('Archive'),
-        },
-        {
-            label: 'Trash',
-            command: () => updateStatus('Trash'),
-        },
+    const STATUS_OPTIONS = [
+        { label: 'New', value: 'new' },
+        { label: 'Nurture', value: 'nurture' },
+        { label: 'Watch', value: 'watch' },
+        { label: 'Qualify', value: 'qualify' },
+        { label: 'Pending', value: 'pending' },
+        { label: 'Closed', value: 'closed' },
+        { label: 'Hot', value: 'hot' },
+        { label: 'Archive', value: 'archive' },
+        { label: 'Trash', value: 'trash' },
     ];
 
-    const getStatusSeverity = (status) => {
-        const statusMap = {
-            new: 'info',
-            nurture: 'secondary',
-            watch: 'warning',
-            qualify: 'success',
-            pending: 'warning',
-            closed: 'danger',
-            hot: 'danger',
-            archive: null,
-            trash: null,
-        };
-        return statusMap[status?.toLowerCase()] || 'info';
+    const updateStatus = async (newStatus) => {
+        const previousCategory = category;
+        const previousLead = { ...lead };
+
+        // Optimistic update
+        const capitalizedStatus = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
+        setCategory(capitalizedStatus);
+        setLead((prev) => ({
+            ...prev,
+            backend_profile: { ...prev.backend_profile, lead_category: newStatus },
+        }));
+        setStatusOpen(false);
+
+        try {
+            const response = await IrgApi.get(
+                `/agents/change-category/${newStatus}/${leadId}`,
+                { headers: { Authorization: `Bearer ${isLoggedIn}` } }
+            );
+            if (response.data.status === 'success') {
+                setLead(response.data.data);
+                dispatch({ type: UPDATE_SINGLE_LEAD, payload: response.data.data });
+                showToast('success', `Status updated to ${capitalizedStatus}`, 'Updated');
+            }
+        } catch (error) {
+            // Revert on failure
+            setCategory(previousCategory);
+            setLead(previousLead);
+            showToast('error', error.response?.data?.message || 'Failed to update status', 'Error');
+        }
     };
 
     const getInitials = () => {
@@ -379,6 +395,7 @@ const Lead = () => {
 
             if (response.data.status === 'success') {
                 setLead(response.data.data);
+                dispatch({ type: UPDATE_SINGLE_LEAD, payload: response.data.data });
                 setCallContent('');
                 setShowLogCallDialog(false);
                 showToast('success', 'Call has been successfully logged', 'Call Logged');
@@ -414,6 +431,7 @@ const Lead = () => {
 
             if (response.data.status === 'success') {
                 setLead(response.data.data);
+                dispatch({ type: UPDATE_SINGLE_LEAD, payload: response.data.data });
                 setNoteContent('');
                 setShowCreateNoteDialog(false);
                 showToast('success', 'Note has been successfully created', 'Note Created');
@@ -520,6 +538,7 @@ const Lead = () => {
 
             if (response.data.status === 'success') {
                 setLead(response.data.data);
+                dispatch({ type: UPDATE_SINGLE_LEAD, payload: response.data.data });
                 setReminderDate(null);
                 setReminderType('general');
                 setReminderDescription('');
@@ -551,6 +570,7 @@ const Lead = () => {
 
             if (response.data.status === 'success') {
                 setLead(response.data.data);
+                dispatch({ type: UPDATE_SINGLE_LEAD, payload: response.data.data });
                 showToast('success', 'Reminder marked as complete', 'Reminder Completed');
             }
         } catch (error) {
@@ -575,6 +595,7 @@ const Lead = () => {
 
             if (response.data.status === 'success') {
                 setLead(response.data.data);
+                dispatch({ type: UPDATE_SINGLE_LEAD, payload: response.data.data });
                 showToast('success', 'Reminder has been deleted', 'Reminder Deleted');
             }
         } catch (error) {
@@ -730,6 +751,7 @@ const Lead = () => {
             );
             if (response.data.status === 'success') {
                 setLead(response.data.data);
+                dispatch({ type: UPDATE_SINGLE_LEAD, payload: response.data.data });
                 showToast('success', 'Lead enrolled in campaign', 'Success');
                 setShowEnrollDripDialog(false);
                 setSelectedCampaign(null);
@@ -751,6 +773,7 @@ const Lead = () => {
             );
             if (response.data.status === 'success') {
                 setLead(response.data.data);
+                dispatch({ type: UPDATE_SINGLE_LEAD, payload: response.data.data });
                 showToast('success', 'Lead removed from campaign', 'Success');
             }
         } catch (error) {
@@ -785,9 +808,9 @@ const Lead = () => {
 
     const getDripTypeBadgeColor = (type) => {
         const colors = {
-            Buyer: { bg: '#dbeafe', color: '#1d4ed8', border: '#93c5fd' },
-            Seller: { bg: '#dcfce7', color: '#15803d', border: '#86efac' },
-            Both: { bg: '#f3e8ff', color: '#7c3aed', border: '#c4b5fd' },
+            Buyer: { bg: 'hsl(var(--primary) / 0.12)', color: 'hsl(var(--primary))', border: 'hsl(var(--primary) / 0.35)' },
+            Seller: { bg: 'hsl(var(--success) / 0.12)', color: 'hsl(var(--success))', border: 'hsl(var(--success) / 0.35)' },
+            Both: { bg: 'hsl(var(--secondary) / 0.12)', color: 'hsl(var(--secondary))', border: 'hsl(var(--secondary) / 0.35)' },
         };
         return colors[type] || colors.Both;
     };
@@ -877,6 +900,7 @@ const Lead = () => {
 
             if (response.data.status === 'success') {
                 setLead(response.data.data);
+                dispatch({ type: UPDATE_SINGLE_LEAD, payload: response.data.data });
                 setShowTransferLeadDialog(false);
                 setSelectedAgent(null);
                 setNotifyAgent(false);
@@ -894,6 +918,16 @@ const Lead = () => {
     return (
         <MainLayout>
             <div className="lead-profile-page">
+                {/* Back Navigation */}
+                <button
+                    type="button"
+                    className="lead-profile-back"
+                    onClick={() => router.push('/leads')}
+                >
+                    <i className="pi pi-arrow-left" />
+                    Back to Leads
+                </button>
+
                 {/* Header Section */}
                 <div className="lead-profile-header">
                     <Card className="lead-profile-header-card">
@@ -911,17 +945,50 @@ const Lead = () => {
                                             {lead?.first_name} {lead?.last_name}
                                         </h2>
                                         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                                            <Chip
-                                                label={category}
-                                                className={`lead-status-chip status-${lead?.backend_profile?.lead_category}`}
-                                            />
+                                            <div className="lead-status-pill" ref={statusRef}>
+                                                <button
+                                                    className={`lead-status-pill__trigger status-${lead?.backend_profile?.lead_category}`}
+                                                    onClick={() => setStatusOpen((prev) => !prev)}
+                                                    type="button"
+                                                >
+                                                    {category}
+                                                    <i className="pi pi-chevron-down lead-status-pill__chevron" />
+                                                </button>
+                                                {statusOpen && (
+                                                    <div className="lead-status-pill__dropdown animate-slide-down">
+                                                        {STATUS_OPTIONS.map((opt) => {
+                                                            const isActive =
+                                                                lead?.backend_profile?.lead_category === opt.value;
+                                                            return (
+                                                                <button
+                                                                    key={opt.value}
+                                                                    className={`lead-status-pill__option${isActive ? ' lead-status-pill__option--active' : ''}`}
+                                                                    onClick={() => updateStatus(opt.value)}
+                                                                    type="button"
+                                                                >
+                                                                    <span
+                                                                        className="lead-status-pill__dot"
+                                                                        style={{
+                                                                            backgroundColor: `hsl(var(--status-${opt.value}))`,
+                                                                        }}
+                                                                    />
+                                                                    {opt.label}
+                                                                    {isActive && (
+                                                                        <i className="pi pi-check lead-status-pill__check" />
+                                                                    )}
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                )}
+                                            </div>
                                             {hasUpcomingReminder() && (
                                                 <Chip
                                                     label="Follow-Up Soon"
                                                     icon="pi pi-bell"
                                                     style={{
-                                                        backgroundColor: '#f59e0b',
-                                                        color: 'white',
+                                                        backgroundColor: 'hsl(var(--warning))',
+                                                        color: 'hsl(var(--warning-foreground))',
                                                         fontWeight: '600',
                                                         padding: '0.25rem 0.75rem',
                                                         fontSize: '0.875rem'
@@ -983,10 +1050,11 @@ const Lead = () => {
                                     className="p-button-rounded p-button-info mr-2"
                                     onClick={() => setShowSendEmailDialog(true)}
                                 />
-                                <SplitButton
-                                    label="Change Status"
-                                    model={items}
-                                    className="p-button-rounded mr-2"
+                                <Button
+                                    icon="pi pi-th-large"
+                                    label="Shared Dashboard"
+                                    className="p-button-rounded p-button-help mr-2"
+                                    onClick={() => router.push(`/lead/dashboard/${leadId}`)}
                                 />
                                 <Button
                                     icon="pi pi-user-plus"
@@ -1059,7 +1127,7 @@ const Lead = () => {
                                     <i className="pi pi-bookmark stat-icon"></i>
                                     <div className="stat-details">
                                         <span className="stat-value">
-                                            {lead?.saved_searches?.length || 0}
+                                            {(lead?.saved_searches?.length || 0) + (lead?.e_alerts?.length || 0)}
                                         </span>
                                         <span className="stat-label">Saved Searches</span>
                                     </div>
@@ -1129,7 +1197,7 @@ const Lead = () => {
                                 <h3 style={{
                                     fontSize: '1.25rem',
                                     fontWeight: '700',
-                                    color: '#2c3e50',
+                                    color: 'hsl(var(--foreground))',
                                     margin: 0
                                 }}>
                                     Reminders & Follow-Ups
@@ -1165,10 +1233,10 @@ const Lead = () => {
                                                 key={reminder.id}
                                                 style={{
                                                     padding: '1rem',
-                                                    backgroundColor: isOverdue ? '#fee2e2' : '#fef3c7',
-                                                    borderLeft: `4px solid ${isOverdue ? '#ef4444' : '#f59e0b'}`,
+                                                    backgroundColor: isOverdue ? 'hsl(var(--danger) / 0.15)' : 'hsl(var(--warning) / 0.15)',
+                                                    borderLeft: `4px solid ${isOverdue ? 'hsl(var(--danger))' : 'hsl(var(--warning))'}`,
                                                     borderRadius: '8px',
-                                                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                                                    boxShadow: '0 1px 3px hsl(var(--shadow-color) / 0.1)'
                                                 }}
                                             >
                                                 <div style={{
@@ -1192,13 +1260,13 @@ const Lead = () => {
                                                                 }`}
                                                                 style={{
                                                                     fontSize: '1.1rem',
-                                                                    color: isOverdue ? '#ef4444' : '#f59e0b'
+                                                                    color: isOverdue ? 'hsl(var(--danger))' : 'hsl(var(--warning))'
                                                                 }}
                                                             ></i>
                                                             <span style={{
                                                                 fontWeight: '700',
                                                                 fontSize: '0.95rem',
-                                                                color: '#2c3e50',
+                                                                color: 'hsl(var(--foreground))',
                                                                 textTransform: 'capitalize'
                                                             }}>
                                                                 {reminder.type} Reminder
@@ -1207,7 +1275,7 @@ const Lead = () => {
                                                                 fontSize: '0.8rem',
                                                                 padding: '0.2rem 0.5rem',
                                                                 borderRadius: '12px',
-                                                                backgroundColor: isOverdue ? '#ef4444' : '#f59e0b',
+                                                                backgroundColor: isOverdue ? 'hsl(var(--danger))' : 'hsl(var(--warning))',
                                                                 color: 'white',
                                                                 fontWeight: '600'
                                                             }}>
@@ -1216,14 +1284,14 @@ const Lead = () => {
                                                         </div>
                                                         <div style={{
                                                             fontSize: '0.9rem',
-                                                            color: '#495057',
+                                                            color: 'hsl(var(--foreground-muted))',
                                                             marginBottom: '0.5rem'
                                                         }}>
                                                             {reminder.description}
                                                         </div>
                                                         <div style={{
                                                             fontSize: '0.85rem',
-                                                            color: '#6c757d'
+                                                            color: 'hsl(var(--foreground-muted))'
                                                         }}>
                                                             Due: {reminderDate.toLocaleDateString('en-US', {
                                                                 weekday: 'short',
@@ -1258,8 +1326,8 @@ const Lead = () => {
                                 <div style={{
                                     textAlign: 'center',
                                     padding: '2rem',
-                                    color: '#6c757d',
-                                    backgroundColor: '#f8f9fa',
+                                    color: 'hsl(var(--foreground-muted))',
+                                    backgroundColor: 'hsl(var(--muted))',
                                     borderRadius: '8px'
                                 }}>
                                     <i className="pi pi-bell-slash" style={{ fontSize: '2.5rem', display: 'block', marginBottom: '1rem', opacity: 0.5 }}></i>
@@ -1278,7 +1346,7 @@ const Lead = () => {
                             <h3 style={{
                                 fontSize: '1.25rem',
                                 fontWeight: '700',
-                                color: '#2c3e50',
+                                color: 'hsl(var(--foreground))',
                                 margin: 0
                             }}>
                                 Drip Campaigns
@@ -1311,8 +1379,8 @@ const Lead = () => {
                                                 key={enrollment._id}
                                                 style={{
                                                     padding: '1rem',
-                                                    backgroundColor: '#f8fafc',
-                                                    borderLeft: '4px solid #667eea',
+                                                    backgroundColor: 'hsl(var(--muted))',
+                                                    borderLeft: '4px solid hsl(var(--primary))',
                                                     borderRadius: '8px',
                                                 }}
                                             >
@@ -1324,7 +1392,7 @@ const Lead = () => {
                                                 }}>
                                                     <div>
                                                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                                                            <span style={{ fontWeight: '700', fontSize: '1rem', color: '#2c3e50' }}>
+                                                            <span style={{ fontWeight: '700', fontSize: '1rem', color: 'hsl(var(--foreground))' }}>
                                                                 {campaign?.name || 'Unknown Campaign'}
                                                             </span>
                                                             {campaign?.type && (
@@ -1341,7 +1409,7 @@ const Lead = () => {
                                                                 </span>
                                                             )}
                                                         </div>
-                                                        <span style={{ fontSize: '0.85rem', color: '#6c757d' }}>
+                                                        <span style={{ fontSize: '0.85rem', color: 'hsl(var(--foreground-muted))' }}>
                                                             {progress.sent} of {progress.total} emails sent
                                                         </span>
                                                     </div>
@@ -1357,7 +1425,7 @@ const Lead = () => {
                                                 {/* Progress Bar */}
                                                 <div style={{
                                                     height: '6px',
-                                                    backgroundColor: '#e2e8f0',
+                                                    backgroundColor: 'hsl(var(--border))',
                                                     borderRadius: '3px',
                                                     marginBottom: '0.75rem',
                                                     overflow: 'hidden'
@@ -1365,7 +1433,7 @@ const Lead = () => {
                                                     <div style={{
                                                         height: '100%',
                                                         width: `${progress.percent}%`,
-                                                        backgroundColor: progress.percent === 100 ? '#22c55e' : '#667eea',
+                                                        backgroundColor: progress.percent === 100 ? 'hsl(var(--success))' : 'hsl(var(--primary))',
                                                         borderRadius: '3px',
                                                         transition: 'width 0.3s ease',
                                                     }} />
@@ -1373,19 +1441,19 @@ const Lead = () => {
 
                                                 <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
                                                     {lastSent && (
-                                                        <span style={{ fontSize: '0.8rem', color: '#6c757d' }}>
+                                                        <span style={{ fontSize: '0.8rem', color: 'hsl(var(--foreground-muted))' }}>
                                                             <i className="pi pi-send" style={{ marginRight: '0.3rem' }}></i>
                                                             Last sent: {new Date(lastSent).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                                                         </span>
                                                     )}
                                                     {lastOpened && (
-                                                        <span style={{ fontSize: '0.8rem', color: '#22c55e' }}>
+                                                        <span style={{ fontSize: '0.8rem', color: 'hsl(var(--success))' }}>
                                                             <i className="pi pi-eye" style={{ marginRight: '0.3rem' }}></i>
                                                             Last opened: {new Date(lastOpened).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                                                         </span>
                                                     )}
                                                     {!lastSent && !lastOpened && (
-                                                        <span style={{ fontSize: '0.8rem', color: '#6c757d' }}>
+                                                        <span style={{ fontSize: '0.8rem', color: 'hsl(var(--foreground-muted))' }}>
                                                             <i className="pi pi-clock" style={{ marginRight: '0.3rem' }}></i>
                                                             Enrolled {new Date(enrollment.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                                                         </span>
@@ -1399,8 +1467,8 @@ const Lead = () => {
                             <div style={{
                                 textAlign: 'center',
                                 padding: '2rem',
-                                color: '#6c757d',
-                                backgroundColor: '#f8f9fa',
+                                color: 'hsl(var(--foreground-muted))',
+                                backgroundColor: 'hsl(var(--muted))',
                                 borderRadius: '8px'
                             }}>
                                 <i className="pi pi-send" style={{ fontSize: '2.5rem', display: 'block', marginBottom: '1rem', opacity: 0.5 }}></i>
@@ -1418,7 +1486,7 @@ const Lead = () => {
                             <h3 style={{
                                 fontSize: '1.25rem',
                                 fontWeight: '700',
-                                color: '#2c3e50',
+                                color: 'hsl(var(--foreground))',
                                 marginBottom: '1rem'
                             }}>
                                 Activity Actions
@@ -1480,13 +1548,13 @@ const Lead = () => {
 
                         {/* Notes and Calls History */}
                         <div style={{
-                            borderTop: '1px solid #dee2e6',
+                            borderTop: '1px solid hsl(var(--border))',
                             paddingTop: '1.5rem'
                         }}>
                             <h4 style={{
                                 fontSize: '1.1rem',
                                 fontWeight: '700',
-                                color: '#2c3e50',
+                                color: 'hsl(var(--foreground))',
                                 marginBottom: '1rem'
                             }}>
                                 Activity
@@ -1496,7 +1564,7 @@ const Lead = () => {
                                     <div style={{
                                         textAlign: 'center',
                                         padding: '3rem',
-                                        color: '#6c757d'
+                                        color: 'hsl(var(--foreground-muted))'
                                     }}>
                                         <i className="pi pi-spin pi-spinner" style={{ fontSize: '2rem', display: 'block', marginBottom: '1rem' }}></i>
                                         <p style={{ fontSize: '0.9rem' }}>Loading activity...</p>
@@ -1512,18 +1580,18 @@ const Lead = () => {
                                             const isEmail = action.type === 'email' || isReceived;
                                             const isCall = action.type === 'call';
 
-                                            let bgColor = '#eff6ff';
-                                            let borderColor = '#667eea';
+                                            let bgColor = 'hsl(var(--primary) / 0.08)';
+                                            let borderColor = 'hsl(var(--primary))';
                                             let iconClass = 'pi-file-edit';
-                                            let iconColor = '#667eea';
+                                            let iconColor = 'hsl(var(--primary))';
                                             let label = action.type;
 
                                             if (isCall) {
-                                                bgColor = '#f0fdf4'; borderColor = '#22c55e'; iconClass = 'pi-phone'; iconColor = '#22c55e';
+                                                bgColor = 'hsl(var(--success) / 0.08)'; borderColor = 'hsl(var(--success))'; iconClass = 'pi-phone'; iconColor = 'hsl(var(--success))';
                                             } else if (isReceived) {
-                                                bgColor = '#fef9f0'; borderColor = '#f59e0b'; iconClass = 'pi-inbox'; iconColor = '#f59e0b'; label = 'Email Received';
+                                                bgColor = 'hsl(var(--warning) / 0.08)'; borderColor = 'hsl(var(--warning))'; iconClass = 'pi-inbox'; iconColor = 'hsl(var(--warning))'; label = 'Email Received';
                                             } else if (isEmail) {
-                                                bgColor = '#fef3f2'; borderColor = '#e74c3c'; iconClass = 'pi-send'; iconColor = '#e74c3c'; label = 'Email Sent';
+                                                bgColor = 'hsl(var(--danger) / 0.08)'; borderColor = 'hsl(var(--danger))'; iconClass = 'pi-send'; iconColor = 'hsl(var(--danger))'; label = 'Email Sent';
                                             }
 
                                             return (
@@ -1534,7 +1602,7 @@ const Lead = () => {
                                                         backgroundColor: bgColor,
                                                         borderLeft: `4px solid ${borderColor}`,
                                                         borderRadius: '8px',
-                                                        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                                                        boxShadow: '0 1px 3px hsl(var(--shadow-color) / 0.1)'
                                                     }}
                                                 >
                                                     <div style={{
@@ -1555,14 +1623,14 @@ const Lead = () => {
                                                             <span style={{
                                                                 fontWeight: '700',
                                                                 fontSize: '0.95rem',
-                                                                color: '#2c3e50',
+                                                                color: 'hsl(var(--foreground))',
                                                             }}>
                                                                 {label}
                                                             </span>
                                                             {isEmail && action.subject && (
                                                                 <span style={{
                                                                     fontSize: '0.85rem',
-                                                                    color: '#6c757d',
+                                                                    color: 'hsl(var(--foreground-muted))',
                                                                     fontWeight: '400',
                                                                 }}>
                                                                     — {action.subject}
@@ -1571,7 +1639,7 @@ const Lead = () => {
                                                         </div>
                                                         <span style={{
                                                             fontSize: '0.85rem',
-                                                            color: '#6c757d',
+                                                            color: 'hsl(var(--foreground-muted))',
                                                             whiteSpace: 'nowrap',
                                                             marginLeft: '0.5rem'
                                                         }}>
@@ -1584,7 +1652,7 @@ const Lead = () => {
                                                         <div
                                                             style={{
                                                                 fontSize: '0.95rem',
-                                                                color: '#495057',
+                                                                color: 'hsl(var(--foreground-muted))',
                                                                 lineHeight: '1.6',
                                                                 maxHeight: '200px',
                                                                 overflow: 'hidden',
@@ -1594,7 +1662,7 @@ const Lead = () => {
                                                     ) : (
                                                         <div style={{
                                                             fontSize: '0.95rem',
-                                                            color: '#495057',
+                                                            color: 'hsl(var(--foreground-muted))',
                                                             lineHeight: '1.6',
                                                             whiteSpace: 'pre-wrap'
                                                         }}>
@@ -1609,7 +1677,7 @@ const Lead = () => {
                                     <div style={{
                                         textAlign: 'center',
                                         padding: '3rem',
-                                        color: '#6c757d'
+                                        color: 'hsl(var(--foreground-muted))'
                                     }}>
                                         <i className="pi pi-inbox" style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}></i>
                                         <p style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>No activity recorded yet</p>
@@ -1628,11 +1696,6 @@ const Lead = () => {
                             activeIndex={activeIndex}
                             onTabChange={(e) => setActiveIndex(e.index)}
                         >
-                            <TabPanel header="Property Dashboard" leftIcon="pi pi-th-large mr-2">
-                                {lead?._id && isLoggedIn && (
-                                    <LeadDashboard leadId={lead._id} isLoggedIn={isLoggedIn} />
-                                )}
-                            </TabPanel>
                             <TabPanel header="Viewed Homes" leftIcon="pi pi-home mr-2">
                                 <ScrollPanel className="viewed-homes-scroll">
                                     <div className="properties-grid">
@@ -1657,30 +1720,36 @@ const Lead = () => {
                             </TabPanel>
                             <TabPanel header="Saved Searches" leftIcon="pi pi-bookmark mr-2">
                                 <div className="saved-searches-list">
-                                    {lead?.saved_searches?.length ? (
-                                        lead.saved_searches.map((search, index) => (
-                                            <Card
-                                                key={search.searchId || index}
-                                                className="search-card"
-                                            >
-                                                <div className="search-content">
-                                                    <div className="search-header">
-                                                        <i className="pi pi-bookmark"></i>
-                                                        <h4>{search.searchName}</h4>
+                                    {(() => {
+                                        const allSearches = [
+                                            ...(lead?.saved_searches || []),
+                                            ...(lead?.e_alerts || []),
+                                        ];
+                                        return allSearches.length ? (
+                                            allSearches.map((search, index) => (
+                                                <Card
+                                                    key={search._id || search.searchId || index}
+                                                    className="search-card"
+                                                >
+                                                    <div className="search-content">
+                                                        <div className="search-header">
+                                                            <i className="pi pi-bookmark"></i>
+                                                            <h4>{search.searchName || 'Unnamed Search'}</h4>
+                                                        </div>
+                                                        <p className="search-frequency">
+                                                            <strong>Frequency:</strong>{' '}
+                                                            {search.searchFrequency}
+                                                        </p>
                                                     </div>
-                                                    <p className="search-frequency">
-                                                        <strong>Frequency:</strong>{' '}
-                                                        {search.searchFrequency}
-                                                    </p>
-                                                </div>
-                                            </Card>
-                                        ))
-                                    ) : (
-                                        <div className="empty-state">
-                                            <i className="pi pi-bookmark"></i>
-                                            <p>No saved searches</p>
-                                        </div>
-                                    )}
+                                                </Card>
+                                            ))
+                                        ) : (
+                                            <div className="empty-state">
+                                                <i className="pi pi-bookmark"></i>
+                                                <p>No saved searches</p>
+                                            </div>
+                                        );
+                                    })()}
                                 </div>
                             </TabPanel>
                             <TabPanel header="Search History" leftIcon="pi pi-search mr-2">
@@ -1942,7 +2011,7 @@ const Lead = () => {
                                 display: 'block',
                                 marginBottom: '0.5rem',
                                 fontWeight: '600',
-                                color: '#495057'
+                                color: 'hsl(var(--foreground-muted))'
                             }}
                         >
                             Call Notes
@@ -1956,7 +2025,7 @@ const Lead = () => {
                             style={{ width: '100%', fontFamily: 'inherit' }}
                             autoFocus
                         />
-                        <small style={{ display: 'block', marginTop: '0.5rem', color: '#6c757d' }}>
+                        <small style={{ display: 'block', marginTop: '0.5rem', color: 'hsl(var(--foreground-muted))' }}>
                             Document key points from your conversation with {lead?.first_name}
                         </small>
                     </div>
@@ -1999,7 +2068,7 @@ const Lead = () => {
                                 display: 'block',
                                 marginBottom: '0.5rem',
                                 fontWeight: '600',
-                                color: '#495057'
+                                color: 'hsl(var(--foreground-muted))'
                             }}
                         >
                             Note Content
@@ -2013,7 +2082,7 @@ const Lead = () => {
                             style={{ width: '100%', fontFamily: 'inherit' }}
                             autoFocus
                         />
-                        <small style={{ display: 'block', marginTop: '0.5rem', color: '#6c757d' }}>
+                        <small style={{ display: 'block', marginTop: '0.5rem', color: 'hsl(var(--foreground-muted))' }}>
                             Add important information or observations about {lead?.first_name}
                         </small>
                     </div>
@@ -2060,7 +2129,7 @@ const Lead = () => {
                                     display: 'block',
                                     marginBottom: '0.5rem',
                                     fontWeight: '600',
-                                    color: '#495057'
+                                    color: 'hsl(var(--foreground-muted))'
                                 }}
                             >
                                 To
@@ -2071,7 +2140,7 @@ const Lead = () => {
                                 disabled
                                 style={{
                                     width: '100%',
-                                    backgroundColor: '#f8f9fa',
+                                    backgroundColor: 'hsl(var(--muted))',
                                     cursor: 'not-allowed'
                                 }}
                             />
@@ -2085,7 +2154,7 @@ const Lead = () => {
                                     display: 'block',
                                     marginBottom: '0.5rem',
                                     fontWeight: '600',
-                                    color: '#495057'
+                                    color: 'hsl(var(--foreground-muted))'
                                 }}
                             >
                                 Subject
@@ -2108,7 +2177,7 @@ const Lead = () => {
                                     display: 'block',
                                     marginBottom: '0.5rem',
                                     fontWeight: '600',
-                                    color: '#495057'
+                                    color: 'hsl(var(--foreground-muted))'
                                 }}
                             >
                                 Message
@@ -2127,7 +2196,7 @@ const Lead = () => {
                                     }}
                                 />
                             </div>
-                            <small style={{ display: 'block', marginTop: '0.5rem', color: '#6c757d' }}>
+                            <small style={{ display: 'block', marginTop: '0.5rem', color: 'hsl(var(--foreground-muted))' }}>
                                 This email will be sent to {lead?.first_name} {lead?.last_name} at {lead?.email}
                             </small>
                         </div>
@@ -2177,7 +2246,7 @@ const Lead = () => {
                                     display: 'block',
                                     marginBottom: '0.5rem',
                                     fontWeight: '600',
-                                    color: '#495057'
+                                    color: 'hsl(var(--foreground-muted))'
                                 }}
                             >
                                 Reminder Date *
@@ -2192,7 +2261,7 @@ const Lead = () => {
                                 style={{ width: '100%' }}
                                 minDate={new Date()}
                             />
-                            <small style={{ display: 'block', marginTop: '0.25rem', color: '#6c757d' }}>
+                            <small style={{ display: 'block', marginTop: '0.25rem', color: 'hsl(var(--foreground-muted))' }}>
                                 When should we remind you?
                             </small>
                         </div>
@@ -2205,7 +2274,7 @@ const Lead = () => {
                                     display: 'block',
                                     marginBottom: '0.5rem',
                                     fontWeight: '600',
-                                    color: '#495057'
+                                    color: 'hsl(var(--foreground-muted))'
                                 }}
                             >
                                 Reminder Type
@@ -2232,7 +2301,7 @@ const Lead = () => {
                                     display: 'block',
                                     marginBottom: '0.5rem',
                                     fontWeight: '600',
-                                    color: '#495057'
+                                    color: 'hsl(var(--foreground-muted))'
                                 }}
                             >
                                 Description *
@@ -2246,7 +2315,7 @@ const Lead = () => {
                                 style={{ width: '100%', fontFamily: 'inherit' }}
                                 autoFocus
                             />
-                            <small style={{ display: 'block', marginTop: '0.5rem', color: '#6c757d' }}>
+                            <small style={{ display: 'block', marginTop: '0.5rem', color: 'hsl(var(--foreground-muted))' }}>
                                 Add notes about what you need to do or discuss with {lead?.first_name}
                             </small>
                         </div>
@@ -2297,7 +2366,7 @@ const Lead = () => {
                                     display: 'block',
                                     marginBottom: '0.5rem',
                                     fontWeight: '600',
-                                    color: '#495057'
+                                    color: 'hsl(var(--foreground-muted))'
                                 }}
                             >
                                 Select Agent *
@@ -2313,7 +2382,7 @@ const Lead = () => {
                                 filter
                                 filterPlaceholder="Search agents..."
                             />
-                            <small style={{ display: 'block', marginTop: '0.25rem', color: '#6c757d' }}>
+                            <small style={{ display: 'block', marginTop: '0.25rem', color: 'hsl(var(--foreground-muted))' }}>
                                 Choose the agent who will take over this lead
                             </small>
                         </div>
@@ -2327,7 +2396,7 @@ const Lead = () => {
                             />
                             <label
                                 htmlFor="notify-agent"
-                                style={{ fontWeight: '600', cursor: 'pointer', color: '#495057' }}
+                                style={{ fontWeight: '600', cursor: 'pointer', color: 'hsl(var(--foreground-muted))' }}
                             >
                                 Notify Agent
                             </label>
@@ -2342,7 +2411,7 @@ const Lead = () => {
                                         display: 'block',
                                         marginBottom: '0.5rem',
                                         fontWeight: '600',
-                                        color: '#495057'
+                                        color: 'hsl(var(--foreground-muted))'
                                     }}
                                 >
                                     Note to Agent (Optional)
@@ -2355,7 +2424,7 @@ const Lead = () => {
                                     placeholder="Add a note for the new agent..."
                                     style={{ width: '100%', fontFamily: 'inherit' }}
                                 />
-                                <small style={{ display: 'block', marginTop: '0.5rem', color: '#6c757d' }}>
+                                <small style={{ display: 'block', marginTop: '0.5rem', color: 'hsl(var(--foreground-muted))' }}>
                                     This note will be included in the notification email sent to the agent
                                 </small>
                             </div>
@@ -2401,7 +2470,7 @@ const Lead = () => {
                                 display: 'block',
                                 marginBottom: '0.5rem',
                                 fontWeight: '600',
-                                color: '#495057'
+                                color: 'hsl(var(--foreground-muted))'
                             }}
                         >
                             Select Campaign *
@@ -2420,7 +2489,7 @@ const Lead = () => {
                             filter
                             filterPlaceholder="Search campaigns..."
                         />
-                        <small style={{ display: 'block', marginTop: '0.5rem', color: '#6c757d' }}>
+                        <small style={{ display: 'block', marginTop: '0.5rem', color: 'hsl(var(--foreground-muted))' }}>
                             Choose a drip campaign to enroll {lead?.first_name} in. Emails will be sent automatically on schedule.
                         </small>
                     </div>

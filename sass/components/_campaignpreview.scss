@@ -1,0 +1,197 @@
+// ========== Campaign Preview Dialog ==========
+
+// Override PrimeReact Dialog wrapper
+.campaign-preview-dialog {
+    width: 90vw;
+    max-width: 660px;
+
+    // Scrim / backdrop
+    &.p-dialog-mask {
+        backdrop-filter: blur(4px);
+    }
+
+    .p-dialog {
+        border-radius: 0.75rem;
+        overflow: hidden;
+        box-shadow: 0 20px 50px -12px hsl(var(--shadow-color) / 0.3);
+        border: 1px solid hsl(var(--border));
+    }
+
+    .p-dialog-header {
+        background: hsl(var(--surface));
+        border-bottom: 1px solid hsl(var(--border-subtle));
+        padding: 1.25rem 1.5rem;
+    }
+
+    .p-dialog-header-icons {
+        .p-dialog-header-close {
+            color: hsl(var(--foreground-muted));
+
+            &:hover {
+                color: hsl(var(--foreground));
+                background: hsl(var(--muted));
+            }
+        }
+    }
+
+    .p-dialog-content {
+        background: hsl(var(--background));
+        padding: 0;
+    }
+}
+
+// ── Header ──
+.campaign-preview__header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.campaign-preview__name {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: hsl(var(--foreground));
+    margin: 0;
+    line-height: 1.3;
+}
+
+.campaign-preview__subtitle {
+    font-size: 0.8rem;
+    color: hsl(var(--foreground-muted));
+    margin: 0;
+    font-weight: 500;
+}
+
+// ── Content / Scrollable area ──
+.campaign-preview__content {
+    max-height: 65vh;
+    overflow-y: auto;
+    padding: 1rem 1.5rem 1.5rem;
+}
+
+// ── Email List ──
+.campaign-preview__list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+// ── Individual Email Card ──
+.campaign-preview__email {
+    background: hsl(var(--surface));
+    border: 1px solid hsl(var(--border));
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+}
+
+.campaign-preview__email-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.6rem;
+}
+
+.campaign-preview__day-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    background: hsl(var(--primary) / 0.12);
+    color: hsl(var(--primary));
+}
+
+.campaign-preview__email-order {
+    font-size: 0.7rem;
+    color: hsl(var(--foreground-muted));
+    font-weight: 500;
+}
+
+.campaign-preview__email-subject {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: hsl(var(--foreground));
+    margin: 0 0 0.5rem 0;
+    line-height: 1.35;
+}
+
+.campaign-preview__email-body {
+    font-size: 0.85rem;
+    color: hsl(var(--foreground-muted));
+    line-height: 1.55;
+    word-break: break-word;
+
+    &--truncated {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    // Style HTML content inside email bodies
+    p {
+        margin: 0 0 0.5rem 0;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+    }
+
+    a {
+        color: hsl(var(--primary));
+    }
+}
+
+.campaign-preview__toggle {
+    background: none;
+    border: none;
+    padding: 0;
+    margin-top: 0.35rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: hsl(var(--primary));
+    cursor: pointer;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+// ── Empty State ──
+.campaign-preview__empty {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    color: hsl(var(--foreground-muted));
+
+    i {
+        font-size: 2.5rem;
+        display: block;
+        margin-bottom: 0.75rem;
+        opacity: 0.4;
+    }
+
+    p {
+        font-size: 0.9rem;
+        margin: 0;
+    }
+}
+
+// ── Mobile: Full-screen dialog ──
+@media (max-width: 640px) {
+    .campaign-preview-dialog {
+        width: 100vw;
+        max-width: 100vw;
+
+        .p-dialog {
+            border-radius: 0;
+            margin: 0;
+            width: 100% !important;
+            max-height: 100vh;
+            height: 100vh;
+        }
+    }
+
+    .campaign-preview__content {
+        max-height: calc(100vh - 80px);
+    }
+}

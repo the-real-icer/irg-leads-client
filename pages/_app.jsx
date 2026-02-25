@@ -1,3 +1,6 @@
+// Font
+import { Inter } from 'next/font/google';
+
 // Redux & Connect
 import { PersistGate } from 'redux-persist/integration/react';
 import { Provider } from 'react-redux';
@@ -12,12 +15,22 @@ import { ToastContainer } from 'react-toastify';
 // Google Login
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
-// Component Style
+// Design System
+import '../styles/design-tokens.css';
+import '../styles/tailwind.css';
+
+// Component Style (PrimeReact + PrimeFlex — will phase out during overhaul)
 import 'primereact/resources/themes/saga-blue/theme.css';
 import 'primereact/resources/primereact.min.css';
 import 'primeicons/primeicons.css';
 import 'primeflex/primeflex.css';
 import '../sass/main.scss';
+
+const inter = Inter({
+    subsets: ['latin'],
+    display: 'swap',
+    variable: '--font-inter',
+});
 
 const MyApp = ({ Component, ...rest }) => {
     // _________________________________Constants________________________\\
@@ -26,24 +39,26 @@ const MyApp = ({ Component, ...rest }) => {
     const CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
     return (
-        <Provider store={store}>
-            <PersistGate persistor={store.__persistor}>
-                <GoogleOAuthProvider clientId={CLIENT_ID}>
-                    <ToastContainer
-                        position="top-right" // Default position
-                        autoClose={3000} // Close after 3 seconds
-                        hideProgressBar={false}
-                        newestOnTop={false}
-                        closeOnClick
-                        rtl={false}
-                        pauseOnFocusLoss
-                        draggable
-                        pauseOnHover
-                    />
-                    <Component {...props.pageProps} />
-                </GoogleOAuthProvider>
-            </PersistGate>
-        </Provider>
+        <div className={`${inter.variable} font-sans`}>
+            <Provider store={store}>
+                <PersistGate persistor={store.__persistor}>
+                    <GoogleOAuthProvider clientId={CLIENT_ID}>
+                        <ToastContainer
+                            position="top-right" // Default position
+                            autoClose={3000} // Close after 3 seconds
+                            hideProgressBar={false}
+                            newestOnTop={false}
+                            closeOnClick
+                            rtl={false}
+                            pauseOnFocusLoss
+                            draggable
+                            pauseOnHover
+                        />
+                        <Component {...props.pageProps} />
+                    </GoogleOAuthProvider>
+                </PersistGate>
+            </Provider>
+        </div>
     );
 };
 
