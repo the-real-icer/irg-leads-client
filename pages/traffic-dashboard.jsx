@@ -97,10 +97,10 @@ const TrafficDashboard = () => {
         <MainLayout>
             <div style={{ padding: '1.5rem' }}>
                 <div style={{ marginBottom: '1.5rem' }}>
-                    <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: '700', color: '#2c3e50' }}>
+                    <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: '700', color: 'hsl(var(--foreground))' }}>
                         Traffic Dashboard
                     </h2>
-                    <p style={{ margin: '0.25rem 0 0', fontSize: '0.875rem', color: '#6c757d' }}>
+                    <p style={{ margin: '0.25rem 0 0', fontSize: '0.875rem', color: 'hsl(var(--foreground-muted))' }}>
                         Real-time visitor activity on icerealtygroup.com
                     </p>
                 </div>
@@ -117,8 +117,8 @@ const TrafficDashboard = () => {
                                         fontWeight: '600',
                                         padding: '0.25rem 0.75rem',
                                         borderRadius: '12px',
-                                        background: liveSessions.length > 0 ? '#dcfce7' : '#f3f4f6',
-                                        color: liveSessions.length > 0 ? '#166534' : '#6b7280',
+                                        background: liveSessions.length > 0 ? 'hsl(var(--success) / 0.15)' : 'hsl(var(--muted))',
+                                        color: liveSessions.length > 0 ? 'hsl(var(--success))' : 'hsl(var(--foreground-muted))',
                                     }}
                                 >
                                     {liveSessions.length} active
@@ -129,11 +129,11 @@ const TrafficDashboard = () => {
                         {/* Summary badges */}
                         {liveSessions.length > 0 && (
                             <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
-                                <span style={{ fontSize: '0.8125rem', color: '#6c757d' }}>
+                                <span style={{ fontSize: '0.8125rem', color: 'hsl(var(--foreground-muted))' }}>
                                     <i className="pi pi-user" style={{ marginRight: '0.25rem' }}></i>
                                     {identifiedCount} identified
                                 </span>
-                                <span style={{ fontSize: '0.8125rem', color: '#6c757d' }}>
+                                <span style={{ fontSize: '0.8125rem', color: 'hsl(var(--foreground-muted))' }}>
                                     <i className="pi pi-eye" style={{ marginRight: '0.25rem' }}></i>
                                     {anonymousCount} anonymous
                                 </span>
@@ -141,14 +141,14 @@ const TrafficDashboard = () => {
                         )}
 
                         {liveLoading ? (
-                            <div style={{ padding: '2rem', textAlign: 'center', color: '#6c757d' }}>
+                            <div style={{ padding: '2rem', textAlign: 'center', color: 'hsl(var(--foreground-muted))' }}>
                                 <i className="pi pi-spin pi-spinner" style={{ fontSize: '1.5rem' }}></i>
                             </div>
                         ) : liveSessions.length > 0 ? (
                             <ScrollPanel style={{ width: '100%', height: '400px' }}>
                                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                                     <thead>
-                                        <tr style={{ borderBottom: '2px solid #e9ecef' }}>
+                                        <tr style={{ borderBottom: '2px solid hsl(var(--border))' }}>
                                             <th style={thStyle}>Visitor</th>
                                             <th style={thStyle}>Current Page</th>
                                             <th style={thStyle}>Time on Page</th>
@@ -162,12 +162,12 @@ const TrafficDashboard = () => {
                                             <tr
                                                 key={session.session_id}
                                                 style={{
-                                                    borderBottom: '1px solid #f1f3f5',
+                                                    borderBottom: '1px solid hsl(var(--border-subtle))',
                                                     cursor: session.lead_id ? 'pointer' : 'default',
                                                     transition: 'background 0.15s ease',
                                                 }}
                                                 onMouseEnter={(e) => {
-                                                    e.currentTarget.style.background = '#f8f9fa';
+                                                    e.currentTarget.style.background = 'hsl(var(--muted))';
                                                 }}
                                                 onMouseLeave={(e) => {
                                                     e.currentTarget.style.background = 'transparent';
@@ -185,35 +185,35 @@ const TrafficDashboard = () => {
                                                                 width: '8px',
                                                                 height: '8px',
                                                                 borderRadius: '50%',
-                                                                background: '#22c55e',
+                                                                background: 'hsl(var(--success))',
                                                                 display: 'inline-block',
-                                                                boxShadow: '0 0 6px rgba(34, 197, 94, 0.5)',
+                                                                boxShadow: '0 0 6px hsl(var(--success) / 0.5)',
                                                                 flexShrink: 0,
                                                             }}
                                                         />
                                                         {session.is_identified ? (
-                                                            <span style={{ fontWeight: '600', color: '#2c3e50' }}>
+                                                            <span style={{ fontWeight: '600', color: 'hsl(var(--foreground))' }}>
                                                                 {session.lead_name}
                                                             </span>
                                                         ) : (
-                                                            <span style={{ color: '#adb5bd', fontStyle: 'italic' }}>
+                                                            <span style={{ color: 'hsl(var(--muted-foreground))', fontStyle: 'italic' }}>
                                                                 Anonymous
                                                             </span>
                                                         )}
                                                     </div>
                                                 </td>
                                                 <td style={tdStyle}>
-                                                    <span style={{ fontSize: '0.8125rem', color: '#495057' }}>
+                                                    <span style={{ fontSize: '0.8125rem', color: 'hsl(var(--foreground))' }}>
                                                         {session.current_page_title || session.current_page || '—'}
                                                     </span>
                                                 </td>
                                                 <td style={tdStyle}>
-                                                    <span style={{ fontSize: '0.8125rem', color: '#495057' }}>
+                                                    <span style={{ fontSize: '0.8125rem', color: 'hsl(var(--foreground))' }}>
                                                         {formatDuration(session.time_on_current_page)}
                                                     </span>
                                                 </td>
                                                 <td style={{ ...tdStyle, textAlign: 'center' }}>
-                                                    <span style={{ fontSize: '0.8125rem', color: '#495057' }}>
+                                                    <span style={{ fontSize: '0.8125rem', color: 'hsl(var(--foreground))' }}>
                                                         {session.total_pages_viewed}
                                                     </span>
                                                 </td>
@@ -233,7 +233,7 @@ const TrafficDashboard = () => {
                                                 <td style={tdStyle}>
                                                     <i
                                                         className={getDeviceIcon(session.device_type)}
-                                                        style={{ fontSize: '0.875rem', color: '#6c757d' }}
+                                                        style={{ fontSize: '0.875rem', color: 'hsl(var(--foreground-muted))' }}
                                                         title={session.device_type}
                                                     ></i>
                                                 </td>
@@ -243,10 +243,10 @@ const TrafficDashboard = () => {
                                 </table>
                             </ScrollPanel>
                         ) : (
-                            <div style={{ padding: '2rem', textAlign: 'center', color: '#6c757d' }}>
+                            <div style={{ padding: '2rem', textAlign: 'center', color: 'hsl(var(--foreground-muted))' }}>
                                 <i className="pi pi-users" style={{ fontSize: '2rem', marginBottom: '0.75rem', display: 'block' }}></i>
                                 <p style={{ fontSize: '0.9375rem', margin: 0 }}>No active visitors right now</p>
-                                <p style={{ fontSize: '0.8125rem', margin: '0.25rem 0 0', color: '#adb5bd' }}>
+                                <p style={{ fontSize: '0.8125rem', margin: '0.25rem 0 0', color: 'hsl(var(--muted-foreground))' }}>
                                     Sessions appear when someone visits the site
                                 </p>
                             </div>
@@ -259,7 +259,7 @@ const TrafficDashboard = () => {
                     {/* Internal Stats */}
                     <Card title="Site Analytics (Last 7 Days)">
                         {statsLoading ? (
-                            <div style={{ padding: '2rem', textAlign: 'center', color: '#6c757d' }}>
+                            <div style={{ padding: '2rem', textAlign: 'center', color: 'hsl(var(--foreground-muted))' }}>
                                 <i className="pi pi-spin pi-spinner" style={{ fontSize: '1.5rem' }}></i>
                             </div>
                         ) : (
@@ -277,13 +277,13 @@ const TrafficDashboard = () => {
                                                         justifyContent: 'space-between',
                                                         padding: '0.375rem 0.5rem',
                                                         borderRadius: '4px',
-                                                        background: i % 2 === 0 ? '#f8f9fa' : 'transparent',
+                                                        background: i % 2 === 0 ? 'hsl(var(--muted))' : 'transparent',
                                                     }}
                                                 >
-                                                    <span style={{ fontSize: '0.8125rem', color: '#495057', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '70%' }}>
+                                                    <span style={{ fontSize: '0.8125rem', color: 'hsl(var(--foreground))', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '70%' }}>
                                                         {p.page}
                                                     </span>
-                                                    <span style={{ fontSize: '0.8125rem', fontWeight: '600', color: '#2c3e50' }}>
+                                                    <span style={{ fontSize: '0.8125rem', fontWeight: '600', color: 'hsl(var(--foreground))' }}>
                                                         {p.views}
                                                     </span>
                                                 </div>
@@ -307,13 +307,13 @@ const TrafficDashboard = () => {
                                                         justifyContent: 'space-between',
                                                         padding: '0.375rem 0.5rem',
                                                         borderRadius: '4px',
-                                                        background: i % 2 === 0 ? '#f8f9fa' : 'transparent',
+                                                        background: i % 2 === 0 ? 'hsl(var(--muted))' : 'transparent',
                                                     }}
                                                 >
-                                                    <span style={{ fontSize: '0.8125rem', color: '#495057' }}>
+                                                    <span style={{ fontSize: '0.8125rem', color: 'hsl(var(--foreground))' }}>
                                                         {s.source || 'Direct'}
                                                     </span>
-                                                    <span style={{ fontSize: '0.8125rem', fontWeight: '600', color: '#2c3e50' }}>
+                                                    <span style={{ fontSize: '0.8125rem', fontWeight: '600', color: 'hsl(var(--foreground))' }}>
                                                         {s.sessions}
                                                     </span>
                                                 </div>
@@ -336,18 +336,18 @@ const TrafficDashboard = () => {
                                                         flex: 1,
                                                         textAlign: 'center',
                                                         padding: '0.75rem',
-                                                        background: '#f8f9fa',
+                                                        background: 'hsl(var(--muted))',
                                                         borderRadius: '8px',
                                                     }}
                                                 >
                                                     <i
                                                         className={getDeviceIcon(d.device)}
-                                                        style={{ fontSize: '1.25rem', color: '#667eea', display: 'block', marginBottom: '0.25rem' }}
+                                                        style={{ fontSize: '1.25rem', color: 'hsl(var(--primary))', display: 'block', marginBottom: '0.25rem' }}
                                                     ></i>
-                                                    <div style={{ fontSize: '1.125rem', fontWeight: '700', color: '#2c3e50' }}>
+                                                    <div style={{ fontSize: '1.125rem', fontWeight: '700', color: 'hsl(var(--foreground))' }}>
                                                         {d.sessions}
                                                     </div>
-                                                    <div style={{ fontSize: '0.75rem', color: '#6c757d', textTransform: 'capitalize' }}>
+                                                    <div style={{ fontSize: '0.75rem', color: 'hsl(var(--foreground-muted))', textTransform: 'capitalize' }}>
                                                         {d.device || 'Unknown'}
                                                     </div>
                                                 </div>
@@ -364,7 +364,7 @@ const TrafficDashboard = () => {
                     {/* Google Analytics */}
                     <Card title="Google Analytics">
                         {statsLoading ? (
-                            <div style={{ padding: '2rem', textAlign: 'center', color: '#6c757d' }}>
+                            <div style={{ padding: '2rem', textAlign: 'center', color: 'hsl(var(--foreground-muted))' }}>
                                 <i className="pi pi-spin pi-spinner" style={{ fontSize: '1.5rem' }}></i>
                             </div>
                         ) : !ga4Configured ? (
@@ -372,19 +372,19 @@ const TrafficDashboard = () => {
                                 <div
                                     style={{
                                         padding: '1.25rem',
-                                        background: '#fff8e1',
+                                        background: 'hsl(var(--warning) / 0.12)',
                                         borderRadius: '8px',
-                                        border: '1px solid #ffe082',
+                                        border: '1px solid hsl(var(--warning) / 0.3)',
                                     }}
                                 >
-                                    <div style={{ fontSize: '0.9375rem', fontWeight: '600', color: '#e65100', marginBottom: '0.75rem' }}>
+                                    <div style={{ fontSize: '0.9375rem', fontWeight: '600', color: 'hsl(var(--warning))', marginBottom: '0.75rem' }}>
                                         <i className="pi pi-info-circle" style={{ marginRight: '0.5rem' }}></i>
                                         GA4 Not Configured
                                     </div>
-                                    <p style={{ fontSize: '0.8125rem', color: '#795548', margin: '0 0 0.75rem' }}>
+                                    <p style={{ fontSize: '0.8125rem', color: 'hsl(var(--foreground-muted))', margin: '0 0 0.75rem' }}>
                                         Connect Google Analytics 4 to see additional traffic data. Setup steps:
                                     </p>
-                                    <ol style={{ fontSize: '0.8125rem', color: '#795548', margin: 0, paddingLeft: '1.25rem' }}>
+                                    <ol style={{ fontSize: '0.8125rem', color: 'hsl(var(--foreground-muted))', margin: 0, paddingLeft: '1.25rem' }}>
                                         <li style={{ marginBottom: '0.375rem' }}>Create a GA4 property at analytics.google.com</li>
                                         <li style={{ marginBottom: '0.375rem' }}>Create a service account at console.cloud.google.com</li>
                                         <li style={{ marginBottom: '0.375rem' }}>Enable the Google Analytics Data API</li>
@@ -398,21 +398,21 @@ const TrafficDashboard = () => {
                                 {/* Realtime + Today vs Yesterday */}
                                 <div style={{ display: 'flex', gap: '1rem' }}>
                                     <div style={statCardStyle}>
-                                        <div style={{ fontSize: '0.75rem', color: '#6c757d', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                        <div style={{ fontSize: '0.75rem', color: 'hsl(var(--foreground-muted))', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                                             Realtime Users
                                         </div>
-                                        <div style={{ fontSize: '1.75rem', fontWeight: '700', color: '#667eea' }}>
+                                        <div style={{ fontSize: '1.75rem', fontWeight: '700', color: 'hsl(var(--primary))' }}>
                                             {ga4Data?.realtime?.activeUsers ?? '—'}
                                         </div>
                                     </div>
                                     <div style={statCardStyle}>
-                                        <div style={{ fontSize: '0.75rem', color: '#6c757d', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                        <div style={{ fontSize: '0.75rem', color: 'hsl(var(--foreground-muted))', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                                             Today
                                         </div>
-                                        <div style={{ fontSize: '1.75rem', fontWeight: '700', color: '#2c3e50' }}>
+                                        <div style={{ fontSize: '1.75rem', fontWeight: '700', color: 'hsl(var(--foreground))' }}>
                                             {ga4Data?.todayVsYesterday?.today ?? '—'}
                                         </div>
-                                        <div style={{ fontSize: '0.75rem', color: '#6c757d' }}>
+                                        <div style={{ fontSize: '0.75rem', color: 'hsl(var(--foreground-muted))' }}>
                                             vs {ga4Data?.todayVsYesterday?.yesterday ?? '—'} yesterday
                                         </div>
                                     </div>
@@ -431,13 +431,13 @@ const TrafficDashboard = () => {
                                                         justifyContent: 'space-between',
                                                         padding: '0.375rem 0.5rem',
                                                         borderRadius: '4px',
-                                                        background: i % 2 === 0 ? '#f8f9fa' : 'transparent',
+                                                        background: i % 2 === 0 ? 'hsl(var(--muted))' : 'transparent',
                                                     }}
                                                 >
-                                                    <span style={{ fontSize: '0.8125rem', color: '#495057', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '70%' }}>
+                                                    <span style={{ fontSize: '0.8125rem', color: 'hsl(var(--foreground))', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '70%' }}>
                                                         {p.page || p.pagePath}
                                                     </span>
-                                                    <span style={{ fontSize: '0.8125rem', fontWeight: '600', color: '#2c3e50' }}>
+                                                    <span style={{ fontSize: '0.8125rem', fontWeight: '600', color: 'hsl(var(--foreground))' }}>
                                                         {p.views || p.screenPageViews}
                                                     </span>
                                                 </div>
@@ -459,13 +459,13 @@ const TrafficDashboard = () => {
                                                         justifyContent: 'space-between',
                                                         padding: '0.375rem 0.5rem',
                                                         borderRadius: '4px',
-                                                        background: i % 2 === 0 ? '#f8f9fa' : 'transparent',
+                                                        background: i % 2 === 0 ? 'hsl(var(--muted))' : 'transparent',
                                                     }}
                                                 >
-                                                    <span style={{ fontSize: '0.8125rem', color: '#495057' }}>
+                                                    <span style={{ fontSize: '0.8125rem', color: 'hsl(var(--foreground))' }}>
                                                         {s.source || s.sessionSource}
                                                     </span>
-                                                    <span style={{ fontSize: '0.8125rem', fontWeight: '600', color: '#2c3e50' }}>
+                                                    <span style={{ fontSize: '0.8125rem', fontWeight: '600', color: 'hsl(var(--foreground))' }}>
                                                         {s.sessions}
                                                     </span>
                                                 </div>
@@ -486,18 +486,18 @@ const TrafficDashboard = () => {
                                                         flex: 1,
                                                         textAlign: 'center',
                                                         padding: '0.75rem',
-                                                        background: '#f8f9fa',
+                                                        background: 'hsl(var(--muted))',
                                                         borderRadius: '8px',
                                                     }}
                                                 >
                                                     <i
                                                         className={getDeviceIcon(d.device || d.deviceCategory)}
-                                                        style={{ fontSize: '1.25rem', color: '#667eea', display: 'block', marginBottom: '0.25rem' }}
+                                                        style={{ fontSize: '1.25rem', color: 'hsl(var(--primary))', display: 'block', marginBottom: '0.25rem' }}
                                                     ></i>
-                                                    <div style={{ fontSize: '1.125rem', fontWeight: '700', color: '#2c3e50' }}>
+                                                    <div style={{ fontSize: '1.125rem', fontWeight: '700', color: 'hsl(var(--foreground))' }}>
                                                         {d.sessions}
                                                     </div>
-                                                    <div style={{ fontSize: '0.75rem', color: '#6c757d', textTransform: 'capitalize' }}>
+                                                    <div style={{ fontSize: '0.75rem', color: 'hsl(var(--foreground-muted))', textTransform: 'capitalize' }}>
                                                         {d.device || d.deviceCategory || 'Unknown'}
                                                     </div>
                                                 </div>
@@ -522,7 +522,7 @@ const TrafficDashboard = () => {
                                     gap: '0.5rem',
                                     fontSize: '0.8125rem',
                                     fontWeight: '400',
-                                    color: '#6c757d',
+                                    color: 'hsl(var(--foreground-muted))',
                                     cursor: 'pointer',
                                 }}
                             >
@@ -538,7 +538,7 @@ const TrafficDashboard = () => {
                     }
                 >
                     {statsLoading ? (
-                        <div style={{ padding: '2rem', textAlign: 'center', color: '#6c757d' }}>
+                        <div style={{ padding: '2rem', textAlign: 'center', color: 'hsl(var(--foreground-muted))' }}>
                             <i className="pi pi-spin pi-spinner" style={{ fontSize: '1.5rem' }}></i>
                         </div>
                     ) : filteredActivity.length > 0 ? (
@@ -553,16 +553,16 @@ const TrafficDashboard = () => {
                                             gap: '1rem',
                                             padding: '0.5rem 0.75rem',
                                             borderRadius: '4px',
-                                            background: i % 2 === 0 ? '#f8f9fa' : 'transparent',
+                                            background: i % 2 === 0 ? 'hsl(var(--muted))' : 'transparent',
                                         }}
                                     >
-                                        <span style={{ fontSize: '0.75rem', color: '#adb5bd', whiteSpace: 'nowrap', minWidth: '130px' }}>
+                                        <span style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))', whiteSpace: 'nowrap', minWidth: '130px' }}>
                                             {formatTimestamp(event.timestamp)}
                                         </span>
                                         <span
                                             style={{
                                                 fontSize: '0.8125rem',
-                                                color: '#495057',
+                                                color: 'hsl(var(--foreground))',
                                                 overflow: 'hidden',
                                                 textOverflow: 'ellipsis',
                                                 whiteSpace: 'nowrap',
@@ -576,7 +576,7 @@ const TrafficDashboard = () => {
                                                 style={{
                                                     fontSize: '0.75rem',
                                                     fontWeight: '600',
-                                                    color: '#667eea',
+                                                    color: 'hsl(var(--primary))',
                                                     whiteSpace: 'nowrap',
                                                     cursor: 'pointer',
                                                 }}
@@ -587,7 +587,7 @@ const TrafficDashboard = () => {
                                                 {event.lead_name || 'Lead'}
                                             </span>
                                         ) : (
-                                            <span style={{ fontSize: '0.75rem', color: '#ced4da', fontStyle: 'italic', whiteSpace: 'nowrap' }}>
+                                            <span style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))', fontStyle: 'italic', whiteSpace: 'nowrap' }}>
                                                 Anonymous
                                             </span>
                                         )}
@@ -596,7 +596,7 @@ const TrafficDashboard = () => {
                             </div>
                         </ScrollPanel>
                     ) : (
-                        <div style={{ padding: '2rem', textAlign: 'center', color: '#6c757d' }}>
+                        <div style={{ padding: '2rem', textAlign: 'center', color: 'hsl(var(--foreground-muted))' }}>
                             <p style={{ fontSize: '0.9375rem', margin: 0 }}>No recent activity to display</p>
                         </div>
                     )}
@@ -642,11 +642,11 @@ const getDeviceIcon = (device) => {
 
 const getSourceColor = (source) => {
     const s = source?.toLowerCase() || '';
-    if (s.includes('google') || s.includes('organic')) return { bg: '#e8f5e9', text: '#2e7d32' };
-    if (s.includes('facebook') || s.includes('social')) return { bg: '#e3f2fd', text: '#1565c0' };
-    if (s.includes('email')) return { bg: '#fce4ec', text: '#c62828' };
-    if (s === 'direct') return { bg: '#f3e5f5', text: '#6a1b9a' };
-    return { bg: '#f5f5f5', text: '#616161' };
+    if (s.includes('google') || s.includes('organic')) return { bg: 'hsl(var(--success) / 0.15)', text: 'hsl(var(--success))' };
+    if (s.includes('facebook') || s.includes('social')) return { bg: 'hsl(var(--primary) / 0.12)', text: 'hsl(var(--primary))' };
+    if (s.includes('email')) return { bg: 'hsl(var(--danger) / 0.15)', text: 'hsl(var(--danger))' };
+    if (s === 'direct') return { bg: 'hsl(270 38% 49% / 0.15)', text: 'hsl(270 38% 60%)' };
+    return { bg: 'hsl(var(--muted))', text: 'hsl(var(--foreground-muted))' };
 };
 
 // ─── Style Constants ────────────────────────────────────
@@ -656,7 +656,7 @@ const thStyle = {
     padding: '0.625rem 0.75rem',
     fontSize: '0.75rem',
     fontWeight: '600',
-    color: '#6c757d',
+    color: 'hsl(var(--foreground-muted))',
     textTransform: 'uppercase',
     letterSpacing: '0.05em',
 };
@@ -669,7 +669,7 @@ const tdStyle = {
 const sectionHeaderStyle = {
     fontSize: '0.8125rem',
     fontWeight: '600',
-    color: '#495057',
+    color: 'hsl(var(--foreground-muted))',
     marginBottom: '0.5rem',
     textTransform: 'uppercase',
     letterSpacing: '0.03em',
@@ -679,13 +679,13 @@ const statCardStyle = {
     flex: 1,
     textAlign: 'center',
     padding: '1rem',
-    background: '#f8f9fa',
+    background: 'hsl(var(--muted))',
     borderRadius: '8px',
 };
 
 const emptyTextStyle = {
     fontSize: '0.8125rem',
-    color: '#adb5bd',
+    color: 'hsl(var(--muted-foreground))',
     margin: 0,
     fontStyle: 'italic',
 };
