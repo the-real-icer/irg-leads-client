@@ -138,7 +138,6 @@ const DashboardHotsheet = () => {
             setProperties(results);
             setResultCount(results.length);
         } catch (err) {
-            console.error('Hotsheet fetch error:', err.message); // eslint-disable-line
             setError('Failed to load listings.');
         } finally {
             setLoading(false);

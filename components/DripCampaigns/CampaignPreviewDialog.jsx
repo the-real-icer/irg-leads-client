@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import dynamic from 'next/dynamic';
+import DOMPurify from 'isomorphic-dompurify';
 
 const Dialog = dynamic(() => import('primereact/dialog').then((mod) => mod.Dialog), {
     ssr: false,
@@ -80,10 +81,11 @@ const CampaignPreviewDialog = ({ visible, campaign, onHide }) => {
                                             : ''
                                     }`}
                                     dangerouslySetInnerHTML={{
-                                        __html:
+                                        __html: DOMPurify.sanitize(
                                             !isExpanded && isLong
                                                 ? email.body.slice(0, TRUNCATE_LENGTH) + '...'
-                                                : email.body,
+                                                : email.body
+                                        ),
                                     }}
                                 />
                                 {isLong && (

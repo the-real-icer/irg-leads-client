@@ -8,42 +8,46 @@ const DEFAULT_CENTER = { lat: 32.82, lng: -117.15 };
 const DEFAULT_ZOOM = 11;
 const MAX_MARKERS = 120;
 
-const POLYGON_OPTIONS = {
-    fillColor: '#163D5C',
-    fillOpacity: 0.15,
-    strokeColor: '#163D5C',
-    strokeOpacity: 0.8,
-    strokeWeight: 2,
+// Light mode: brand navy.  Dark mode: bright cyan for contrast against dark basemap.
+const LIGHT_POLY_COLOR = '#163D5C';
+const DARK_POLY_COLOR = '#00BCD4';
+
+const getPolygonOptions = (isDark) => ({
+    fillColor: isDark ? DARK_POLY_COLOR : LIGHT_POLY_COLOR,
+    fillOpacity: isDark ? 0.25 : 0.15,
+    strokeColor: isDark ? DARK_POLY_COLOR : LIGHT_POLY_COLOR,
+    strokeOpacity: isDark ? 1.0 : 0.8,
+    strokeWeight: isDark ? 3 : 2,
     clickable: false,
     draggable: false,
     editable: false,
     zIndex: 2,
-};
+});
 
-const AREA_POLYGON_OPTIONS = {
-    fillColor: '#163D5C',
-    fillOpacity: 0.08,
-    strokeColor: '#163D5C',
-    strokeOpacity: 0.5,
-    strokeWeight: 1.5,
+const getAreaPolygonOptions = (isDark) => ({
+    fillColor: isDark ? DARK_POLY_COLOR : LIGHT_POLY_COLOR,
+    fillOpacity: isDark ? 0.12 : 0.08,
+    strokeColor: isDark ? DARK_POLY_COLOR : LIGHT_POLY_COLOR,
+    strokeOpacity: isDark ? 0.7 : 0.5,
+    strokeWeight: isDark ? 2 : 1.5,
     clickable: false,
     draggable: false,
     editable: false,
     zIndex: 1,
-};
+});
 
-const DRAWING_MANAGER_OPTIONS = {
+const getDrawingManagerOptions = (isDark) => ({
     drawingControl: false,
     polygonOptions: {
-        fillColor: '#163D5C',
-        fillOpacity: 0.15,
-        strokeColor: '#163D5C',
-        strokeOpacity: 0.8,
-        strokeWeight: 2,
+        fillColor: isDark ? DARK_POLY_COLOR : LIGHT_POLY_COLOR,
+        fillOpacity: isDark ? 0.25 : 0.15,
+        strokeColor: isDark ? DARK_POLY_COLOR : LIGHT_POLY_COLOR,
+        strokeOpacity: isDark ? 1.0 : 0.8,
+        strokeWeight: isDark ? 3 : 2,
         editable: false,
         draggable: false,
     },
-};
+});
 
 const PropertySearchMap = memo(({
     properties,
@@ -81,6 +85,10 @@ const PropertySearchMap = memo(({
         }),
         [isDark, isDrawing]
     );
+
+    const polygonOptions = useMemo(() => getPolygonOptions(isDark), [isDark]);
+    const areaPolygonOptions = useMemo(() => getAreaPolygonOptions(isDark), [isDark]);
+    const drawingManagerOptions = useMemo(() => getDrawingManagerOptions(isDark), [isDark]);
 
     const onLoad = useCallback(
         (map) => {
@@ -164,14 +172,14 @@ const PropertySearchMap = memo(({
                 {isDrawing && (
                     <DrawingManager
                         drawingMode={window.google.maps.drawing.OverlayType.POLYGON}
-                        options={DRAWING_MANAGER_OPTIONS}
+                        options={drawingManagerOptions}
                         onPolygonComplete={onPolygonComplete}
                     />
                 )}
 
                 {/* Completed polygon overlay */}
                 {drawnPolygon && !isDrawing && (
-                    <Polygon paths={drawnPolygon} options={POLYGON_OPTIONS} />
+                    <Polygon paths={drawnPolygon} options={polygonOptions} />
                 )}
 
                 {/* Area boundary overlays */}
@@ -182,7 +190,7 @@ const PropertySearchMap = memo(({
                         <Polygon
                             key={area.search_name}
                             paths={paths}
-                            options={AREA_POLYGON_OPTIONS}
+                            options={areaPolygonOptions}
                         />
                     );
                 })}

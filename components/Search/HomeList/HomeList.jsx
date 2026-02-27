@@ -1,5 +1,5 @@
 // React
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 
 import PrpCard from '../../prpCard/PrpCard';
@@ -13,10 +13,6 @@ const HomeList = (props) => {
             setHomesRender(homes);
         }
 
-        // if (searchPage.loadingHomes) {
-        //     setHomesRender(loadingHomesToRender);
-        // }
-
         return () => setHomesRender([]);
     }, [homes, searchPage.loadingHomes]);
 
@@ -27,7 +23,7 @@ const HomeList = (props) => {
         return null;
     }
 
-    return <React.Fragment>{renderHomes()}</React.Fragment>;
+    return <>{renderHomes()}</>;
 };
 
 HomeList.propTypes = {

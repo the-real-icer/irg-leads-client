@@ -128,8 +128,6 @@ const AreaDetail = () => {
                     }
                 }
             } catch (error) {
-                console.error('Fetch area error:', error);
-
                 let errorMessage = 'Failed to load area';
                 if (error.response?.data?.message) {
                     errorMessage = error.response.data.message;
@@ -210,8 +208,6 @@ const AreaDetail = () => {
                 setArea(response.data.data);
             }
         } catch (error) {
-            console.error('Update area error:', error);
-
             let errorMessage = 'Failed to update area';
 
             if (error.response?.data?.message) {
@@ -242,16 +238,12 @@ const AreaDetail = () => {
         const center = formData.coordinates;
         const boundary = formData.boundary;
 
-        console.log('Boundary data:', boundary);
-        console.log('Center:', center);
-
         // Convert boundary to Google Maps format
         let polygonPaths = [];
 
         if (boundary && boundary.length > 0) {
             // Extract the coordinate array - boundary is nested: [[coords]]
             const coords = Array.isArray(boundary[0]) ? boundary[0] : boundary;
-            console.log('Extracted coords:', coords);
 
             polygonPaths = coords.map((coord) => {
                 // Handle GeoJSON array format: [lng, lat]
@@ -263,12 +255,9 @@ const AreaDetail = () => {
                     return { lat: coord.lat, lng: coord.lng };
                 }
 
-                console.warn('Invalid coordinate format:', coord);
                 return null;
             }).filter(coord => coord !== null && !isNaN(coord.lat) && !isNaN(coord.lng));
         }
-
-        console.log('Polygon paths:', polygonPaths);
 
         return (
             <GoogleMap

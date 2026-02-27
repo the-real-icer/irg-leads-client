@@ -155,7 +155,6 @@ const AdminBar = (props) => {
             }
         } catch (error) {
             handleToastMessage('error', 'Error', 'Sorry, something went wrong', 3000);
-            console.log(error.message); // eslint-disable-line
         }
     };
 
@@ -186,7 +185,6 @@ const AdminBar = (props) => {
             }
         } catch (error) {
             handleToastMessage('error', 'Error', 'Sorry, something went wrong', 3000);
-            console.log(error); // eslint-disable-line
         }
     };
 
@@ -211,7 +209,6 @@ const AdminBar = (props) => {
             }
         } catch (error) {
             handleToastMessage('error', 'Error', 'Sorry, something went wrong', 3000);
-            console.log(error); // eslint-disable-line
         }
     };
 
@@ -236,7 +233,6 @@ const AdminBar = (props) => {
             }
         } catch (error) {
             handleToastMessage('error', 'Error', 'Sorry, something went wrong', 3000);
-            console.log(error); // eslint-disable-line
         }
     };
 

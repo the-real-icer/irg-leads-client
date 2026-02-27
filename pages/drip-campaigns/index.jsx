@@ -83,7 +83,6 @@ const DripCampaigns = () => {
                 setCampaigns(response.data.data);
             }
         } catch (error) {
-            console.error('Error fetching campaigns:', error);
             showToast('error', 'Failed to load drip campaigns', 'Error');
         } finally {
             setLoading(false);
@@ -104,7 +103,6 @@ const DripCampaigns = () => {
                 showToast('success', 'Campaign deleted', 'Success');
             }
         } catch (error) {
-            console.error('Error deleting campaign:', error);
             showToast('error', error.response?.data?.message || 'Failed to delete campaign', 'Error');
         }
     };

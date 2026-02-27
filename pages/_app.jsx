@@ -1,10 +1,14 @@
 // Font
 import { Inter } from 'next/font/google';
+import { useEffect, useRef } from 'react';
 
 // Redux & Connect
 import { PersistGate } from 'redux-persist/integration/react';
 import { Provider } from 'react-redux';
 import { wrapper } from '../store';
+
+// API
+import { setupAuthInterceptor } from '../assets/irgApi';
 
 // Prop-Types
 import PropTypes from 'prop-types';
@@ -26,6 +30,9 @@ import 'primeicons/primeicons.css';
 import 'primeflex/primeflex.css';
 import '../sass/main.scss';
 
+// Fancybox Lightbox (global import required for Next.js)
+import '@fancyapps/ui/dist/fancybox/fancybox.css';
+
 const inter = Inter({
     subsets: ['latin'],
     display: 'swap',
@@ -37,6 +44,15 @@ const MyApp = ({ Component, ...rest }) => {
     // Redux STORE
     const { store, props } = wrapper.useWrappedStore(rest);
     const CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    const interceptorSet = useRef(false);
+
+    // Set up 401 interceptor once on mount
+    useEffect(() => {
+        if (!interceptorSet.current) {
+            setupAuthInterceptor(store);
+            interceptorSet.current = true;
+        }
+    }, [store]);
 
     return (
         <div className={`${inter.variable} font-sans`}>

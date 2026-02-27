@@ -50,7 +50,6 @@ const TransactionsDashboard = () => {
                     setTransactions(transactionsResponse.data.data);
                 }
             } catch (error) {
-                console.error('Dashboard fetch error:', error); // eslint-disable-line
                 showToast('error', 'Failed to load dashboard data', 'Error');
             } finally {
                 setLoading(false);

@@ -1,6 +1,3 @@
-// // React & NextJS
-// import Link from 'next/link';
-
 // Redux
 import { useSelector } from 'react-redux';
 

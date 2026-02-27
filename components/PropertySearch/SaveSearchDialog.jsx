@@ -275,8 +275,8 @@ const SaveSearchDialog = ({ visible, onClose, appliedFilters, activeAreas = [], 
                     <div className="save-search-dialog__section">
                         <div className="save-search-dialog__section-label">Search Summary</div>
                         <div className="save-search-dialog__pills">
-                            {summaryPills.map((pill, i) => (
-                                <span key={i} className={`save-search-dialog__pill save-search-dialog__pill--${pill.type === 'Bounds' || pill.type === 'Polygon' || pill.type === 'Neighborhood' || pill.type === 'City' || pill.type === 'Zip' || pill.type === 'CondoBuilding' ? 'area' : 'filter'}`}>
+                            {summaryPills.map((pill) => (
+                                <span key={`${pill.type}-${pill.label}`} className={`save-search-dialog__pill save-search-dialog__pill--${pill.type === 'Bounds' || pill.type === 'Polygon' || pill.type === 'Neighborhood' || pill.type === 'City' || pill.type === 'Zip' || pill.type === 'CondoBuilding' ? 'area' : 'filter'}`}>
                                     {pill.label}
                                 </span>
                             ))}

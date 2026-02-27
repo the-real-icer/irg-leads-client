@@ -47,7 +47,7 @@ const LeadDashboard = ({ leadId, isLoggedIn }) => {
                 setPage(response.data.page);
             }
         } catch (error) {
-            console.error('Error fetching deliveries:', error);
+            // Error handled — deliveries state remains empty
         } finally {
             setLoading(false);
         }
@@ -60,7 +60,7 @@ const LeadDashboard = ({ leadId, isLoggedIn }) => {
                 setSummary(response.data.data);
             }
         } catch (error) {
-            console.error('Error fetching summary:', error);
+            // Error handled — summary state remains empty
         }
     }, [leadId, isLoggedIn]); // eslint-disable-line
 
@@ -95,7 +95,6 @@ const LeadDashboard = ({ leadId, isLoggedIn }) => {
                 fetchSummary();
             }
         } catch (error) {
-            console.error('Error updating showing request:', error);
             showToast('error', 'Failed to update showing request', 'Error');
         }
     };

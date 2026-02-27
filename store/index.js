@@ -2,7 +2,6 @@ import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import { createWrapper } from 'next-redux-wrapper';
 import { persistStore, persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
-// import { composeWithDevTools } from '@redux-devtools/extension';
 
 import { RESET_STORE } from './actions/types';
 
@@ -47,10 +46,8 @@ const combinedReducer = (state, action) => {
 
 const createStorage = () => {
     if (typeof window !== 'undefined') {
-        console.log('Using localStorage for redux-persist'); // eslint-disable-line
         return storage;
     }
-    console.log('Using no-op storage for SSR'); // eslint-disable-line
     return {
         getItem: () => Promise.resolve(null),
         setItem: () => Promise.resolve(),

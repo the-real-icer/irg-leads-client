@@ -1,6 +1,5 @@
 // React & NextJS
 import { useState, useCallback } from 'react';
-// import PropTypes from 'prop-types';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 

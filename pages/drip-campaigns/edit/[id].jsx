@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
 import { useSelector } from 'react-redux';
+import DOMPurify from 'isomorphic-dompurify';
 
 import 'react-quill-new/dist/quill.snow.css';
 
@@ -112,7 +113,6 @@ const EditDripCampaign = () => {
                     );
                 }
             } catch (error) {
-                console.error('Error fetching campaign:', error);
                 showToast('error', 'Failed to load campaign', 'Error');
                 router.push('/drip-campaigns');
             } finally {
@@ -130,10 +130,19 @@ const EditDripCampaign = () => {
     };
 
     const insertBodyVariable = (variable) => {
-        setCurrentEmail((prev) => ({
-            ...prev,
-            body: prev.body + variable,
-        }));
+        const editor = quillRef.current?.getEditor?.();
+        if (editor) {
+            const range = editor.getSelection(true);
+            const position = range ? range.index : editor.getLength() - 1;
+            editor.insertText(position, variable);
+            editor.setSelection(position + variable.length);
+        } else {
+            // Fallback if editor ref not ready
+            setCurrentEmail((prev) => ({
+                ...prev,
+                body: prev.body + variable,
+            }));
+        }
     };
 
     const handleAddEmail = () => {
@@ -214,7 +223,6 @@ const EditDripCampaign = () => {
                 router.push('/drip-campaigns');
             }
         } catch (error) {
-            console.error('Error updating campaign:', error);
             showToast(
                 'error',
                 error.response?.data?.message || 'Failed to update campaign',
@@ -464,9 +472,9 @@ const EditDripCampaign = () => {
                                 >
                                     {emails
                                         .sort((a, b) => a.dayNumber - b.dayNumber)
-                                        .map((email, index) => (
+                                        .map((email) => (
                                             <div
-                                                key={index}
+                                                key={email.dayNumber}
                                                 style={{
                                                     padding: '1rem',
                                                     backgroundColor: '#f8fafc',
@@ -831,9 +839,9 @@ const EditDripCampaign = () => {
                             >
                                 {emails
                                     .sort((a, b) => a.dayNumber - b.dayNumber)
-                                    .map((email, index) => (
+                                    .map((email) => (
                                         <div
-                                            key={index}
+                                            key={email.dayNumber}
                                             style={{
                                                 padding: '1rem',
                                                 backgroundColor: '#f8fafc',
@@ -872,7 +880,7 @@ const EditDripCampaign = () => {
                                                     maxHeight: '60px',
                                                     overflow: 'hidden',
                                                 }}
-                                                dangerouslySetInnerHTML={{ __html: email.body }}
+                                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(email.body) }}
                                             />
                                         </div>
                                     ))}

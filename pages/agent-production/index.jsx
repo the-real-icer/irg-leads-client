@@ -42,8 +42,6 @@ const AgentProduction = () => {
         { name: 'Active Listings', code: 'NY' },
         { name: 'Current Year', code: 'RM' },
         { name: 'Last Year', code: 'LDN' },
-        // { name: 'Istanbul', code: 'IST' },
-        // { name: 'Paris', code: 'PRS' },
     ];
 
     // Open Map Dialog

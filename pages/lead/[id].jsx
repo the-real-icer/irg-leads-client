@@ -2,6 +2,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
+import DOMPurify from 'isomorphic-dompurify';
 
 // Quill Editor Styles
 import 'react-quill-new/dist/quill.snow.css';
@@ -77,6 +78,8 @@ const Lead = () => {
     const dispatch = useDispatch();
 
     const [lead, setLead] = useState({});
+    const [leadLoading, setLeadLoading] = useState(true);
+    const [leadNotFound, setLeadNotFound] = useState(false);
     const [activeIndex, setActiveIndex] = useState(0);
     const [category, setCategory] = useState('');
     const [statusOpen, setStatusOpen] = useState(false);
@@ -168,7 +171,10 @@ const Lead = () => {
     useEffect(() => {
         // Instant: show cached Redux data while API fetch is in-flight
         const cached = leads.find((l) => l._id === leadId);
-        if (cached) setLead(cached);
+        if (cached) {
+            setLead(cached);
+            setLeadLoading(false);
+        }
 
         // Always fetch fresh from DB as source of truth
         const fetchLead = async () => {
@@ -180,10 +186,14 @@ const Lead = () => {
                 );
                 if (response.data.status === 'success') {
                     setLead(response.data.data);
+                    setLeadNotFound(false);
                     dispatch({ type: UPDATE_SINGLE_LEAD, payload: response.data.data });
                 }
             } catch (error) {
-                console.error('Error fetching lead:', error);
+                if (!cached) setLeadNotFound(true);
+                showToast('error', 'Failed to load lead data', 'Error');
+            } finally {
+                setLeadLoading(false);
             }
         };
 
@@ -245,7 +255,7 @@ const Lead = () => {
         } catch (error) {
             // Silently fail if Google is not connected
             if (error.response?.status !== 401) {
-                console.error('Error fetching emails:', error);
+                // Non-critical — email fetch failed silently
             }
             setEmails([]);
         } finally {
@@ -401,7 +411,6 @@ const Lead = () => {
                 showToast('success', 'Call has been successfully logged', 'Call Logged');
             }
         } catch (error) {
-            console.error('Error logging call:', error);
             showToast('error', 'Failed to log call. Please try again.', 'Error');
         } finally {
             setSavingCall(false);
@@ -437,7 +446,6 @@ const Lead = () => {
                 showToast('success', 'Note has been successfully created', 'Note Created');
             }
         } catch (error) {
-            console.error('Error creating note:', error);
             showToast('error', 'Failed to create note. Please try again.', 'Error');
         } finally {
             setSavingNote(false);
@@ -546,7 +554,6 @@ const Lead = () => {
                 showToast('success', 'Reminder has been successfully added', 'Reminder Added');
             }
         } catch (error) {
-            console.error('Error adding reminder:', error);
             showToast('error', 'Failed to add reminder. Please try again.', 'Error');
         } finally {
             setSavingReminder(false);
@@ -574,7 +581,6 @@ const Lead = () => {
                 showToast('success', 'Reminder marked as complete', 'Reminder Completed');
             }
         } catch (error) {
-            console.error('Error completing reminder:', error);
             showToast('error', 'Failed to complete reminder. Please try again.', 'Error');
         }
     };
@@ -599,7 +605,6 @@ const Lead = () => {
                 showToast('success', 'Reminder has been deleted', 'Reminder Deleted');
             }
         } catch (error) {
-            console.error('Error deleting reminder:', error);
             showToast('error', 'Failed to delete reminder. Please try again.', 'Error');
         }
     };
@@ -669,8 +674,6 @@ const Lead = () => {
                 }
             }
         } catch (error) {
-            console.error('Error sending email:', error);
-
             // Check if it's an authorization error (Google not connected)
             if (error.response?.status === 401) {
                 showToast(
@@ -705,8 +708,6 @@ const Lead = () => {
                 showToast('success', `${lead.first_name} ${lead.last_name} added to Google Contacts!`, 'Success');
             }
         } catch (error) {
-            console.error('Error adding to Google Contacts:', error);
-
             // Check if it's an authorization error (Google not connected)
             if (error.response?.status === 401) {
                 showToast(
@@ -733,7 +734,6 @@ const Lead = () => {
                 setAvailableCampaigns(response.data.data);
             }
         } catch (error) {
-            console.error('Error fetching campaigns:', error);
             showToast('error', 'Failed to load campaigns', 'Error');
         } finally {
             setLoadingCampaigns(false);
@@ -757,7 +757,6 @@ const Lead = () => {
                 setSelectedCampaign(null);
             }
         } catch (error) {
-            console.error('Error enrolling in campaign:', error);
             showToast('error', error.response?.data?.message || 'Failed to enroll', 'Error');
         } finally {
             setEnrollingDrip(false);
@@ -777,7 +776,6 @@ const Lead = () => {
                 showToast('success', 'Lead removed from campaign', 'Success');
             }
         } catch (error) {
-            console.error('Error unenrolling from campaign:', error);
             showToast('error', 'Failed to remove from campaign', 'Error');
         }
     };
@@ -863,7 +861,6 @@ const Lead = () => {
                 setAgents(formattedAgents);
             }
         } catch (error) {
-            console.error('Error fetching agents:', error);
             showToast('error', 'Failed to load agents', 'Error');
         } finally {
             setLoadingAgents(false);
@@ -908,12 +905,44 @@ const Lead = () => {
                 showToast('success', 'Lead has been successfully transferred', 'Lead Transferred');
             }
         } catch (error) {
-            console.error('Error transferring lead:', error);
             showToast('error', 'Failed to transfer lead. Please try again.', 'Error');
         } finally {
             setTransferring(false);
         }
     };
+
+    if (leadLoading && !lead?.first_name) {
+        return (
+            <MainLayout>
+                <div className="lead-profile-page" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+                    <i className="pi pi-spin pi-spinner" style={{ fontSize: '2rem' }} />
+                </div>
+            </MainLayout>
+        );
+    }
+
+    if (leadNotFound) {
+        return (
+            <MainLayout>
+                <div className="lead-profile-page" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '50vh', gap: '1rem' }}>
+                    <i className="pi pi-user-minus" style={{ fontSize: '3rem', color: 'hsl(var(--foreground-muted))' }} />
+                    <h2 style={{ margin: 0, color: 'hsl(var(--foreground))' }}>Lead Not Found</h2>
+                    <p style={{ color: 'hsl(var(--foreground-muted))', margin: 0 }}>
+                        This lead may have been removed or you may not have access.
+                    </p>
+                    <button
+                        type="button"
+                        className="lead-profile-back"
+                        onClick={() => router.push('/leads')}
+                        style={{ marginTop: '0.5rem' }}
+                    >
+                        <i className="pi pi-arrow-left" />
+                        Back to Leads
+                    </button>
+                </div>
+            </MainLayout>
+        );
+    }
 
     return (
         <MainLayout>
@@ -1657,7 +1686,7 @@ const Lead = () => {
                                                                 maxHeight: '200px',
                                                                 overflow: 'hidden',
                                                             }}
-                                                            dangerouslySetInnerHTML={{ __html: action.value }}
+                                                            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(action.value) }}
                                                         />
                                                     ) : (
                                                         <div style={{
@@ -1839,7 +1868,7 @@ const Lead = () => {
                                                         <div
                                                             className="email-body"
                                                             dangerouslySetInnerHTML={{
-                                                                __html: email.body || email.textBody,
+                                                                __html: DOMPurify.sanitize(email.body || email.textBody || ''),
                                                             }}
                                                         />
                                                     </div>

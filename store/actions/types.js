@@ -2,10 +2,6 @@
 export const LOGIN_AGENT = 'LOGIN_AGENT';
 export const LOGOUT_AGENT = 'LOGOUT_AGENT';
 
-// //Search Types
-// export const ADD_SEARCH = 'ADD_SEARCH';
-// export const CHANGE_SEARCH = 'CHANGE_SEARCH';
-
 // Agent Types
 export const ADD_AGENT = 'ADD_AGENT';
 export const REMOVE_AGENT = 'REMOVE_AGENT';
@@ -47,7 +43,6 @@ export const ADD_SEARCH = 'ADD_SEARCH';
 export const CHANGE_SEARCH = 'CHANGE_SEARCH';
 
 // Lead List types
-// export const ADD_ALL_LEADS = 'ADD_ALL_LEADS';
 export const FETCH_LEADS = 'FETCH_LEADS';
 export const UPDATE_LEADS = 'UPDATE_LEADS';
 export const UPDATE_SINGLE_LEAD = 'UPDATE_SINGLE_LEAD';

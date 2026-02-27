@@ -288,7 +288,6 @@ const EditTransaction = () => {
                     }
                 }
             } catch (error) {
-                console.error('Fetch transaction error:', error); // eslint-disable-line
                 showToast('error', 'Failed to load transaction', 'Error');
             } finally {
                 setLoading(false);
@@ -333,7 +332,6 @@ const EditTransaction = () => {
                     }
                 }
             } catch (error) {
-                console.error('Property search error:', error); // eslint-disable-line
                 showToast('error', 'Failed to search properties', 'Search Error');
                 setPropertySearchSuggestions([]);
             } finally {
@@ -522,7 +520,6 @@ const EditTransaction = () => {
             showToast('success', 'Transaction deleted successfully', 'Deleted');
             router.push('/transactions');
         } catch (error) {
-            console.error('Delete transaction error:', error); // eslint-disable-line
             showToast('error', error.response?.data?.message || 'Failed to delete transaction', 'Error');
         } finally {
             setDeleting(false);
@@ -548,7 +545,6 @@ const EditTransaction = () => {
                 showToast('success', 'Transaction marked as Sold', 'Success');
             }
         } catch (error) {
-            console.error('Mark sold error:', error); // eslint-disable-line
             showToast('error', error.response?.data?.message || 'Failed to update status', 'Error');
         } finally {
             setMarkingSold(false);
@@ -663,7 +659,6 @@ const EditTransaction = () => {
                 router.push('/transactions');
             }
         } catch (error) {
-            console.error('Transaction update error:', error); // eslint-disable-line
             showToast('error', error.response?.data?.message || 'Failed to update transaction', 'Error');
         } finally {
             setSaving(false);

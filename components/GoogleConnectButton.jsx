@@ -142,7 +142,7 @@ const GoogleConnectButton = () => {
                 }
             }
         } catch (error) {
-            console.error('Error checking Google connection:', error);
+            // Non-critical — connection check failed silently
         } finally {
             setLoading(false);
         }
@@ -169,7 +169,7 @@ const GoogleConnectButton = () => {
                 }
             }
         } catch (error) {
-            console.error('Error fetching calendars:', error);
+            // Non-critical — calendar fetch failed silently
         } finally {
             setLoadingCalendars(false);
         }
@@ -191,7 +191,6 @@ const GoogleConnectButton = () => {
                 showToast('success', 'Calendar selection saved!', 'Success');
             }
         } catch (error) {
-            console.error('Error saving calendars:', error);
             showToast('error', 'Failed to save calendar selection', 'Error');
         } finally {
             setSavingCalendars(false);
@@ -230,16 +229,6 @@ const GoogleConnectButton = () => {
         // Mobile if it matches UA OR (small width AND touch)
         const isMobile = isMobileUA || (isMobileWidth && isTouchDevice);
 
-        // Debug logging
-        console.log('Mobile detection:', {
-            userAgent: navigator.userAgent,
-            isMobileUA,
-            width: window.innerWidth,
-            isMobileWidth,
-            isTouchDevice,
-            finalDecision: isMobile
-        });
-
         return isMobile;
     };
 
@@ -260,15 +249,12 @@ const GoogleConnectButton = () => {
 
                 // On mobile or if popup is not supported, use redirect flow
                 const isMobile = isMobileDevice();
-                console.log('OAuth flow decision:', isMobile ? 'MOBILE (redirect)' : 'DESKTOP (popup)');
 
                 if (isMobile) {
                     // Set flag in localStorage to track OAuth flow
                     if (typeof window !== 'undefined') {
                         window.localStorage.setItem('google_oauth_in_progress', 'true');
                     }
-
-                    console.log('Using mobile redirect flow to:', authUrl);
 
                     // Mobile browsers block redirects after async operations
                     // Use anchor click to preserve user gesture context
@@ -283,8 +269,6 @@ const GoogleConnectButton = () => {
                 }
 
                 // Desktop: Use popup flow
-                console.log('Using desktop popup flow');
-
                 const width = 600;
                 const height = 700;
                 const left = window.screenX + (window.outerWidth - width) / 2;
@@ -295,8 +279,6 @@ const GoogleConnectButton = () => {
                     'Google Authorization',
                     `width=${width},height=${height},left=${left},top=${top}`
                 );
-
-                console.log('Popup opened:', popup ? 'SUCCESS' : 'BLOCKED');
 
                 // Check if popup was blocked
                 if (!popup || popup.closed || typeof popup.closed === 'undefined') {
@@ -356,7 +338,6 @@ const GoogleConnectButton = () => {
                 }, 500);
             }
         } catch (error) {
-            console.error('Error connecting to Google:', error);
             showToast('error', 'Failed to connect to Google', 'Error');
             setProcessing(false);
         }
@@ -378,7 +359,6 @@ const GoogleConnectButton = () => {
                 showToast('success', 'Google account disconnected successfully', 'Success');
             }
         } catch (error) {
-            console.error('Error disconnecting Google:', error);
             showToast('error', 'Failed to disconnect Google account', 'Error');
         } finally {
             setProcessing(false);

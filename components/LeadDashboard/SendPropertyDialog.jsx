@@ -35,7 +35,6 @@ const SendPropertyDialog = ({ visible, onHide, leadId, isLoggedIn, onSuccess }) 
                 setSearchResults([]);
             }
         } catch (error) {
-            console.error('Error searching properties:', error);
             setSearchResults([]);
         } finally {
             setSearching(false);
@@ -74,7 +73,6 @@ const SendPropertyDialog = ({ visible, onHide, leadId, isLoggedIn, onSuccess }) 
                 onSuccess();
             }
         } catch (error) {
-            console.error('Error sending property:', error);
             showToast('error', error.response?.data?.message || 'Failed to send property', 'Error');
         } finally {
             setSending(false);

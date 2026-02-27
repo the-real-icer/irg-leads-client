@@ -48,7 +48,7 @@ const NoteIconWithPreview = ({ delivery, leadId, isLoggedIn, onOpenNotes }) => {
                 setPreview(response.data.data);
             }
         } catch (error) {
-            console.error('Error fetching note preview:', error);
+            // Error handled — preview state remains empty
             fetchedRef.current = false;
         } finally {
             setLoading(false);

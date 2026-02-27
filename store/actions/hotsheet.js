@@ -23,7 +23,6 @@ export function fetchHotsheetHomes(county) {
             const homes = Array.isArray(response.data?.data?.properties) ? response.data.data.properties : [];
             dispatch({ type: FETCH_HOTSHEET_HOMES, payload: homes });
         } catch (error) {
-            console.error('Fetch homes error:', error.message); // eslint-disable-line
             dispatch({ type: FETCH_HOTSHEET_HOMES_ERROR, payload: error.message });
         } finally {
             dispatch({ type: FETCHING_HOMES, payload: false });

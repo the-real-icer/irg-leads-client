@@ -25,14 +25,8 @@ const handleApiError = (err, defaultMessage = 'An error occurred') => {
         showToast('error', 'Duplicate Property', 'Error');
     } else if (err.message) {
         showToast('error', err.message, 'Error');
-        if (process.env.NODE_ENV !== 'production') {
-            console.error(err); // eslint-disable-line
-        }
     } else {
         showToast('error', defaultMessage, 'Error');
-        if (process.env.NODE_ENV !== 'production') {
-            console.error(err); // eslint-disable-line
-        }
     }
 };
 

@@ -96,7 +96,6 @@ const Calendar = () => {
                 setTransactions(response.data.data);
             }
         } catch (error) {
-            console.error('Error fetching transactions:', error);
             showToast('error', 'Failed to load transactions', 'Error');
         } finally {
             setLoading(false);
@@ -116,7 +115,7 @@ const Calendar = () => {
             // Silently fail if Google Calendar is not connected or returns error
             // This prevents error messages for agents who haven't connected Google yet
             if (error.response?.status !== 401) {
-                console.error('Error fetching Google Calendar:', error);
+                // Non-critical — Google Calendar fetch failed silently
             }
         }
     };
@@ -143,7 +142,7 @@ const Calendar = () => {
                 }
             }
         } catch (error) {
-            console.error('Error fetching calendars:', error);
+            // Error handled — calendars state remains empty
         } finally {
             setLoadingCalendars(false);
         }

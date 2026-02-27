@@ -1,5 +1,5 @@
 // React & NextJS
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 
 // Redux
@@ -17,7 +17,6 @@ import {
     fetchIrgAreas,
     fetchNewProperties,
     fetchAllAddresses,
-    // fetchNewStories,
 } from '../../store/actions';
 
 const MainLayout = (props) => {
@@ -26,8 +25,6 @@ const MainLayout = (props) => {
     // __________________Redux State______________________\\
     const isLoggedIn = useSelector((state) => state.isLoggedIn);
     const agent = useSelector((state) => state.agent);
-    // const selectedHomes = useSelector((state) => state.selectedHomes);
-    const allLeadsPage = useSelector((state) => state.allLeadsPage);
     const irgAreas = useSelector((state) => state.irgAreas);
 
     const newProperties = useSelector((state) => state.newProperties);
@@ -98,7 +95,7 @@ const MainLayout = (props) => {
 
 
     return (
-        <React.Fragment>
+        <>
             <MainHead />
             <div className="min-h-screen flex relative bg-background">
                 {/* Mobile overlay */}
@@ -116,7 +113,7 @@ const MainLayout = (props) => {
                     <main className="flex-auto" style={{ overflowY: 'auto', overflowX: 'hidden', scrollbarGutter: 'stable' }}>{children}</main>
                 </div>
             </div>
-        </React.Fragment>
+        </>
     );
 };
 

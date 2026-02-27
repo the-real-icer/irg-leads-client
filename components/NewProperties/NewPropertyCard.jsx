@@ -12,7 +12,6 @@ const NewPropertyCard = ({
     handleSearch,
     handleUnDuplicate,
     handleCopyAddress,
-    // setShowConfirmDialog,
     handleOffMarketSubmit,
     handleOpenMapDialog
 }) => {
@@ -159,7 +158,6 @@ NewPropertyCard.propTypes = {
         city: PropTypes.string.isRequired,
         state: PropTypes.string.isRequired,
         mls_number: PropTypes.string.isRequired,
-        // full_address: PropTypes.string.isRequired,
         listing_pics: PropTypes.string.isRequired,
         property_url: PropTypes.string.isRequired,
         status: PropTypes.string.isRequired,
@@ -177,7 +175,6 @@ NewPropertyCard.propTypes = {
     handleSearch: PropTypes.func.isRequired,
     handleUnDuplicate: PropTypes.func.isRequired,
     handleCopyAddress: PropTypes.func.isRequired,
-    // setShowConfirmDialog: PropTypes.func.isRequired,
     handleOffMarketSubmit: PropTypes.func.isRequired,
     handleOpenMapDialog: PropTypes.func.isRequired,
 };

@@ -191,7 +191,6 @@ const Transactions = () => {
                     }
                 }
             } catch (error) {
-                console.error('Property search error:', error); // eslint-disable-line
                 showToast('error', 'Failed to search properties', 'Search Error');
                 setPropertySearchSuggestions([]);
             } finally {
@@ -498,7 +497,6 @@ const Transactions = () => {
                 setShowClientCredits(false);
             }
         } catch (error) {
-            console.error('Transaction creation error:', error); // eslint-disable-line
             showToast('error', error.response?.data?.message || 'Failed to create transaction', 'Error');
         }
     };

@@ -120,7 +120,7 @@ const TopBarSearch = () => {
                         setResults(res.data.data);
                     }
                 } catch (err) {
-                    console.error('Search error:', err);
+                    // Error handled — search results remain empty
                 }
                 setLoading(false);
             }, 250);

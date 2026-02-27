@@ -18,6 +18,10 @@ export default [
             '!build/test.js', // Unignore build/test.js if needed
             'eslint.config.js',
         ],
+        "env": {
+            "browser": true,
+            "es2021": true
+        },
         files: ['**/*.{js,jsx}'],
         languageOptions: {
             ecmaVersion: 'latest',

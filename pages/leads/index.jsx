@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/router';
 
 // Redux
@@ -17,6 +17,15 @@ import { Button } from 'primereact/button';
 // IRG Components
 import MainLayout from '../../components/layout/MainLayout';
 
+const formatPhoneNumber = (phoneNumberString) => {
+    const cleaned = ('' + phoneNumberString).replace(/\D/g, '');
+    const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
+    if (match) {
+        return '(' + match[1] + ') ' + match[2] + '-' + match[3];
+    }
+    return null;
+};
+
 const Leads = () => {
     // __________________Redux State______________________\\
     const allLeads = useSelector((state) => state.allLeadsPage);
@@ -33,104 +42,91 @@ const Leads = () => {
     // Ensure allLeads is an array
     const leadsArray = Array.isArray(allLeads) ? allLeads : [];
 
-    console.log('All leads from Redux:', allLeads);
-    console.log('Leads array length:', leadsArray.length);
-
-    // Get unique values for dropdowns (keep as simple strings)
-    const statusValues = [
+    // Get unique values for dropdowns — memoized to avoid recalc on every render
+    const statusValues = useMemo(() => [
         ...new Set(
             leadsArray
                 .map((lead) => lead.backend_profile?.lead_category)
                 .filter((status) => status)
         ),
-    ].sort();
+    ].sort(), [leadsArray]);
 
-    const types = [
+    const types = useMemo(() => [
         ...new Set(
             leadsArray
                 .map((lead) => lead.backend_profile?.lead_type)
                 .filter((type) => type)
         ),
-    ].sort();
+    ].sort(), [leadsArray]);
 
-    const sources = [
+    const sources = useMemo(() => [
         ...new Set(
             leadsArray
                 .map((lead) => lead.backend_profile?.lead_source)
                 .filter((source) => source)
         ),
-    ].sort();
+    ].sort(), [leadsArray]);
 
-    // Filter leads based on selected filters
-    let leads = leadsArray.filter((lead) => {
-        // Global search filter
-        if (globalFilterValue) {
-            const searchLower = globalFilterValue.toLowerCase();
-            const matchesGlobal =
-                lead.first_name?.toLowerCase().includes(searchLower) ||
-                lead.last_name?.toLowerCase().includes(searchLower) ||
-                lead.email?.toLowerCase().includes(searchLower) ||
-                lead.phone_number?.toLowerCase().includes(searchLower);
+    // Filter + sort leads — memoized to avoid O(n log n) on every render
+    const leads = useMemo(() => {
+        let filtered = leadsArray.filter((lead) => {
+            if (globalFilterValue) {
+                const searchLower = globalFilterValue.toLowerCase();
+                const matchesGlobal =
+                    lead.first_name?.toLowerCase().includes(searchLower) ||
+                    lead.last_name?.toLowerCase().includes(searchLower) ||
+                    lead.email?.toLowerCase().includes(searchLower) ||
+                    lead.phone_number?.toLowerCase().includes(searchLower);
 
-            if (!matchesGlobal) return false;
-        }
-
-        // Status filter
-        if (selectedStatus && lead.backend_profile?.lead_category !== selectedStatus) {
-            return false;
-        }
-
-        // Type filter
-        if (selectedType && lead.backend_profile?.lead_type !== selectedType) {
-            return false;
-        }
-
-        // Source filter
-        if (selectedSource && lead.backend_profile?.lead_source !== selectedSource) {
-            return false;
-        }
-
-        return true;
-    });
-
-    console.log('After filtering, leads count:', leads.length);
-    console.log('Sort field:', sortField, 'Sort order:', sortOrder);
-
-    // Apply sorting if sortField is set
-    if (sortField && sortOrder) {
-        leads = [...leads].sort((a, b) => {
-            let aValue, bValue;
-
-            // Handle nested fields (e.g., "backend_profile.lead_category")
-            if (sortField.includes('.')) {
-                const fields = sortField.split('.');
-                aValue = fields.reduce((obj, field) => obj?.[field], a);
-                bValue = fields.reduce((obj, field) => obj?.[field], b);
-            } else {
-                aValue = a[sortField];
-                bValue = b[sortField];
+                if (!matchesGlobal) return false;
             }
 
-            // Handle null/undefined values
-            if (aValue == null && bValue == null) return 0;
-            if (aValue == null) return 1;
-            if (bValue == null) return -1;
-
-            // String comparison (case-insensitive)
-            if (typeof aValue === 'string' && typeof bValue === 'string') {
-                const comparison = aValue.toLowerCase().localeCompare(bValue.toLowerCase());
-                return sortOrder === 1 ? comparison : -comparison;
+            if (selectedStatus && lead.backend_profile?.lead_category !== selectedStatus) {
+                return false;
             }
 
-            // Numeric/Date comparison
-            if (aValue < bValue) return sortOrder === 1 ? -1 : 1;
-            if (aValue > bValue) return sortOrder === 1 ? 1 : -1;
-            return 0;
+            if (selectedType && lead.backend_profile?.lead_type !== selectedType) {
+                return false;
+            }
+
+            if (selectedSource && lead.backend_profile?.lead_source !== selectedSource) {
+                return false;
+            }
+
+            return true;
         });
-        console.log('After sorting, leads count:', leads.length);
-    }
 
-    console.log('Final leads to render:', leads.length);
+        // Apply sorting if sortField is set
+        if (sortField && sortOrder) {
+            filtered = [...filtered].sort((a, b) => {
+                let aValue, bValue;
+
+                if (sortField.includes('.')) {
+                    const fields = sortField.split('.');
+                    aValue = fields.reduce((obj, field) => obj?.[field], a);
+                    bValue = fields.reduce((obj, field) => obj?.[field], b);
+                } else {
+                    aValue = a[sortField];
+                    bValue = b[sortField];
+                }
+
+                if (aValue == null && bValue == null) return 0;
+                if (aValue == null) return 1;
+                if (bValue == null) return -1;
+
+                if (typeof aValue === 'string' && typeof bValue === 'string') {
+                    const comparison = aValue.toLowerCase().localeCompare(bValue.toLowerCase());
+                    return sortOrder === 1 ? comparison : -comparison;
+                }
+
+                if (aValue < bValue) return sortOrder === 1 ? -1 : 1;
+                if (aValue > bValue) return sortOrder === 1 ? 1 : -1;
+                return 0;
+            });
+        }
+
+        return filtered;
+    }, [leadsArray, globalFilterValue, selectedStatus, selectedType, selectedSource, sortField, sortOrder]);
 
     const onGlobalFilterChange = (e) => {
         setGlobalFilterValue(e.target.value);
@@ -144,7 +140,6 @@ const Leads = () => {
     };
 
     const onSort = (event) => {
-        console.log('Sort triggered:', event.sortField, event.sortOrder);
         setSortField(event.sortField);
         // If sortOrder is undefined, default to ascending (1)
         setSortOrder(event.sortOrder !== undefined ? event.sortOrder : 1);
@@ -208,18 +203,9 @@ const Leads = () => {
         </span>
     );
 
-    const phoneBodyTemplate = (rowData) => {
-        const formatPhoneNumber = (phoneNumberString) => {
-            const cleaned = ('' + phoneNumberString).replace(/\D/g, ''); 
-            const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
-            if (match) {
-                return '(' + match[1] + ') ' + match[2] + '-' + match[3];
-            }
-            return null;
-        };
-
-        return <span>{formatPhoneNumber(rowData.phone_number)}</span>;
-    };
+    const phoneBodyTemplate = (rowData) => (
+        <span>{formatPhoneNumber(rowData.phone_number)}</span>
+    );
 
     const avgPriceBodyTemplate = (rowData) => {
         if (rowData.viewed_homes.length) {

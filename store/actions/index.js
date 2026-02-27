@@ -1,6 +1,3 @@
-// import axios from 'axios';
-// import getYear from 'date-fns/getYear';
-// import getMonth from 'date-fns/getMonth';
 import IrgApi from '../../assets/irgApi';
 
 import {
@@ -24,7 +21,6 @@ import {
     FETCH_NEW_PROPERTIES,
     REMOVE_NEW_PROPERTY,
     UPDATE_NEW_PROPERTY,
-    // ADD_NEWS_STORIES,
 } from './types';
 
 // Agent Actions
@@ -83,7 +79,7 @@ export function getLeadProfile({ userId, isLoggedIn }) {
             });
             dispatch({ type: GET_LEAD_PROFILE, payload: response.data.data });
         } catch (error) {
-            console.error(error.message); // eslint-disable-line
+            // Error handled — lead profile dispatch skipped
         }
     };
 }
@@ -111,7 +107,7 @@ export function fetchLeads(agentId, isLoggedIn) {
             );
             dispatch({ type: FETCH_LEADS, payload: response.data.data });
         } catch (error) {
-            console.error(error.message); // eslint-disable-line
+            // Error handled — leads fetch dispatch skipped
         }
     };
 }
@@ -132,7 +128,7 @@ export function updateLeads(agentId, isLoggedIn) {
             );
             dispatch({ type: UPDATE_LEADS, payload: response.data.data });
         } catch (error) {
-            console.error(error.message); // eslint-disable-line
+            // Error handled — leads update dispatch skipped
         }
     };
 }
@@ -155,7 +151,6 @@ export function removeSelectedHome(home) {
 export function clearSelectedHomes() {
     return {
         type: CLEAR_SELECTED_HOMES,
-        // payload: null,
     };
 }
 
@@ -181,7 +176,7 @@ export function fetchIrgAreas() {
             const response = await IrgApi.get('/irg-areas/all-irg-areas');
             dispatch({ type: FETCH_IRG_AREAS, payload: response.data.data });
         } catch (error) {
-            console.error(error.message); // eslint-disable-line
+            // Error handled — IRG areas fetch dispatch skipped
         }
     };
 }
@@ -193,7 +188,7 @@ export function fetchAllAddresses() {
             const response = await IrgApi.get('/mlsproperties');
             dispatch({ type: FETCH_ALL_ADDRESSES, payload: response.data.data });
         } catch (error) {
-            console.error(error.message); // eslint-disable-line
+            // Error handled — addresses fetch dispatch skipped
         }
     };
 }
@@ -207,7 +202,7 @@ export function fetchNewProperties(isLoggedIn) {
             });
             dispatch({ type: FETCH_NEW_PROPERTIES, payload: response.data.data });
         } catch (error) {
-            console.error(error.message); // eslint-disable-line
+            // Error handled — new properties fetch dispatch skipped
         }
     };
 }

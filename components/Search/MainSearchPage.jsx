@@ -42,11 +42,6 @@ const MainSearchPage = () => {
     const [initialResults, setInitialResults] = useState([]);
     const [filteredResults, setFilteredResults] = useState([]);
 
-    // useEffect(() => {
-    //     console.log(router.query.type);
-    //     console.log(router.query.area);
-    // }, []);
-
     useEffect(() => {
         const getHomes = async (url) => {
             const res = await IrgApi.get(url);

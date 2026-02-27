@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import dynamic from 'next/dynamic';
+import DOMPurify from 'isomorphic-dompurify';
 
 import 'react-quill-new/dist/quill.snow.css';
 
@@ -66,7 +67,6 @@ const Profile = () => {
                 showToast('success', 'Email signature saved', 'Success');
             }
         } catch (error) {
-            console.error('Error saving signature:', error);
             showToast('error', 'Failed to save email signature', 'Error');
         } finally {
             setSavingSignature(false);
@@ -184,7 +184,7 @@ const Profile = () => {
                                     borderRadius: '8px',
                                     border: '1px solid #e2e8f0',
                                 }}
-                                dangerouslySetInnerHTML={{ __html: emailSignature }}
+                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(emailSignature) }}
                             />
                         </div>
                     )}

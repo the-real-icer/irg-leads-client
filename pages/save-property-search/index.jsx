@@ -400,18 +400,7 @@ const SavePropertySearch = () => {
             return;
         }
 
-        const formData = {
-            lead: selectedLead,
-            areas: selectedAreas,
-            criteria: searchCriteria,
-            options: searchOptions,
-            emailFrequency,
-            emailSubject,
-            emailBody,
-        };
-
-        console.log('Form submitted:', formData); // eslint-disable-line
-
+        // TODO: Send formData to API endpoint
         showToast('success', 'Property Search has been saved!', 'Saved!', 'top-right');
         handleDialogClose();
         resetForm();

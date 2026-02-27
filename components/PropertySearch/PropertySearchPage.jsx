@@ -227,7 +227,7 @@ const PropertySearchPage = ({ areaParams }) => {
                 }
             } catch (err) {
                 if (err.name !== 'CanceledError' && err.code !== 'ERR_CANCELED') {
-                    console.error('Property search error:', err);
+                    // Non-critical — property search failed silently
                 }
             }
             if (!abortController.signal.aborted) setLoading(false);
@@ -279,7 +279,7 @@ const PropertySearchPage = ({ areaParams }) => {
                 }
             } catch (err) {
                 if (err.name !== 'CanceledError' && err.code !== 'ERR_CANCELED') {
-                    console.error('Multi-area search error:', err);
+                    // Non-critical — multi-area search failed silently
                 }
             }
             if (!abortController.signal.aborted) setLoading(false);
@@ -327,7 +327,7 @@ const PropertySearchPage = ({ areaParams }) => {
                 }
             } catch (err) {
                 if (err.name !== 'CanceledError' && err.code !== 'ERR_CANCELED') {
-                    console.error('Polygon search error:', err);
+                    // Non-critical — polygon search failed silently
                 }
             }
             if (!abortController.signal.aborted) setLoading(false);

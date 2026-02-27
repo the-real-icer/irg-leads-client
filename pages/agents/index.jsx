@@ -74,8 +74,6 @@ const Agents = () => {
                     setAgents(response.data.data);
                 }
             } catch (error) {
-                console.error('Fetch agents error:', error); // eslint-disable-line
-
                 let errorMessage = 'Failed to load agents';
                 if (error.response?.data?.message) {
                     errorMessage = error.response.data.message;
@@ -165,8 +163,6 @@ const Agents = () => {
                 setShowDialog(false);
             }
         } catch (error) {
-            console.error('Create agent error:', error); // eslint-disable-line
-
             // Handle different types of errors
             let errorMessage = 'Failed to create agent';
 

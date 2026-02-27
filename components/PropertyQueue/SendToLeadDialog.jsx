@@ -79,7 +79,6 @@ const SendToLeadDialog = ({ visible, onHide }) => {
                 showToast('success', `${selectedHomes.length} properties sent to ${lead.first_name || lead.email}`, 'Email Sent!');
             }
         } catch (err) {
-            console.error('Send properties error:', err); // eslint-disable-line
             showToast('error', 'Failed to send email. Please try again.', 'Error');
         } finally {
             setSending(false);

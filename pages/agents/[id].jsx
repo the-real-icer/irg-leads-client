@@ -90,8 +90,6 @@ const AgentProfile = () => {
                     });
                 }
             } catch (error) {
-                console.error('Fetch agent error:', error); // eslint-disable-line
-
                 let errorMessage = 'Failed to load agent';
                 if (error.response?.data?.message) {
                     errorMessage = error.response.data.message;
@@ -165,8 +163,6 @@ const AgentProfile = () => {
                 setAgent(response.data.data);
             }
         } catch (error) {
-            console.error('Update agent error:', error); // eslint-disable-line
-
             // Handle different types of errors
             let errorMessage = 'Failed to update agent';
 

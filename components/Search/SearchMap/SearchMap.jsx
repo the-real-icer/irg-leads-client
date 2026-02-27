@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
 
 // Redux
@@ -27,16 +27,14 @@ const SearchMap = ({ homes }) => {
 
     const { isLoaded } = useGoogleMaps();
     // eslint-disable-next-line
-    const [map, setMap] = React.useState(null);
+    const [map, setMap] = useState(null);
     // eslint-disable-next-line
-    const onLoad = React.useCallback(function callback(map) {
-        // const bounds = new window.google.maps.LatLngBounds();
-        // map.fitBounds(bounds);
+    const onLoad = useCallback(function callback(map) {
         setMap(map);
     }, []);
 
     // eslint-disable-next-line
-    const onUnmount = React.useCallback(function callback(map) {
+    const onUnmount = useCallback(function callback(map) {
         setMap(null);
     }, []);
 

@@ -113,7 +113,6 @@ const IrgAreas = () => {
                     setAreas(allAreas);
                 }
             } catch (error) {
-                console.error('Fetch areas error:', error);
                 showToast('error', 'Failed to load IRG areas', 'Error');
             } finally {
                 setLoading(false);
@@ -242,8 +241,6 @@ const IrgAreas = () => {
                 setBoundaryText('');
             }
         } catch (error) {
-            console.error('Create area error:', error);
-
             let errorMessage = 'Failed to create area';
 
             if (error.response?.data?.message) {

@@ -1,6 +1,4 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import ImageGallery from 'react-image-gallery';
-import 'react-image-gallery/styles/image-gallery.css';
 
 // ── Build image array from property data ──
 const buildImages = (property) => {
@@ -67,9 +65,9 @@ const getStatusInfo = (status) => {
 };
 
 const PropertyGallery = ({ property }) => {
-    const [lightboxOpen, setLightboxOpen] = useState(false);
-    const [lightboxIndex, setLightboxIndex] = useState(0);
-    const galleryRef = useRef(null);
+    const [activeSlide, setActiveSlide] = useState(0);
+    const carouselRef = useRef(null);
+    const fancyboxRef = useRef(null);
 
     // Build full image list
     const images = useMemo(() => buildImages(property), [property]);
@@ -83,34 +81,76 @@ const PropertyGallery = ({ property }) => {
 
     const statusInfo = getStatusInfo(property.status);
 
-    // ── Fullscreen open/close ──
-    const openLightbox = useCallback((index) => {
-        setLightboxIndex(index);
-        setLightboxOpen(true);
-    }, []);
-
-    const closeLightbox = useCallback(() => {
-        setLightboxOpen(false);
-    }, []);
-
-    // ── Keyboard navigation in fullscreen ──
+    // ── Load Fancybox dynamically (SSR-safe) ──
     useEffect(() => {
-        if (!lightboxOpen) return;
-
-        const handleKeyDown = (e) => {
-            if (e.key === 'Escape') {
-                closeLightbox();
-            }
-        };
-
-        document.addEventListener('keydown', handleKeyDown);
-        document.body.style.overflow = 'hidden';
-
+        import('@fancyapps/ui').then(({ Fancybox }) => {
+            fancyboxRef.current = Fancybox;
+        });
         return () => {
-            document.removeEventListener('keydown', handleKeyDown);
-            document.body.style.overflow = '';
+            if (fancyboxRef.current) fancyboxRef.current.close();
         };
-    }, [lightboxOpen, closeLightbox]);
+    }, []);
+
+    // ── Fancybox: open gallery programmatically ──
+    const openGallery = useCallback(async (startIndex = 0) => {
+        const Fancybox = fancyboxRef.current || (await import('@fancyapps/ui')).Fancybox;
+        Fancybox.show(
+            images.map((img) => ({
+                src: img.original,
+                thumb: img.thumbnail || img.original,
+                type: 'image',
+            })),
+            {
+                startIndex,
+                animated: true,
+                showClass: 'f-fadeSlowIn',
+                hideClass: 'f-fadeSlowOut',
+                Carousel: { transition: 'fade', friction: 0.88, preload: 2 },
+                Toolbar: {
+                    display: {
+                        left: ['infobar'],
+                        middle: [],
+                        right: ['zoom', 'fullscreen', 'close'],
+                    },
+                },
+                Images: { zoom: true, Panzoom: { maxScale: 2 } },
+                Thumbs: { type: 'classic', minCount: 2 },
+                closeButton: false,
+                backdropClick: 'close',
+                keyboard: {
+                    Escape: 'close', Delete: 'close', Backspace: 'close',
+                    PageUp: 'next', PageDown: 'prev',
+                    ArrowUp: 'next', ArrowDown: 'prev',
+                    ArrowRight: 'next', ArrowLeft: 'prev',
+                },
+                touch: true,
+                dragToClose: true,
+            }
+        );
+    }, [images]);
+
+    // ── Mobile carousel: track visible slide via IntersectionObserver ──
+    useEffect(() => {
+        const carousel = carouselRef.current;
+        if (!carousel) return;
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                for (const entry of entries) {
+                    if (entry.isIntersecting) {
+                        const idx = Number(entry.target.dataset.index);
+                        if (!Number.isNaN(idx)) setActiveSlide(idx);
+                    }
+                }
+            },
+            { root: carousel, threshold: 0.5 }
+        );
+
+        const slideEls = carousel.querySelectorAll('.property-gallery__carousel__slide');
+        slideEls.forEach((slide) => observer.observe(slide));
+
+        return () => observer.disconnect();
+    }, [images]);
 
     // ── No photos fallback ──
     if (images.length === 0) {
@@ -147,7 +187,7 @@ const PropertyGallery = ({ property }) => {
                 <div className={`property-gallery__grid property-gallery__grid--desktop${desktopSide.length < 4 ? ` property-gallery__grid--cols-${desktopSide.length}` : ''}`}>
                     <div
                         className="property-gallery__hero"
-                        onClick={() => openLightbox(0)}
+                        onClick={() => openGallery(0)}
                     >
                         <img src={images[0].original} alt={images[0].originalAlt} />
                     </div>
@@ -156,7 +196,7 @@ const PropertyGallery = ({ property }) => {
                         <div
                             key={img.original}
                             className="property-gallery__cell"
-                            onClick={() => openLightbox(findImageIndex(img))}
+                            onClick={() => openGallery(findImageIndex(img))}
                         >
                             <img src={img.original} alt={img.originalAlt} />
                         </div>
@@ -165,7 +205,7 @@ const PropertyGallery = ({ property }) => {
                     {images.length > 1 && (
                         <button
                             className="property-gallery__view-all"
-                            onClick={() => openLightbox(0)}
+                            onClick={() => openGallery(0)}
                             type="button"
                         >
                             <i className="pi pi-images" />
@@ -184,7 +224,7 @@ const PropertyGallery = ({ property }) => {
                 <div className={`property-gallery__grid property-gallery__grid--laptop${laptopSide.length < 2 ? ' property-gallery__grid--laptop-1' : ''}`}>
                     <div
                         className="property-gallery__hero"
-                        onClick={() => openLightbox(0)}
+                        onClick={() => openGallery(0)}
                     >
                         <img src={images[0].original} alt={images[0].originalAlt} />
                     </div>
@@ -193,7 +233,7 @@ const PropertyGallery = ({ property }) => {
                         <div
                             key={img.original}
                             className="property-gallery__cell"
-                            onClick={() => openLightbox(findImageIndex(img))}
+                            onClick={() => openGallery(findImageIndex(img))}
                         >
                             <img src={img.original} alt={img.originalAlt} />
                         </div>
@@ -202,7 +242,7 @@ const PropertyGallery = ({ property }) => {
                     {images.length > 1 && (
                         <button
                             className="property-gallery__view-all"
-                            onClick={() => openLightbox(0)}
+                            onClick={() => openGallery(0)}
                             type="button"
                         >
                             <i className="pi pi-images" />
@@ -217,44 +257,27 @@ const PropertyGallery = ({ property }) => {
                 <div className={`property-gallery__status property-gallery__status--${statusInfo.cls}`}>
                     {statusInfo.text}
                 </div>
-                <ImageGallery
-                    ref={galleryRef}
-                    items={images}
-                    showPlayButton={false}
-                    showThumbnails={false}
-                    showIndex={true}
-                    showFullscreenButton={false}
-                    onClick={() => openLightbox(galleryRef.current?.getCurrentIndex() || 0)}
-                />
-            </div>
-
-            {/* ── Fullscreen Lightbox ── */}
-            {lightboxOpen && (
-                <div className="property-gallery__lightbox" onClick={closeLightbox}>
-                    <div
-                        className="property-gallery__lightbox__inner"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <button
-                            className="property-gallery__lightbox__close"
-                            onClick={closeLightbox}
-                            type="button"
-                            aria-label="Close gallery"
+                <div className="property-gallery__carousel" ref={carouselRef}>
+                    {images.map((img, i) => (
+                        <div
+                            key={img.original}
+                            className="property-gallery__carousel__slide"
+                            data-index={i}
                         >
-                            &times;
-                        </button>
-                        <ImageGallery
-                            items={images}
-                            showPlayButton={false}
-                            showThumbnails={true}
-                            showIndex={true}
-                            startIndex={lightboxIndex}
-                            useBrowserFullscreen={false}
-                            showFullscreenButton={false}
-                        />
-                    </div>
+                            <img
+                                src={img.original}
+                                alt={img.originalAlt}
+                                onClick={() => openGallery(i)}
+                            />
+                        </div>
+                    ))}
                 </div>
-            )}
+                {images.length > 1 && (
+                    <div className="property-gallery__carousel__counter">
+                        {activeSlide + 1} / {images.length}
+                    </div>
+                )}
+            </div>
         </>
     );
 };

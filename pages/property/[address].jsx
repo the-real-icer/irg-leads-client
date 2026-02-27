@@ -52,7 +52,7 @@ const Address = () => {
                 });
                 setProperty(res.data.data.result);
             } catch (error) {
-                console.error(error.message); // eslint-disable-line
+                // Error handled — property state remains null
             }
         };
         getProperty();

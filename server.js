@@ -5,8 +5,6 @@ import compression from 'compression';
 import cors from 'cors';
 import pinoHttp from 'pino-http';
 import { config } from 'dotenv';
-// import { parse } from 'url';
-
 config(); // Load .env variables
 
 const port = parseInt(process.env.PORT, 10) || 2000;
@@ -63,10 +61,7 @@ app.prepare()
 
         // Handle Next.js API routes and pages
         server.use((req, res) => nextHandler(req, res));
-        // server.all('/:path*', (req, res) => {
-        //     const parsedUrl = parse(req.url, true);
-        //     return handle(req, res, parsedUrl);
-        // });
+
         // Error handling middleware
         server.use((err, req, res) => {
             req.logger.error(err.stack);

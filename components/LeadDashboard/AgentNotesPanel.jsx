@@ -51,7 +51,7 @@ const AgentNotesPanel = ({ visible, onHide, delivery, leadId, isLoggedIn, onNote
                 setTimeout(scrollToBottom, 100);
             }
         } catch (error) {
-            console.error('Error fetching notes:', error);
+            // Error handled — notes state remains empty
         } finally {
             setLoading(false);
         }
@@ -80,7 +80,6 @@ const AgentNotesPanel = ({ visible, onHide, delivery, leadId, isLoggedIn, onNote
                 if (onNoteCreated) onNoteCreated();
             }
         } catch (error) {
-            console.error('Error creating note:', error);
             showToast('error', 'Failed to send note', 'Error');
         } finally {
             setSending(false);

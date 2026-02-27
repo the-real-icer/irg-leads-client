@@ -271,7 +271,7 @@ const TrafficDashboard = () => {
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
                                             {internalStats.topPages.map((p, i) => (
                                                 <div
-                                                    key={i}
+                                                    key={p.page}
                                                     style={{
                                                         display: 'flex',
                                                         justifyContent: 'space-between',
@@ -301,7 +301,7 @@ const TrafficDashboard = () => {
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
                                             {internalStats.trafficSources.map((s, i) => (
                                                 <div
-                                                    key={i}
+                                                    key={s.source || `source-${i}`}
                                                     style={{
                                                         display: 'flex',
                                                         justifyContent: 'space-between',
@@ -329,9 +329,9 @@ const TrafficDashboard = () => {
                                     <div style={sectionHeaderStyle}>Devices</div>
                                     {(internalStats.deviceBreakdown || []).length > 0 ? (
                                         <div style={{ display: 'flex', gap: '1rem' }}>
-                                            {internalStats.deviceBreakdown.map((d, i) => (
+                                            {internalStats.deviceBreakdown.map((d) => (
                                                 <div
-                                                    key={i}
+                                                    key={d.device || d.deviceCategory}
                                                     style={{
                                                         flex: 1,
                                                         textAlign: 'center',
@@ -425,7 +425,7 @@ const TrafficDashboard = () => {
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
                                             {ga4Data.topPages.map((p, i) => (
                                                 <div
-                                                    key={i}
+                                                    key={p.page || p.pagePath}
                                                     style={{
                                                         display: 'flex',
                                                         justifyContent: 'space-between',
@@ -453,7 +453,7 @@ const TrafficDashboard = () => {
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
                                             {ga4Data.trafficSources.map((s, i) => (
                                                 <div
-                                                    key={i}
+                                                    key={s.source || `ga4-source-${i}`}
                                                     style={{
                                                         display: 'flex',
                                                         justifyContent: 'space-between',
@@ -479,9 +479,9 @@ const TrafficDashboard = () => {
                                     <div>
                                         <div style={sectionHeaderStyle}>Devices (GA4)</div>
                                         <div style={{ display: 'flex', gap: '1rem' }}>
-                                            {ga4Data.deviceBreakdown.map((d, i) => (
+                                            {ga4Data.deviceBreakdown.map((d) => (
                                                 <div
-                                                    key={i}
+                                                    key={d.device || d.deviceCategory}
                                                     style={{
                                                         flex: 1,
                                                         textAlign: 'center',
@@ -546,7 +546,7 @@ const TrafficDashboard = () => {
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                                 {filteredActivity.map((event, i) => (
                                     <div
-                                        key={i}
+                                        key={event._id || `${event.timestamp}-${i}`}
                                         style={{
                                             display: 'flex',
                                             alignItems: 'center',
