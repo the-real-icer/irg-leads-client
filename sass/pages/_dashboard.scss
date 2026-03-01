@@ -1,0 +1,34 @@
+// ═══════════════════════════════════════════════════════════════
+// DASHBOARD — Production metrics grid
+// ═══════════════════════════════════════════════════════════════
+
+.production-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 0;
+}
+
+.production-card {
+    background: hsl(var(--surface));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    padding: 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    transition: border-color 0.15s ease;
+    cursor: default;
+}
+
+@media (max-width: 768px) {
+    .production-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .production-grid {
+        grid-template-columns: 1fr;
+    }
+}

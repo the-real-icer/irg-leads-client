@@ -29,15 +29,26 @@ import showToast from '../../utils/showToast';
 import irgApi from '../../assets/irgApi';
 import { categories, sources, types, states, blankUser } from '../../assets/newUserPage';
 
+const formatPhoneNumber = (digits) => {
+    if (digits.length === 0) return '';
+    if (digits.length <= 3) return `(${digits}`;
+    if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
+};
+
+const getDigitsOnly = (value) => value.replace(/\D/g, '').slice(0, 10);
+
 const AddLead = () => {
     const [user, setUser] = useState(blankUser);
     const [loading, setLoading] = useState(false);
+    const [displayPhone, setDisplayPhone] = useState('');
+    const [phoneDigits, setPhoneDigits] = useState('');
+    const [sendWelcomeEmail, setSendWelcomeEmail] = useState(true);
 
     const {
         firstName,
         lastName,
         email,
-        phone,
         description,
         source,
         address,
@@ -59,14 +70,15 @@ const AddLead = () => {
         setUser((prevUser) => ({ ...prevUser, [e.target.id]: e.target.value }));
     }, []);
 
+    const handlePhoneChange = useCallback((e) => {
+        const digits = getDigitsOnly(e.target.value);
+        setPhoneDigits(digits);
+        setDisplayPhone(formatPhoneNumber(digits));
+    }, []);
+
     const validateEmail = (email) => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return emailRegex.test(email);
-    };
-
-    const validatePhone = (phone) => {
-        const phoneRegex = /^[\d\s\-()]+$/;
-        return phone.length >= 10 && phoneRegex.test(phone);
     };
 
     const onSubmit = useCallback(
@@ -77,7 +89,7 @@ const AddLead = () => {
             if (loading) return;
 
             // Enhanced validation
-            if (!email || !phone) {
+            if (!email || !phoneDigits) {
                 showToast('error', 'Email and phone are required.', 'Validation Error', 'top-left');
                 return;
             }
@@ -87,10 +99,10 @@ const AddLead = () => {
                 return;
             }
 
-            if (!validatePhone(phone)) {
+            if (phoneDigits.length !== 10) {
                 showToast(
                     'error',
-                    'Please enter a valid phone number (at least 10 digits).',
+                    'Please enter a valid 10-digit phone number.',
                     'Invalid Phone',
                     'top-left',
                 );
@@ -110,7 +122,7 @@ const AddLead = () => {
                 firstName,
                 lastName,
                 email,
-                phone,
+                phone: phoneDigits,
                 description,
                 address,
                 city,
@@ -120,6 +132,7 @@ const AddLead = () => {
                 type: type?.name || '',
                 category: category?.name || '',
                 agentId: agent._id,
+                sendWelcomeEmail,
             };
 
             setLoading(true);
@@ -176,7 +189,7 @@ const AddLead = () => {
             firstName,
             lastName,
             email,
-            phone,
+            phoneDigits,
             description,
             address,
             city,
@@ -190,6 +203,7 @@ const AddLead = () => {
             loading,
             router,
             dispatch,
+            sendWelcomeEmail,
         ],
     );
 
@@ -241,10 +255,14 @@ const AddLead = () => {
                                     <span className="p-float-label">
                                         <InputText
                                             id="phone"
-                                            value={phone}
-                                            onChange={onChange}
+                                            type="tel"
+                                            value={displayPhone}
+                                            onChange={handlePhoneChange}
                                             required
                                             disabled={loading}
+                                            maxLength={14}
+                                            inputMode="numeric"
+                                            autoComplete="tel"
                                         />
                                         <label htmlFor="phone">Phone *</label>
                                     </span>
@@ -396,8 +414,52 @@ const AddLead = () => {
                             </div>
                         </div>
 
+                        {/* Welcome Email Checkbox */}
+                        <div
+                            className="mt-4"
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '10px',
+                                marginBottom: '16px',
+                                padding: '14px 16px',
+                                background: 'hsl(var(--muted))',
+                                borderRadius: 'var(--radius)',
+                                border: '1px solid hsl(var(--border))',
+                            }}
+                        >
+                            <input
+                                type="checkbox"
+                                id="sendWelcomeEmail"
+                                checked={sendWelcomeEmail}
+                                onChange={(e) => setSendWelcomeEmail(e.target.checked)}
+                                disabled={loading}
+                                style={{
+                                    width: '18px',
+                                    height: '18px',
+                                    accentColor: 'hsl(var(--primary))',
+                                    cursor: 'pointer',
+                                    flexShrink: 0,
+                                }}
+                            />
+                            <label
+                                htmlFor="sendWelcomeEmail"
+                                style={{
+                                    fontSize: '14px',
+                                    color: sendWelcomeEmail
+                                        ? 'hsl(var(--foreground))'
+                                        : 'hsl(var(--muted-foreground))',
+                                    fontWeight: '500',
+                                    cursor: 'pointer',
+                                    userSelect: 'none',
+                                }}
+                            >
+                                Send Lead A Welcome Email
+                            </label>
+                        </div>
+
                         {/* Submit Button */}
-                        <div className="mt-4">
+                        <div>
                             <Button
                                 label={loading ? 'Adding Lead...' : 'Add Lead'}
                                 icon={loading ? 'pi pi-spin pi-spinner' : 'pi pi-plus'}

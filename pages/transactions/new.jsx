@@ -27,6 +27,8 @@ import MainLayout from '../../components/layout/MainLayout';
 // API & Utils
 import IrgApi from '../../assets/irgApi';
 import showToast from '../../utils/showToast';
+import { calculateCommission } from '../../utils/calculateCommission';
+import { TRANSACTION_FEES } from '../../constants/transactionFees';
 
 // ── Constants ────────────────────────────────────────────────────
 const financingOptions = [
@@ -59,6 +61,74 @@ const formatCurrency = (value) => {
     if (!digits) return '';
     return '$' + Number(digits).toLocaleString('en-US');
 };
+
+// Currency formatter for commission breakdown (handles decimals correctly)
+const formatCommCurrency = (value) => {
+    if (!value && value !== 0) return '$0';
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+    }).format(value);
+};
+
+// Commission Breakdown Row component
+const BreakdownRow = ({ label, value, sublabel, deduction, subtotal, total, highlight, muted }) => (
+    <div
+        style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            padding: '8px 16px',
+            borderTop: subtotal || total ? '1px solid hsl(var(--border))' : 'none',
+            background: highlight ? 'hsl(var(--primary) / 0.06)' : 'transparent',
+            marginTop: subtotal || total ? '4px' : '0',
+        }}
+    >
+        <div>
+            <span
+                style={{
+                    fontSize: '0.85rem',
+                    color: muted ? 'hsl(var(--foreground-muted))' : 'hsl(var(--foreground))',
+                    fontWeight: subtotal || total ? '600' : '400',
+                }}
+            >
+                {label}
+            </span>
+            {sublabel && (
+                <span
+                    style={{
+                        display: 'block',
+                        fontSize: '0.75rem',
+                        color: 'hsl(var(--foreground-muted))',
+                        marginTop: '1px',
+                    }}
+                >
+                    {sublabel}
+                </span>
+            )}
+        </div>
+        <span
+            style={{
+                fontSize: total ? '0.95rem' : '0.85rem',
+                fontWeight: subtotal || total ? '700' : '400',
+                color: deduction
+                    ? 'hsl(var(--danger))'
+                    : highlight
+                      ? 'hsl(var(--primary))'
+                      : muted
+                        ? 'hsl(var(--foreground-muted))'
+                        : 'hsl(var(--foreground))',
+                whiteSpace: 'nowrap',
+                marginLeft: '16px',
+            }}
+        >
+            {deduction ? '\u2212 ' : ''}
+            {formatCommCurrency(value)}
+        </span>
+    </div>
+);
 
 const Transactions = () => {
     // ── Redux ────────────────────────────────────────────────────
@@ -115,6 +185,9 @@ const Transactions = () => {
         buyersAgentCommissionPct: '',
         estimatedAgentCommission: '',
     });
+
+    // ── Referral fee percentage (separate from transactionInfo) ──
+    const [referralFeePercentage, setReferralFeePercentage] = useState('');
 
     // ── Inline validation errors ───────────────────────────────
     const [escrowLengthError, setEscrowLengthError] = useState('');
@@ -339,32 +412,33 @@ const Transactions = () => {
     };
 
     // ══════════════════════════════════════════════════════════════
-    // COMMISSION — Auto-calculation
+    // COMMISSION — Full chain calculation (live preview)
     // ══════════════════════════════════════════════════════════════
 
-    const calculateAgentCommission = useCallback((salesPrice, percentage) => {
-        if (!salesPrice || !percentage) return 0;
-        const price = parseFloat(salesPrice);
-        const pct = parseFloat(percentage);
-        if (isNaN(price) || isNaN(pct) || price <= 0 || pct <= 0) return 0;
-        return (price * pct / 100).toFixed(2);
-    }, []);
+    const totalClientCredits = useMemo(
+        () => clientCredits.reduce((sum, c) => sum + (parseFloat(c.amount) || 0), 0),
+        [clientCredits],
+    );
 
-    useEffect(() => {
-        if (transactionInfo.price && transactionInfo.buyersAgentCommissionPct) {
-            const calculated = calculateAgentCommission(
-                transactionInfo.price,
-                transactionInfo.buyersAgentCommissionPct,
-            );
-            if (calculated !== transactionInfo.estimatedAgentCommission) {
-                setTransactionInfo((prev) => ({ ...prev, estimatedAgentCommission: calculated }));
-            }
-        } else if (!transactionInfo.price || !transactionInfo.buyersAgentCommissionPct) {
-            if (transactionInfo.estimatedAgentCommission !== '') {
-                setTransactionInfo((prev) => ({ ...prev, estimatedAgentCommission: '' }));
-            }
-        }
-    }, [transactionInfo.price, transactionInfo.buyersAgentCommissionPct, calculateAgentCommission]);
+    const calc = useMemo(
+        () =>
+            calculateCommission({
+                salesPrice: parseFloat(transactionInfo.price) || 0,
+                commissionPercentage: parseFloat(transactionInfo.buyersAgentCommissionPct) || 0,
+                representationType: representation,
+                referralFeePercentage: parseFloat(referralFeePercentage) || 0,
+                commissionSplit: agent?.commissionSplit || 0,
+                clientCredits: totalClientCredits,
+            }),
+        [
+            transactionInfo.price,
+            transactionInfo.buyersAgentCommissionPct,
+            representation,
+            referralFeePercentage,
+            agent?.commissionSplit,
+            totalClientCredits,
+        ],
+    );
 
     // ══════════════════════════════════════════════════════════════
     // SUBMIT
@@ -433,9 +507,19 @@ const Transactions = () => {
             anticipatedClosingDate: expectedCloseDate,
             escrowLength: parseInt(transactionInfo.escrowLength),
             referralFee: transactionInfo.referralFee,
-            referralFeeAmt: transactionInfo.referralFee ? parseFloat(transactionInfo.referralFeeAmt || 0) : 0,
-            estimatedAgentCommission: parseFloat(transactionInfo.estimatedAgentCommission || 0),
+            referralFeeAmt: calc.referralFeeAmount,
+            referral_fee_percentage: parseFloat(referralFeePercentage) || 0,
+            estimatedAgentCommission: calc.agentNetCommission,
             buyersAgentCommissionPct: parseFloat(transactionInfo.buyersAgentCommissionPct || 0),
+            total_commission_amount: calc.totalCommissionAmount,
+            tc_fee: calc.tcFee,
+            total_brokerage_commission: calc.totalBrokerageCommission,
+            agent_commission_gross: calc.agentCommissionGross,
+            brokerage_commission_gross: calc.brokerageCommissionGross,
+            client_credits_total: totalClientCredits,
+            agent_net_commission: calc.agentNetCommission,
+            brokerage_net_commission: calc.brokerageNetCommission,
+            agent_split_percentage_used: calc.agentSplitPercentageUsed,
             clientCredits: clientCredits.map((credit) => ({
                 category: credit.category,
                 amount: parseFloat(credit.amount || 0),
@@ -488,6 +572,7 @@ const Transactions = () => {
                     buyersAgentCommissionPct: '',
                     estimatedAgentCommission: '',
                 });
+                setReferralFeePercentage('');
                 setEscrowLengthError('');
                 setAcceptanceDate(null);
                 setExpectedCloseDate(null);
@@ -822,27 +907,78 @@ const Transactions = () => {
                         </div>
                     </div>
 
+                    {/* TC Fee (read-only display) */}
+                    <div className="txn-new__field" style={{ marginTop: '1.5rem' }}>
+                        <label className="txn-new__label">Transaction Coordinator Fee</label>
+                        <div
+                            style={{
+                                padding: '10px 14px',
+                                background: 'hsl(var(--muted))',
+                                border: '1px solid hsl(var(--border))',
+                                borderRadius: 'var(--radius)',
+                                fontSize: '0.85rem',
+                                color: 'hsl(var(--foreground))',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                            }}
+                        >
+                            <span style={{ color: 'hsl(var(--foreground-muted))' }}>
+                                {representation === 'both' ? 'Dual Representation' : 'Single Side'}
+                            </span>
+                            <span style={{ fontWeight: '600' }}>
+                                {formatCommCurrency(
+                                    representation === 'both'
+                                        ? TRANSACTION_FEES.TC_FEE_DUAL
+                                        : TRANSACTION_FEES.TC_FEE_SINGLE_SIDE,
+                                )}
+                            </span>
+                        </div>
+                    </div>
+
                     {/* Referral Fee */}
                     <div className="txn-new__checkbox-row" style={{ marginTop: '1.5rem' }}>
                         <Checkbox
                             inputId="referral-fee"
                             checked={transactionInfo.referralFee}
-                            onChange={(e) => handleTransactionInfoChange('referralFee', e.checked)}
+                            onChange={(e) => {
+                                handleTransactionInfoChange('referralFee', e.checked);
+                                if (!e.checked) setReferralFeePercentage('');
+                            }}
                         />
                         <label htmlFor="referral-fee">Referral Fee</label>
                     </div>
 
                     {transactionInfo.referralFee && (
                         <div className="txn-new__field" style={{ marginTop: '1rem', maxWidth: '50%' }}>
-                            <label className="txn-new__label" htmlFor="referral-fee-amt">Referral Fee Amount</label>
-                            <InputText
-                                id="referral-fee-amt"
-                                value={transactionInfo.referralFeeAmt}
-                                onChange={(e) => handleTransactionInfoChange('referralFeeAmt', e.target.value)}
-                                placeholder="Enter amount"
-                                style={{ width: '100%' }}
-                                type="number"
-                            />
+                            <label className="txn-new__label" htmlFor="referral-fee-pct">Referral Fee (%)</label>
+                            <div className="txn-new__input-wrap">
+                                <InputText
+                                    id="referral-fee-pct"
+                                    value={referralFeePercentage}
+                                    onChange={(e) => {
+                                        const val = e.target.value.replace(/[^0-9.]/g, '');
+                                        setReferralFeePercentage(val);
+                                    }}
+                                    placeholder="e.g., 25"
+                                    style={{ width: '100%', paddingRight: '2rem' }}
+                                />
+                                {referralFeePercentage && (
+                                    <span className="txn-new__input-suffix">%</span>
+                                )}
+                            </div>
+                            {parseFloat(referralFeePercentage) > 0 && calc.totalCommissionAmount > 0 && (
+                                <p
+                                    style={{
+                                        fontSize: '0.75rem',
+                                        color: 'hsl(var(--foreground-muted))',
+                                        marginTop: '4px',
+                                    }}
+                                >
+                                    = {formatCommCurrency(calc.referralFeeAmount)} of{' '}
+                                    {formatCommCurrency(calc.totalCommissionAmount)} total commission
+                                </p>
+                            )}
                         </div>
                     )}
 
@@ -907,24 +1043,103 @@ const Transactions = () => {
                         </div>
                     )}
 
-                    {/* Estimated Agent Commission (calculated) */}
-                    <div className="txn-new__commission-display">
-                        <div className="txn-new__field">
-                            <label className="txn-new__label" htmlFor="estimated-agent-commission">
-                                Estimated Agent Commission
-                                <span className="txn-new__label--muted" style={{ fontWeight: 400, fontSize: '0.8rem', marginLeft: '0.5rem' }}>
-                                    (calculated)
+                    {/* Commission Breakdown Panel */}
+                    {calc && parseFloat(transactionInfo.price) > 0 && parseFloat(transactionInfo.buyersAgentCommissionPct) > 0 && (
+                        <div
+                            style={{
+                                marginTop: '24px',
+                                border: '1px solid hsl(var(--border))',
+                                borderRadius: 'var(--radius)',
+                                overflow: 'hidden',
+                            }}
+                        >
+                            {/* Panel Header */}
+                            <div
+                                style={{
+                                    background: 'hsl(var(--muted))',
+                                    padding: '12px 16px',
+                                    borderBottom: '1px solid hsl(var(--border))',
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                }}
+                            >
+                                <span
+                                    style={{
+                                        fontSize: '0.75rem',
+                                        fontWeight: '700',
+                                        letterSpacing: '0.08em',
+                                        textTransform: 'uppercase',
+                                        color: 'hsl(var(--foreground-muted))',
+                                    }}
+                                >
+                                    Commission Breakdown
                                 </span>
-                            </label>
-                            <InputText
-                                id="estimated-agent-commission"
-                                value={transactionInfo.estimatedAgentCommission ? formatCurrency(Math.round(parseFloat(transactionInfo.estimatedAgentCommission))) : ''}
-                                placeholder="Price x Commission %"
-                                style={{ width: '100%', backgroundColor: 'hsl(var(--muted))', fontWeight: 600 }}
-                                disabled
-                            />
+                                <span
+                                    style={{
+                                        fontSize: '0.75rem',
+                                        color: 'hsl(var(--foreground-muted))',
+                                    }}
+                                >
+                                    {agent?.commissionSplit || 0}% Agent Split
+                                </span>
+                            </div>
+
+                            {/* Breakdown Rows */}
+                            <div style={{ padding: '4px 0' }}>
+                                <BreakdownRow
+                                    label="Total Commission Amount"
+                                    value={calc.totalCommissionAmount}
+                                    sublabel={`${formatCommCurrency(parseFloat(transactionInfo.price))} \u00d7 ${transactionInfo.buyersAgentCommissionPct}%`}
+                                />
+                                <BreakdownRow
+                                    label={`TC Fee (${representation === 'both' ? 'Dual' : 'Single Side'})`}
+                                    value={calc.tcFee}
+                                    deduction
+                                />
+                                {calc.referralFeeAmount > 0 && (
+                                    <BreakdownRow
+                                        label={`Referral Fee (${referralFeePercentage}%)`}
+                                        value={calc.referralFeeAmount}
+                                        deduction
+                                    />
+                                )}
+                                <BreakdownRow
+                                    label="Total Brokerage Commission"
+                                    value={calc.totalBrokerageCommission}
+                                    subtotal
+                                />
+                                <BreakdownRow
+                                    label={`Agent Gross (${agent?.commissionSplit || 0}%)`}
+                                    value={calc.agentCommissionGross}
+                                />
+                                <BreakdownRow
+                                    label={`Brokerage Gross (${100 - (agent?.commissionSplit || 0)}%)`}
+                                    value={calc.brokerageCommissionGross}
+                                    muted
+                                />
+                                {totalClientCredits > 0 && (
+                                    <BreakdownRow
+                                        label="Client Credits"
+                                        value={totalClientCredits}
+                                        deduction
+                                    />
+                                )}
+                                <BreakdownRow
+                                    label="Agent Net Commission (Est.)"
+                                    value={calc.agentNetCommission}
+                                    total
+                                    highlight
+                                />
+                                <BreakdownRow
+                                    label="Brokerage Net Commission"
+                                    value={calc.brokerageNetCommission}
+                                    total
+                                    muted
+                                />
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </div>
 
                 {/* ════════════════════════════════════════════════════

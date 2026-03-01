@@ -48,7 +48,7 @@
 }
 
 .campaign-preview__name {
-    font-size: 1.15rem;
+    font-size: 18px;
     font-weight: 700;
     color: hsl(var(--foreground));
     margin: 0;
@@ -56,7 +56,7 @@
 }
 
 .campaign-preview__subtitle {
-    font-size: 0.8rem;
+    font-size: 13px;
     color: hsl(var(--foreground-muted));
     margin: 0;
     font-weight: 500;
@@ -94,32 +94,32 @@
 .campaign-preview__day-badge {
     display: inline-flex;
     align-items: center;
-    padding: 0.2rem 0.6rem;
+    padding: 3px 8px;
     border-radius: 6px;
-    font-size: 0.75rem;
+    font-size: 12px;
     font-weight: 700;
     background: hsl(var(--primary) / 0.12);
     color: hsl(var(--primary));
 }
 
 .campaign-preview__email-order {
-    font-size: 0.7rem;
+    font-size: 12px;
     color: hsl(var(--foreground-muted));
     font-weight: 500;
 }
 
 .campaign-preview__email-subject {
-    font-size: 0.95rem;
+    font-size: 15px;
     font-weight: 600;
     color: hsl(var(--foreground));
-    margin: 0 0 0.5rem 0;
+    margin: 0 0 8px 0;
     line-height: 1.35;
 }
 
 .campaign-preview__email-body {
-    font-size: 0.85rem;
+    font-size: 14px;
     color: hsl(var(--foreground-muted));
-    line-height: 1.55;
+    line-height: 1.6;
     word-break: break-word;
 
     &--truncated {
@@ -130,7 +130,7 @@
 
     // Style HTML content inside email bodies
     p {
-        margin: 0 0 0.5rem 0;
+        margin: 0 0 8px 0;
 
         &:last-child {
             margin-bottom: 0;
@@ -140,14 +140,28 @@
     a {
         color: hsl(var(--primary));
     }
+
+    // Override hardcoded inline styles from email HTML in dark mode
+    .dark & {
+        color: hsl(var(--foreground-muted)) !important;
+
+        * {
+            color: inherit !important;
+            background-color: transparent !important;
+        }
+
+        a {
+            color: hsl(var(--primary)) !important;
+        }
+    }
 }
 
 .campaign-preview__toggle {
     background: none;
     border: none;
     padding: 0;
-    margin-top: 0.35rem;
-    font-size: 0.8rem;
+    margin-top: 6px;
+    font-size: 13px;
     font-weight: 600;
     color: hsl(var(--primary));
     cursor: pointer;
@@ -166,14 +180,19 @@
     i {
         font-size: 2.5rem;
         display: block;
-        margin-bottom: 0.75rem;
+        margin-bottom: 12px;
         opacity: 0.4;
     }
 
     p {
-        font-size: 0.9rem;
+        font-size: 14px;
         margin: 0;
     }
+}
+
+// ── Assign dialog spinner ──
+@keyframes assign-spin {
+    to { transform: rotate(360deg); }
 }
 
 // ── Mobile: Full-screen dialog ──

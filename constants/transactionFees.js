@@ -1,0 +1,4 @@
+export const TRANSACTION_FEES = {
+    TC_FEE_SINGLE_SIDE: 500,
+    TC_FEE_DUAL: 800,
+};

@@ -17,9 +17,8 @@ export function fetchHotsheetHomes(county) {
     return async function fetchHotsheetHomesThunk(dispatch) {
         try {
             dispatch({ type: FETCHING_HOMES, payload: true });
-            const response = await IrgApi.get(
-                `/mlsproperties/hotsheet?days=${API_DAYS}&limit=${API_LIMIT}&county=${countyParam}`,
-            );
+            const url = `/mlsproperties/hotsheet?days=${API_DAYS}&limit=${API_LIMIT}&county=${countyParam}`;
+            const response = await IrgApi.get(url);
             const homes = Array.isArray(response.data?.data?.properties) ? response.data.data.properties : [];
             dispatch({ type: FETCH_HOTSHEET_HOMES, payload: homes });
         } catch (error) {

@@ -1575,7 +1575,8 @@ const Lead = () => {
                             </div>
                         </div>
 
-                        {/* Notes and Calls History */}
+                        {/* Notes and Calls History — only show when loading or has activity */}
+                        {(loadingEmails || getAllActivity().length > 0) && (
                         <div style={{
                             borderTop: '1px solid hsl(var(--border))',
                             paddingTop: '1.5rem'
@@ -1702,19 +1703,10 @@ const Lead = () => {
                                             );
                                         })}
                                     </div>
-                                ) : (
-                                    <div style={{
-                                        textAlign: 'center',
-                                        padding: '3rem',
-                                        color: 'hsl(var(--foreground-muted))'
-                                    }}>
-                                        <i className="pi pi-inbox" style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}></i>
-                                        <p style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>No activity recorded yet</p>
-                                        <p style={{ fontSize: '0.9rem' }}>Log a call, create a note, or send an email to get started</p>
-                                    </div>
-                                )}
+                                ) : null}
                             </div>
                         </div>
+                        )}
                     </Card>
                 </div>
 

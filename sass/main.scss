@@ -39,6 +39,7 @@
 @import 'pages/searchpage';
 @import 'pages/propertysearch';
 @import 'pages/transactions';
+@import 'pages/dashboard';
 
 .topbar_input {
     width: 550px;
@@ -147,6 +148,38 @@
         color: hsl(var(--primary));
     }
 
+    // Dropdown / MultiSelect / Input focus rings
+    // saga-blue theme uses #a6d5fa which looks white on dark backgrounds
+    .p-dropdown:not(.p-disabled).p-focus {
+        border-color: hsl(var(--ring));
+        box-shadow: 0 0 0 0.2rem hsl(var(--ring) / 0.25);
+    }
+
+    .p-multiselect:not(.p-disabled).p-focus {
+        border-color: hsl(var(--ring));
+        box-shadow: 0 0 0 0.2rem hsl(var(--ring) / 0.25);
+    }
+
+    .p-inputtext:enabled:focus {
+        border-color: hsl(var(--ring));
+        box-shadow: 0 0 0 0.2rem hsl(var(--ring) / 0.25);
+    }
+
+    .p-inputtextarea:enabled:focus {
+        border-color: hsl(var(--ring));
+        box-shadow: 0 0 0 0.2rem hsl(var(--ring) / 0.25);
+    }
+
+    .p-checkbox:not(.p-checkbox-disabled) .p-checkbox-box.p-focus {
+        border-color: hsl(var(--ring));
+        box-shadow: 0 0 0 0.2rem hsl(var(--ring) / 0.25);
+    }
+
+    .p-radiobutton:not(.p-radiobutton-disabled) .p-radiobutton-box.p-focus {
+        border-color: hsl(var(--ring));
+        box-shadow: 0 0 0 0.2rem hsl(var(--ring) / 0.25);
+    }
+
     // AutoComplete
     .p-autocomplete .p-autocomplete-input {
         background: hsl(var(--surface));
@@ -156,6 +189,16 @@
 
     .p-autocomplete .p-autocomplete-input:hover {
         border-color: hsl(var(--primary));
+    }
+
+    .p-autocomplete .p-autocomplete-input:enabled:focus {
+        border-color: hsl(var(--ring));
+        box-shadow: 0 0 0 0.2rem hsl(var(--ring) / 0.25);
+    }
+
+    .p-autocomplete-multiple-container.p-focus {
+        border-color: hsl(var(--ring));
+        box-shadow: 0 0 0 0.2rem hsl(var(--ring) / 0.25);
     }
 
     .p-autocomplete-panel {

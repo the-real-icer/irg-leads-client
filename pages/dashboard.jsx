@@ -15,6 +15,39 @@ import MainLayout from '../components/layout/MainLayout';
 import DashboardHotsheet from '../components/Dashboard/DashboardHotsheet';
 import IrgApi from '../assets/irgApi';
 
+const ProductionCard = ({ icon, value, label, format }) => {
+    const displayValue = () => {
+        const n = value || 0;
+        if (format === 'currency') {
+            if (n === 0) return '$0';
+            if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
+            if (n >= 1_000) return `$${Math.round(n / 1_000).toLocaleString()}K`;
+            return `$${n.toLocaleString()}`;
+        }
+        return n.toLocaleString();
+    };
+
+    return (
+        <div
+            className="production-card"
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'hsl(var(--primary) / 0.4)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = ''; }}
+        >
+            <div style={{ fontSize: '22px', lineHeight: 1, marginTop: '2px', flexShrink: 0 }}>
+                {icon}
+            </div>
+            <div>
+                <div style={{ fontSize: '22px', fontWeight: '700', color: 'hsl(var(--foreground))', lineHeight: 1.2, letterSpacing: '-0.02em' }}>
+                    {displayValue()}
+                </div>
+                <div style={{ fontSize: '13px', color: 'hsl(var(--muted-foreground))', marginTop: '5px', lineHeight: 1.3 }}>
+                    {label}
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const Dashboard = () => {
     // __________________Redux State______________________\\
     const allLeads = useSelector((state) => state.allLeadsPage);
@@ -106,14 +139,17 @@ const Dashboard = () => {
             <div className="dashboard-page" style={{ padding: '1.5rem' }}>
                 {/* Top Section - Two Boxes Side by Side */}
                 <div className="grid-cols-1 md:grid-cols-2" style={{ display: 'grid', gap: '1.5rem', marginBottom: '1.5rem' }}>
-                    {/* Top Left - Transactions */}
-                    <Card title="Transactions" style={{ height: '100%' }}>
+                    {/* Top Left - My Production */}
+                    <Card title="My Production" style={{ height: '100%' }}>
                         {txLoading ? (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                {[1, 2, 3, 4].map((i) => (
-                                    <div key={i}>
-                                        <div style={{ width: '60%', height: '0.875rem', borderRadius: '4px', background: 'hsl(var(--muted))', marginBottom: '0.5rem' }} />
-                                        <div style={{ width: '35%', height: '1.5rem', borderRadius: '4px', background: 'hsl(var(--muted))' }} />
+                            <div className="production-grid">
+                                {[1, 2, 3, 4, 5, 6].map((i) => (
+                                    <div key={i} style={{ background: 'hsl(var(--surface))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)', padding: '20px', display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
+                                        <div style={{ width: '22px', height: '22px', borderRadius: '4px', background: 'hsl(var(--muted))', flexShrink: 0 }} />
+                                        <div style={{ flex: 1 }}>
+                                            <div style={{ width: '60%', height: '22px', borderRadius: '4px', background: 'hsl(var(--muted))', marginBottom: '8px' }} />
+                                            <div style={{ width: '80%', height: '13px', borderRadius: '4px', background: 'hsl(var(--muted))' }} />
+                                        </div>
                                     </div>
                                 ))}
                             </div>
@@ -129,44 +165,17 @@ const Dashboard = () => {
                                 </button>
                             </div>
                         ) : (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                <div>
-                                    <div style={{ fontSize: '0.875rem', color: 'hsl(var(--foreground-muted))', marginBottom: '0.25rem' }}>
-                                        YTD Closed Transactions
-                                    </div>
-                                    <div style={{ fontSize: '1.5rem', fontWeight: '700', color: 'hsl(var(--foreground))' }}>
-                                        {txMetrics?.closedCountYTD ?? 0}
-                                    </div>
+                            <div>
+                                <div className="production-grid">
+                                    <ProductionCard icon="🏠" value={txMetrics?.closedCountYTD ?? 0} label="YTD Closed Transactions" format="number" />
+                                    <ProductionCard icon="💰" value={txMetrics?.closedVolumeYTD} label="YTD Closed Volume" format="currency" />
+                                    <ProductionCard icon="📋" value={txMetrics?.currentTransactions ?? 0} label="Transactions In Escrow" format="number" />
+                                    <ProductionCard icon="📊" value={txMetrics?.escrowVolume} label="Volume In Escrow" format="currency" />
+                                    <ProductionCard icon="✅" value={txMetrics?.earnedCommissionsYTD} label="Commissions Earned YTD" format="currency" />
+                                    <ProductionCard icon="⏳" value={txMetrics?.pendingCommissions} label="Commissions In Escrow" format="currency" />
                                 </div>
 
-                                <div>
-                                    <div style={{ fontSize: '0.875rem', color: 'hsl(var(--foreground-muted))', marginBottom: '0.25rem' }}>
-                                        YTD Closed Volume
-                                    </div>
-                                    <div style={{ fontSize: '1.5rem', fontWeight: '700', color: 'hsl(var(--foreground))' }}>
-                                        {formatCurrency(txMetrics?.closedVolumeYTD)}
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <div style={{ fontSize: '0.875rem', color: 'hsl(var(--foreground-muted))', marginBottom: '0.25rem' }}>
-                                        Number of Transactions in Escrow
-                                    </div>
-                                    <div style={{ fontSize: '1.5rem', fontWeight: '700', color: 'hsl(var(--foreground))' }}>
-                                        {txMetrics?.currentTransactions ?? 0}
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <div style={{ fontSize: '0.875rem', color: 'hsl(var(--foreground-muted))', marginBottom: '0.25rem' }}>
-                                        Dollar Volume of Transactions in Escrow
-                                    </div>
-                                    <div style={{ fontSize: '1.5rem', fontWeight: '700', color: 'hsl(var(--foreground))' }}>
-                                        {formatCurrency(txMetrics?.escrowVolume)}
-                                    </div>
-                                </div>
-
-                                <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid hsl(var(--border))' }}>
+                                <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid hsl(var(--border))' }}>
                                     <div
                                         style={{
                                             fontSize: '0.875rem',

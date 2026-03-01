@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo } from 'react';
 import { useRouter } from 'next/router';
 
 // Redux
@@ -35,9 +35,9 @@ const Leads = () => {
     const [selectedType, setSelectedType] = useState(null);
     const [selectedSource, setSelectedSource] = useState(null);
 
-    // Sorting state
-    const [sortField, setSortField] = useState(null);
-    const [sortOrder, setSortOrder] = useState(null);
+    // Sorting state — PrimeReact v8 requires non-null values for controlled sort
+    const [sortField, setSortField] = useState('');
+    const [sortOrder, setSortOrder] = useState(0);
 
     // Ensure allLeads is an array
     const leadsArray = Array.isArray(allLeads) ? allLeads : [];
@@ -96,8 +96,8 @@ const Leads = () => {
             return true;
         });
 
-        // Apply sorting if sortField is set
-        if (sortField && sortOrder) {
+        // Apply sorting — skip if no field selected or sortOrder is 0 (unsorted)
+        if (sortField && sortOrder !== 0) {
             filtered = [...filtered].sort((a, b) => {
                 let aValue, bValue;
 
@@ -140,9 +140,8 @@ const Leads = () => {
     };
 
     const onSort = (event) => {
-        setSortField(event.sortField);
-        // If sortOrder is undefined, default to ascending (1)
-        setSortOrder(event.sortOrder !== undefined ? event.sortOrder : 1);
+        setSortField(event.sortField || '');
+        setSortOrder(event.sortOrder ?? 0);
     };
 
     const router = useRouter();
@@ -171,11 +170,15 @@ const Leads = () => {
 
     const dateBodyTemplate = (rowData) => formatDate(rowData.last_visit);
 
-    const statusBodyTemplate = (rowData) => (
-        <span className={`customer-badge status-${rowData.backend_profile.lead_category}`}>
-            {rowData.backend_profile.lead_category}
-        </span>
-    );
+    const statusBodyTemplate = (rowData) => {
+        const category = rowData.backend_profile?.lead_category;
+        if (!category) return <span>—</span>;
+        return (
+            <span className={`customer-badge status-${category}`}>
+                {category}
+            </span>
+        );
+    };
 
     // Template for status dropdown items (option is the string value)
     const statusItemTemplate = (option) => {
@@ -208,11 +211,11 @@ const Leads = () => {
     );
 
     const avgPriceBodyTemplate = (rowData) => {
-        if (rowData.viewed_homes.length) {
+        if (rowData.viewed_homes?.length) {
             let totalPrice = 0;
 
             for (const home of rowData.viewed_homes) {
-                if (home.property_viewed?.price_raw) {
+                if (home?.property_viewed?.price_raw) {
                     totalPrice += home.property_viewed.price_raw;
                 }
             }
