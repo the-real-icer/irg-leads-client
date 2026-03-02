@@ -24,6 +24,12 @@ app.prepare()
     .then(() => {
         const server = express();
 
+        // Bypass all Express middleware for next-auth routes.
+        // Express sets req.query as a getter-only property which crashes
+        // next-auth v4 with "Cannot set property query of #<IncomingMessage>".
+        // Handing off to Next.js directly avoids this conflict.
+        server.use('/api/auth', (req, res) => nextHandler(req, res));
+
         // Security headers
         server.use(
             helmet({
