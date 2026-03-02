@@ -55,6 +55,7 @@ app.prepare()
                                   'https://oauth2.googleapis.com',
                                   'https://openidconnect.googleapis.com',
                                   'https://www.googleapis.com',
+                                  'https://securetoken.googleapis.com',
                               ],
                               imgSrc: [
                                   "'self'",
