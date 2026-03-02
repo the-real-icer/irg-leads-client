@@ -1,105 +1,245 @@
-// import React from 'react';
+import { useMemo } from 'react';
 import PropTypes from 'prop-types';
+import dynamic from 'next/dynamic';
 
-// Third Party Components
-import { Button } from 'primereact/button';
-import { Dialog } from 'primereact/dialog';
-import { InputText } from 'primereact/inputtext';
-import { Dropdown } from 'primereact/dropdown';
-import { Editor } from 'primereact/editor';
+const AutoComplete = dynamic(
+    () => import('primereact/autocomplete').then((mod) => mod.AutoComplete),
+    { ssr: false },
+);
+const InputText = dynamic(
+    () => import('primereact/inputtext').then((mod) => mod.InputText),
+    { ssr: false },
+);
+const Editor = dynamic(
+    () => import('primereact/editor').then((mod) => mod.Editor),
+    { ssr: false },
+);
+const Dialog = dynamic(
+    () => import('primereact/dialog').then((mod) => mod.Dialog),
+    { ssr: false },
+);
+const Button = dynamic(
+    () => import('primereact/button').then((mod) => mod.Button),
+    { ssr: false },
+);
 
-const EmailToLeadDialog = (props) => {
-    const {
-        showDialog,
-        setShowDialog,
-        selectedLead,
-        // leads,
-        onLeadChange,
-        subject,
-        handleSubjectChange,
-        message,
-        setMessage,
-        handleEmailSubmit,
-    } = props;
+import getLeadDisplayName from '../../../utils/getLeadDisplayName';
 
-    const selectedLeadsTemplate = () => (
-        <span className="property__topbar__dropdown__label">{selectedLead}</span>
-    );
+const EmailToLeadDialog = ({
+    visible,
+    onHide,
+    property,
+    // Lead
+    leadInput,
+    setLeadInput,
+    leadSuggestions,
+    onLeadSearch,
+    selectedLead,
+    onLeadSelect,
+    onLeadClear,
+    // Subject & body
+    subject,
+    onSubjectChange,
+    message,
+    onMessageChange,
+    // Signature
+    agentSignature,
+    // Actions
+    onSend,
+    sending,
+}) => {
+    // ── Property image URL ─────────────────────────────────────────
+    const propertyImage = useMemo(() => {
+        const raw = property?.listing_pics || '';
+        return raw.replace(/http:/, 'https:') || '/No-Photo-Light-Large.jpg';
+    }, [property?.listing_pics]);
 
-    const leadOptionTemplate = (option) => (
-        <div className="property__topbar__dropdown__item">
-            <div>{option.first_name}</div>
-            <div>{option.email}</div>
+    // ── Lead autocomplete item template ────────────────────────────
+    const leadItemTemplate = (lead) => (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', padding: '2px 0' }}>
+            <span style={{ fontWeight: 600, color: 'hsl(var(--foreground))', fontSize: '0.9rem' }}>
+                {getLeadDisplayName(lead)}
+            </span>
+            <span style={{ fontSize: '0.8rem', color: 'hsl(var(--foreground-muted))' }}>
+                {lead.email || ''}
+            </span>
         </div>
     );
 
     return (
         <Dialog
             header="Email This Property To A Lead"
-            visible={showDialog}
-            style={{ width: '80rem', background: '#fff', fontSize: '1.4rem' }}
-            onHide={() => setShowDialog(false)}
+            visible={visible}
+            onHide={onHide}
+            style={{ width: '680px', maxWidth: '95vw' }}
+            modal
+            draggable={false}
+            blockScroll
         >
-            <div className="p-fluid">
-                <div className="p-field">
-                    <label htmlFor="subject">Select A Lead</label>
-                    <Dropdown
-                        value={selectedLead}
-                        // options={leads}
-                        onChange={onLeadChange}
-                        filter
-                        showClear
-                        filterBy="name"
-                        valueTemplate={selectedLeadsTemplate}
-                        itemTemplate={leadOptionTemplate}
-                        placeholder={selectedLead}
-                        className="property__topbar__dropdown"
-                        panelClassName="property__topbar__dropdown__panel"
-                    />
+            <div className="email-dialog">
+                {/* ── Property Preview Card ──────────────────────── */}
+                {property && (
+                    <div className="email-dialog__property-card">
+                        <img
+                            src={propertyImage}
+                            alt={property.address || 'Property'}
+                            className="email-dialog__property-img"
+                        />
+                        <div className="email-dialog__property-details">
+                            <div className="email-dialog__property-address">
+                                {property.address}
+                                {property.unit_number && ` #${property.unit_number}`}
+                            </div>
+                            <div className="email-dialog__property-location">
+                                {property.city}, {property.state || 'CA'} {property.zip_code}
+                            </div>
+                            <div className="email-dialog__property-meta">
+                                <span><strong>{property.price}</strong></span>
+                                <span>{property.bedrooms} Beds</span>
+                                <span>{property.bathrooms} Baths</span>
+                                <span>{property.sqft} SqFt</span>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* ── Lead Search ────────────────────────────────── */}
+                <div className="email-dialog__field">
+                    <label className="email-dialog__label" htmlFor="email-lead-search">
+                        Send To
+                    </label>
+                    <div className="email-dialog__lead-search">
+                        <AutoComplete
+                            id="email-lead-search"
+                            value={leadInput}
+                            suggestions={leadSuggestions}
+                            completeMethod={onLeadSearch}
+                            onChange={(e) => {
+                                if (typeof e.value === 'string') {
+                                    setLeadInput(e.value);
+                                }
+                            }}
+                            onSelect={onLeadSelect}
+                            itemTemplate={leadItemTemplate}
+                            field="first_name"
+                            placeholder="Search for a lead by name or email..."
+                            emptyMessage="No leads found"
+                            style={{ width: '100%' }}
+                            inputStyle={{ width: '100%' }}
+                            panelStyle={{ zIndex: 1100 }}
+                            delay={100}
+                            minLength={0}
+                            disabled={!!selectedLead}
+                        />
+                    </div>
+
+                    {/* Selected lead chip */}
+                    {selectedLead && (
+                        <div className="email-dialog__to-chip">
+                            <div className="email-dialog__to-chip-info">
+                                <span className="email-dialog__to-chip-name">
+                                    {getLeadDisplayName(selectedLead)}
+                                </span>
+                                <span className="email-dialog__to-chip-email">
+                                    {selectedLead.email || 'No email'}
+                                </span>
+                            </div>
+                            <button
+                                type="button"
+                                className="email-dialog__to-chip-clear"
+                                onClick={onLeadClear}
+                                title="Clear selection"
+                            >
+                                <i className="pi pi-times" style={{ fontSize: '0.75rem' }} />
+                            </button>
+                        </div>
+                    )}
                 </div>
-                <div className="p-field">
-                    <label htmlFor="subject">Subject</label>
+
+                {/* ── Subject ────────────────────────────────────── */}
+                <div className="email-dialog__field">
+                    <label className="email-dialog__label" htmlFor="email-subject">
+                        Subject
+                    </label>
                     <InputText
-                        id="subject"
-                        type="text"
-                        placeholder="Subject"
+                        id="email-subject"
                         value={subject}
-                        onChange={handleSubjectChange}
-                        style={{ fontSize: '1.5rem' }}
+                        onChange={onSubjectChange}
+                        placeholder="Email subject"
+                        style={{ width: '100%' }}
                     />
                 </div>
-                <Editor
-                    style={{ height: '320px' }}
-                    value={message}
-                    onTextChange={(e) => setMessage(e.htmlValue)}
-                />
-                <Button
-                    label="Send"
-                    icon="pi pi-check"
-                    onClick={handleEmailSubmit}
-                    style={{ fontSize: '1.7rem', marginBottom: '1.5rem' }}
-                />
-                <Button
-                    label="Cancel"
-                    icon="pi pi-times"
-                    className="p-button-danger"
-                    onClick={() => setShowDialog(false)}
-                    style={{ fontSize: '1.7rem', marginBottom: '1.5rem' }}
-                />
+
+                {/* ── Email Body ─────────────────────────────────── */}
+                <div className="email-dialog__field">
+                    <label className="email-dialog__label">
+                        Message
+                    </label>
+                    <div className="email-dialog__editor-wrap">
+                        <Editor
+                            style={{ height: '200px' }}
+                            value={message}
+                            onTextChange={(e) => onMessageChange(e.htmlValue)}
+                        />
+                    </div>
+                </div>
+
+                {/* ── Signature Preview ──────────────────────────── */}
+                <div className="email-dialog__signature">
+                    <div className="email-dialog__signature-label">
+                        Your signature will be automatically appended to this email
+                    </div>
+                    {agentSignature ? (
+                        <div
+                            className="email-dialog__signature-content"
+                            dangerouslySetInnerHTML={{ __html: agentSignature }}
+                        />
+                    ) : (
+                        <p className="email-dialog__signature-empty">
+                            No signature configured &mdash; add one in your profile settings.
+                        </p>
+                    )}
+                </div>
+
+                {/* ── Footer Buttons ─────────────────────────────── */}
+                <div className="email-dialog__footer">
+                    <Button
+                        label="Cancel"
+                        className="p-button-text"
+                        onClick={onHide}
+                        disabled={sending}
+                    />
+                    <Button
+                        label={sending ? 'Sending...' : 'Send Email'}
+                        icon={sending ? 'pi pi-spin pi-spinner' : 'pi pi-send'}
+                        className="email-dialog__btn-send"
+                        onClick={onSend}
+                        disabled={sending || !selectedLead}
+                    />
+                </div>
             </div>
         </Dialog>
     );
 };
 
 EmailToLeadDialog.propTypes = {
-    setShowDialog: PropTypes.func.isRequired,
-    onLeadChange: PropTypes.func.isRequired,
-    handleSubjectChange: PropTypes.func.isRequired,
-    handleEmailSubmit: PropTypes.func.isRequired,
-    setMessage: PropTypes.func.isRequired,
+    visible: PropTypes.bool.isRequired,
+    onHide: PropTypes.func.isRequired,
+    property: PropTypes.object,
+    leadInput: PropTypes.string.isRequired,
+    setLeadInput: PropTypes.func.isRequired,
+    leadSuggestions: PropTypes.array.isRequired,
+    onLeadSearch: PropTypes.func.isRequired,
+    selectedLead: PropTypes.object,
+    onLeadSelect: PropTypes.func.isRequired,
+    onLeadClear: PropTypes.func.isRequired,
     subject: PropTypes.string.isRequired,
+    onSubjectChange: PropTypes.func.isRequired,
     message: PropTypes.string.isRequired,
-    showDialog: PropTypes.bool.isRequired,
+    onMessageChange: PropTypes.func.isRequired,
+    agentSignature: PropTypes.string,
+    onSend: PropTypes.func.isRequired,
+    sending: PropTypes.bool.isRequired,
 };
 
 export default EmailToLeadDialog;

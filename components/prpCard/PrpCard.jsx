@@ -18,6 +18,7 @@ import { addSelectedHome, removeSelectedHome } from '../../store/actions';
 const PrpCard = memo(({ property, handleOpenMapDialog }) => {
     // __________________Redux State______________________\\
     const selectedHomes = useSelector((state) => state.selectedHomes);
+    const agent = useSelector((state) => state.agent);
 
     // _____________________Hooks_____________________\\
     const dispatch = useDispatch();
@@ -91,11 +92,13 @@ const PrpCard = memo(({ property, handleOpenMapDialog }) => {
                 </div>
             </Link>
             <div className="PrpCard__Actions">
-                <Button
-                    label="Off Market"
-                    className="p-button-warning"
-                    // onClick={() => handleOffMarket(property)}
-                />
+                {agent?.role === 'admin' && (
+                    <Button
+                        label="Off Market"
+                        className="p-button-warning"
+                        // onClick={() => handleOffMarket(property)}
+                    />
+                )}
                 <Button
                     label="Show Map"
                     className="p-button-info"
