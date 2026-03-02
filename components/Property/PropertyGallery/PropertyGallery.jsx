@@ -1,12 +1,13 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { usePropertyFallbackImage } from '../../../utils/propertyImageFallback';
+import ikUrl from '../../../utils/imageKit';
 
 // ── Build image array from property data ──
 const buildImages = (property) => {
     if (property.listing_pictures && property.listing_pictures.length > 0) {
         return property.listing_pictures.map((pic) => ({
-            original: pic.media_url.replace(/http:/, 'https:').concat('?preset=X-Large'),
-            thumbnail: pic.media_url.replace(/http:/, 'https:').concat('?preset=Small'),
+            original: ikUrl(pic.media_url.replace(/http:/, 'https:').concat('?preset=X-Large')),
+            thumbnail: ikUrl(pic.media_url.replace(/http:/, 'https:').concat('?preset=Small')),
             originalAlt: property.address,
         }));
     }
@@ -21,14 +22,14 @@ const buildImages = (property) => {
             .replace(/http:/, 'https:');
 
         const images = [
-            { original: cleanURL, thumbnail: thumbURL, originalAlt: property.address },
+            { original: ikUrl(cleanURL), thumbnail: ikUrl(thumbURL), originalAlt: property.address },
         ];
 
         for (let i = 0; i < (property.pic_count || 0); i++) {
             const j = i + 1;
             images.push({
-                original: cleanURL.replace(/\/0\//, `/${j}/`).replace(/.JPG/, `-${j}.JPG`),
-                thumbnail: thumbURL.replace(/\/0\//, `/${j}/`).replace(/.JPG/, `-${j}.JPG`),
+                original: ikUrl(cleanURL.replace(/\/0\//, `/${j}/`).replace(/.JPG/, `-${j}.JPG`)),
+                thumbnail: ikUrl(thumbURL.replace(/\/0\//, `/${j}/`).replace(/.JPG/, `-${j}.JPG`)),
                 originalAlt: `${property.address} - ${j + 1}`,
             });
         }

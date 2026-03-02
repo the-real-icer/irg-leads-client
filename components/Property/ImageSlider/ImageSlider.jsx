@@ -9,6 +9,7 @@ import { IoIosArrowDroprightCircle, IoIosArrowDropleftCircle } from 'react-icons
 // IRG Componenents
 import ImageSlide from './ImageSlide';
 import { getPropertyFallbackImage } from '../../../utils/propertyImageFallback';
+import ikUrl from '../../../utils/imageKit';
 
 class PropertyImageSlider extends React.Component {
     constructor(props) {
@@ -28,7 +29,7 @@ class PropertyImageSlider extends React.Component {
             this.props.property.listing_pictures.length > 0
         ) {
             propertyImages = this.props.property.listing_pictures.map((pic) =>
-                pic.media_url.replace(/http:/, 'https:').concat('?preset=X-Large'),
+                ikUrl(pic.media_url.replace(/http:/, 'https:').concat('?preset=X-Large')),
             );
         } else if (
             this.props.property.listing_pictures &&
@@ -42,13 +43,13 @@ class PropertyImageSlider extends React.Component {
                 .replace(/preset=thumb/g, 'preset=X-Large')
                 .replace(/http:/, 'https:');
 
-            propertyImages = [cleanURL];
+            propertyImages = [ikUrl(cleanURL)];
 
-             
+
             for (let i = 0; i < this.props.property.pic_count; i++) {
                 const j = i + 1;
                 propertyImages.push(
-                    cleanURL.replace(/\/0\//, `/${j}/`).replace(/.JPG/, `-${j}.JPG`),
+                    ikUrl(cleanURL.replace(/\/0\//, `/${j}/`).replace(/.JPG/, `-${j}.JPG`)),
                 );
             }
         }

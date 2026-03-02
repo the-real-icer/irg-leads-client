@@ -7,6 +7,7 @@ import IrgApi from '../../assets/irgApi';
 import showToast from '../../utils/showToast';
 import getLeadDisplayName from '../../utils/getLeadDisplayName';
 import { usePropertyFallbackImage } from '../../utils/propertyImageFallback';
+import ikUrl from '../../utils/imageKit';
 
 const Dialog = dynamic(() => import('primereact/dialog').then((mod) => mod.Dialog), { ssr: false });
 const Button = dynamic(() => import('primereact/button').then((mod) => mod.Button), { ssr: false });
@@ -29,7 +30,7 @@ const SendToLeadDialog = ({ visible, onHide }) => {
 
     const getImage = (property) => {
         if (!property?.listing_pics) return fallbackImage;
-        return property.listing_pics.replace(/http:/, 'https:');
+        return ikUrl(property.listing_pics.replace(/http:/, 'https:'));
     };
 
     const handleLeadChange = useCallback((e) => {

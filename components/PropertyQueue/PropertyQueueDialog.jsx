@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import { removeSelectedHome, clearSelectedHomes } from '../../store/actions';
 import showToast from '../../utils/showToast';
 import { usePropertyFallbackImage } from '../../utils/propertyImageFallback';
+import ikUrl from '../../utils/imageKit';
 
 const Dialog = dynamic(() => import('primereact/dialog').then((mod) => mod.Dialog), { ssr: false });
 const Button = dynamic(() => import('primereact/button').then((mod) => mod.Button), { ssr: false });
@@ -27,7 +28,7 @@ const PropertyQueueDialog = ({ visible, onHide, onSendClick }) => {
 
     const getImage = (property) => {
         if (!property?.listing_pics) return fallbackImage;
-        return property.listing_pics.replace(/http:/, 'https:');
+        return ikUrl(property.listing_pics.replace(/http:/, 'https:'));
     };
 
     const footer = selectedHomes.length > 0 ? (

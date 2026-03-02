@@ -3,6 +3,7 @@ import Link from 'next/link';
 import PropTypes from 'prop-types';
 
 import { usePropertyFallbackImage } from '../../../utils/propertyImageFallback';
+import ikUrl from '../../../utils/imageKit';
 
 const RecentListingCard = ({ home }) => {
     const fallbackImage = usePropertyFallbackImage();
@@ -21,7 +22,7 @@ const RecentListingCard = ({ home }) => {
             >
                 <div className="flex align-items-start mr-0 lg:mr-5">
                     <img
-                        src={home.listing_pics || fallbackImage}
+                        src={ikUrl(home.listing_pics) || fallbackImage}
                         alt={home.address || 'Property'}
                         className="mr-3 w-6rem h-4rem"
                         style={{ objectFit: 'cover' }}

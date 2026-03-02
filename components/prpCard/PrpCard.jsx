@@ -12,6 +12,7 @@ import { Button } from 'primereact/button';
 
 import showToast from '../../utils/showToast';
 import { usePropertyFallbackImage } from '../../utils/propertyImageFallback';
+import ikUrl from '../../utils/imageKit';
 import { addSelectedHome, removeSelectedHome } from '../../store/actions';
 
 const PrpCard = memo(({ property, handleOpenMapDialog }) => {
@@ -23,7 +24,7 @@ const PrpCard = memo(({ property, handleOpenMapDialog }) => {
     const fallbackImage = usePropertyFallbackImage();
 
     const goodImage = property?.listing_pics
-        ? property.listing_pics.replace(/http:/, 'https:')
+        ? ikUrl(property.listing_pics.replace(/http:/, 'https:'))
         : fallbackImage;
 
     const isSelected = find(selectedHomes, (home) => home.mls_number === property.mls_number);

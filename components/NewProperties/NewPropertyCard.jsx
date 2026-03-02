@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 
 import { Button } from 'primereact/button';
 import { usePropertyFallbackImage } from '../../utils/propertyImageFallback';
+import ikUrl from '../../utils/imageKit';
 
 const NewPropertyCard = ({
     property,
@@ -20,7 +21,7 @@ const NewPropertyCard = ({
     let goodImage = '';
 
     if (property?.listing_pictures?.length > 0) {
-        goodImage = property.listing_pictures[0].media_url.replace(/http:/, 'https:');
+        goodImage = ikUrl(property.listing_pictures[0].media_url.replace(/http:/, 'https:'));
     }
 
     // Create what the property_url should be

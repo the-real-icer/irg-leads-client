@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import dynamic from 'next/dynamic';
 import NoteIconWithPreview from './NoteIconWithPreview';
 import { usePropertyFallbackImage } from '../../utils/propertyImageFallback';
+import ikUrl from '../../utils/imageKit';
 
 const Button = dynamic(() => import('primereact/button').then((mod) => mod.Button), { ssr: false });
 const Chip = dynamic(() => import('primereact/chip').then((mod) => mod.Chip), { ssr: false });
@@ -50,7 +51,7 @@ const AgentPropertyCard = ({ delivery, onOpenNotes, onShowingAction, leadId, isL
     const property = delivery.property;
     if (!property) return null;
 
-    const imageUrl = getCleanImageUrl(property) || fallbackImage;
+    const imageUrl = ikUrl(getCleanImageUrl(property)) || fallbackImage;
     const unitSuffix = property.unit_number ? ` #${property.unit_number}` : '';
     const address = `${property.address}${unitSuffix}, ${property.city}, CA ${property.zip_code}`;
     const reaction = delivery.reaction;

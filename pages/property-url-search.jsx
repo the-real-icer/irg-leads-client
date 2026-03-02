@@ -19,10 +19,13 @@ import showToast from '../utils/showToast';
 
 // IRG API - HOOKS - INFO - UTILS
 import IrgApi from '../assets/irgApi';
+import ikUrl from '../utils/imageKit';
+import { usePropertyFallbackImage } from '../utils/propertyImageFallback';
 
 const PropertyUrlSearch = () => {
     // __________________Redux State______________________\\
     const isLoggedIn = useSelector((state) => state.isLoggedIn);
+    const fallbackImage = usePropertyFallbackImage();
 
     // ________________Component State_________________\\
     const [value1, setValue1] = useState('');
@@ -105,8 +108,8 @@ const PropertyUrlSearch = () => {
 
     const goodImage =
         home?.listing_pictures?.length > 0
-            ? home.listing_pictures[0].media_url.replace(/http:/, 'https:')
-            : '/No-Photo-Light-Large.jpg';
+            ? ikUrl(home.listing_pictures[0].media_url.replace(/http:/, 'https:'))
+            : fallbackImage;
 
     return (
         <MainLayout>
@@ -144,6 +147,11 @@ const PropertyUrlSearch = () => {
                                         src={goodImage}
                                         alt={home.address}
                                         className="prop_url_card_img"
+                                        onError={(e) => {
+                                            if (e.currentTarget.src !== fallbackImage) {
+                                                e.currentTarget.src = fallbackImage;
+                                            }
+                                        }}
                                     />
                                 </Link>
                                 <div className="prop_url_card_right">
