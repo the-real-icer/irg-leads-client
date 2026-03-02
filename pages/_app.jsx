@@ -17,8 +17,8 @@ import PropTypes from 'prop-types';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-// Google Login
-import { GoogleOAuthProvider } from '@react-oauth/google';
+// Auth
+import { SessionProvider } from 'next-auth/react';
 
 // Design System
 import '../styles/design-tokens.css';
@@ -44,7 +44,6 @@ const MyApp = ({ Component, ...rest }) => {
     // _________________________________Constants________________________\\
     // Redux STORE
     const { store, props } = wrapper.useWrappedStore(rest);
-    const CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
     const interceptorSet = useRef(false);
 
     // Set up 401 interceptor once on mount
@@ -59,7 +58,11 @@ const MyApp = ({ Component, ...rest }) => {
         <div className={`${inter.variable} font-sans`}>
             <Provider store={store}>
                 <PersistGate persistor={store.__persistor}>
-                    <GoogleOAuthProvider clientId={CLIENT_ID}>
+                    <SessionProvider
+                        session={props.pageProps.session}
+                        refetchInterval={0}
+                        refetchOnWindowFocus={false}
+                    >
                         <ToastContainer
                             position="top-left"
                             autoClose={4000}
@@ -72,7 +75,7 @@ const MyApp = ({ Component, ...rest }) => {
                             pauseOnHover
                         />
                         <Component {...props.pageProps} />
-                    </GoogleOAuthProvider>
+                    </SessionProvider>
                 </PersistGate>
             </Provider>
         </div>

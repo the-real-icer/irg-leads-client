@@ -1,16 +1,13 @@
 // React & NextJS
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
-import dynamic from 'next/dynamic';
 import showToast from '../utils/showToast';
 
 // Redux
-import { useDispatch, useStore } from 'react-redux';
+import { useDispatch, useStore, useSelector } from 'react-redux';
 
-// Third Party Components
-const GoogleLogin = dynamic(() => import('@react-oauth/google').then((mod) => mod.GoogleLogin), {
-    ssr: false,
-});
+// Auth
+import { signIn, useSession, signOut } from 'next-auth/react';
 
 import MainHead from '../components/layout/MainHead/MainHead';
 
@@ -23,72 +20,109 @@ const Index = () => {
     const router = useRouter();
     const dispatch = useDispatch();
     const store = useStore();
-    const [loginAttempted, setLoginAttempted] = useState(false);
+    const isLoggedIn = useSelector((state) => state.isLoggedIn);
 
-    // Client-side device detection — runs after hydration to avoid SSR window access
-    const [authConfig, setAuthConfig] = useState({
-        uxMode: 'popup',
-        loginUri: undefined,
-        ready: false,
-    });
+    // next-auth session — only used to capture the Google id_token
+    const { data: session, status } = useSession();
 
+    const [isProcessing, setIsProcessing] = useState(false);
+    const [hasProcessed, setHasProcessed] = useState(false);
+
+    // If user is already logged in (Redux), redirect to dashboard
     useEffect(() => {
-        const mobile =
-            /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-                navigator.userAgent,
-            ) ||
-            // iPadOS 13+ reports desktop Safari UA — detect via touch support
-            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        if (isLoggedIn) {
+            router.replace('/dashboard');
+        }
+    }, [isLoggedIn, router]);
 
-        setAuthConfig({
-            uxMode: mobile ? 'redirect' : 'popup',
-            loginUri: mobile
-                ? `${window.location.origin}/api/auth/google-callback`
-                : undefined,
-            ready: true,
-        });
+    /**
+     * Core login flow:
+     * When next-auth session has a googleIdToken, POST it to the CRM
+     * backend for verification + agent lookup. This is the same payload
+     * the backend already expects — zero backend changes needed.
+     */
+    const processLogin = useCallback(
+        async (googleIdToken) => {
+            if (isProcessing || hasProcessed) return;
+            setIsProcessing(true);
 
-        console.log('[Google Auth] Device detection:', {
-            mobile,
-            userAgent: navigator.userAgent,
-            platform: navigator.platform,
-            maxTouchPoints: navigator.maxTouchPoints,
-        });
-    }, []);
-
-    const responseGoogle = async (credentialResponse) => {
-        try {
-            const res = await IrgApi.post(
-                '/auth/google-login',
-                { credential: credentialResponse.credential },
-                { headers: { 'Content-Type': 'application/json' } },
-            );
-
-            const { token } = res.data;
-            const agent = res.data.data.user;
-
-            dispatch(addAgent(agent));
-            dispatch(loginUser(token));
-
-            // Flush redux-persist to localStorage before navigating
             try {
-                await store.__persistor?.flush();
-            } catch (e) {
-                console.warn('[Google Auth] persistor.flush failed:', e);
+                const res = await IrgApi.post(
+                    '/auth/google-login',
+                    { credential: googleIdToken },
+                    { headers: { 'Content-Type': 'application/json' } },
+                );
+
+                const { token } = res.data;
+                const agent = res.data.data.user;
+
+                dispatch(addAgent(agent));
+                dispatch(loginUser(token));
+
+                // Flush redux-persist to localStorage before navigating
+                try {
+                    await store.__persistor?.flush();
+                } catch (e) {
+                    console.warn('[Auth] persistor.flush failed:', e);
+                }
+
+                setHasProcessed(true);
+
+                // Navigate first, then clean up next-auth session
+                router.push('/dashboard');
+                showToast('success', 'Successfully logged in!', 'Login Success');
+
+                // Destroy next-auth session — its job is done, real auth is in Redux
+                signOut({ redirect: false }).catch(() => {});
+            } catch (err) {
+                const msg =
+                    err.response?.data?.message || 'Login failed. Please try again.';
+                showToast('error', msg, 'Error');
+
+                // Clear next-auth session so user can retry
+                await signOut({ redirect: false }).catch(() => {});
+                setIsProcessing(false);
             }
+        },
+        [isProcessing, hasProcessed, dispatch, store, router],
+    );
 
-            router.push('/dashboard');
-            showToast('success', 'Successfully logged in!', 'Login Success');
-        } catch (err) {
-            showToast('error', 'Login failed. Please try again.', 'Error');
+    // Watch for next-auth session with Google id_token
+    useEffect(() => {
+        if (
+            status === 'authenticated' &&
+            session?.googleIdToken &&
+            !isProcessing &&
+            !hasProcessed &&
+            !isLoggedIn
+        ) {
+            processLogin(session.googleIdToken);
         }
+    }, [status, session, isProcessing, hasProcessed, isLoggedIn, processLogin]);
+
+    // Handle next-auth errors passed via query param (?error=...)
+    useEffect(() => {
+        const { error } = router.query;
+        if (error) {
+            const messages = {
+                OAuthSignin: 'Could not start Google sign-in.',
+                OAuthCallback: 'Google sign-in was cancelled or failed.',
+                OAuthCreateAccount: 'Could not create account.',
+                Callback: 'Sign-in callback error.',
+                Default: 'An authentication error occurred.',
+            };
+            showToast('error', messages[error] || messages.Default, 'Sign-In Error');
+            // Clean the error from the URL
+            router.replace('/', undefined, { shallow: true });
+        }
+    }, [router.query.error]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    const handleGoogleLogin = () => {
+        signIn('google', { callbackUrl: '/' });
     };
 
-    const onError = () => {
-        if (loginAttempted) {
-            showToast('error', 'Google login failed. Please try again.', 'Error');
-        }
-    };
+    // Show loading while processing the CRM login after Google auth returns
+    const showLoading = isProcessing || (status === 'authenticated' && !hasProcessed);
 
     return (
         <>
@@ -100,16 +134,72 @@ const Index = () => {
                         alt="Ice Realty Group Logo"
                         className="login__page__form__logo"
                     />
-                    <div className="login__page__form__form" onClick={() => setLoginAttempted(true)}>
-                        {authConfig.ready ? (
-                            <GoogleLogin
-                                onSuccess={responseGoogle}
-                                onError={onError}
-                                ux_mode={authConfig.uxMode}
-                                login_uri={authConfig.loginUri}
-                            />
+                    <div className="login__page__form__form">
+                        {showLoading ? (
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    padding: '10px 24px',
+                                    fontSize: '14px',
+                                    color: '#6b7280',
+                                }}
+                            >
+                                Signing you in...
+                            </div>
                         ) : (
-                            <div style={{ height: '44px', width: '220px' }} />
+                            <button
+                                type="button"
+                                onClick={handleGoogleLogin}
+                                disabled={status === 'loading'}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '12px',
+                                    padding: '10px 24px',
+                                    fontSize: '14px',
+                                    fontWeight: 500,
+                                    fontFamily:
+                                        "'Google Sans', Roboto, Arial, sans-serif",
+                                    color: '#1f1f1f',
+                                    backgroundColor: '#fff',
+                                    border: '1px solid #dadce0',
+                                    borderRadius: '4px',
+                                    cursor:
+                                        status === 'loading'
+                                            ? 'not-allowed'
+                                            : 'pointer',
+                                    height: '40px',
+                                    minWidth: '220px',
+                                    justifyContent: 'center',
+                                }}
+                            >
+                                <svg
+                                    width="18"
+                                    height="18"
+                                    viewBox="0 0 18 18"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                >
+                                    <path
+                                        fill="#4285F4"
+                                        d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"
+                                    />
+                                    <path
+                                        fill="#34A853"
+                                        d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"
+                                    />
+                                    <path
+                                        fill="#FBBC05"
+                                        d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.997 8.997 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"
+                                    />
+                                    <path
+                                        fill="#EA4335"
+                                        d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"
+                                    />
+                                </svg>
+                                Sign in with Google
+                            </button>
                         )}
                     </div>
                 </div>

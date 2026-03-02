@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useSelector, useDispatch } from 'react-redux';
 
+import { signOut as nextAuthSignOut } from 'next-auth/react';
 import { RESET_STORE } from '../../../store/actions/types';
 import useTheme from '../../../hooks/useTheme';
 import PropertyQueueDialog from '../../PropertyQueue/PropertyQueueDialog';
@@ -47,6 +48,8 @@ const TopBar = ({ onMobileMenuToggle }) => {
     const handleSignOut = () => {
         setProfileOpen(false);
         dispatch({ type: RESET_STORE });
+        // Clean up any lingering next-auth session (defensive)
+        nextAuthSignOut({ redirect: false }).catch(() => {});
         router.push('/');
     };
 
