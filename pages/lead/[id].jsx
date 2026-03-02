@@ -134,6 +134,10 @@ const Lead = () => {
     const [enrollingDrip, setEnrollingDrip] = useState(false);
     const [loadingCampaigns, setLoadingCampaigns] = useState(false);
 
+    // Lead Type inline edit state
+    const [editingLeadType, setEditingLeadType] = useState(false);
+    const [savingLeadType, setSavingLeadType] = useState(false);
+
     // Quill Editor Configuration
     const quillModules = {
         toolbar: [
@@ -274,6 +278,46 @@ const Lead = () => {
             month: '2-digit',
             year: 'numeric',
         });
+    };
+
+    const LEAD_TYPE_OPTIONS = [
+        { label: 'Buyer', value: 'Buyer' },
+        { label: 'Seller', value: 'Seller' },
+        { label: 'Buyer & Seller', value: 'Buyer & Seller' },
+    ];
+
+    const updateLeadType = async (newType) => {
+        if (newType === lead?.backend_profile?.lead_type) {
+            setEditingLeadType(false);
+            return;
+        }
+
+        const previousLead = { ...lead };
+        setSavingLeadType(true);
+
+        // Optimistic update
+        setLead((prev) => ({
+            ...prev,
+            backend_profile: { ...prev.backend_profile, lead_type: newType },
+        }));
+        setEditingLeadType(false);
+
+        try {
+            const response = await IrgApi.get(
+                `/agents/change-lead-type/${encodeURIComponent(newType)}/${leadId}`,
+                { headers: { Authorization: `Bearer ${isLoggedIn}` } }
+            );
+            if (response.data.status === 'success') {
+                setLead(response.data.data);
+                dispatch({ type: UPDATE_SINGLE_LEAD, payload: response.data.data });
+                showToast('success', `Lead type updated to ${newType}`, 'Updated');
+            }
+        } catch (error) {
+            setLead(previousLead);
+            showToast('error', error.response?.data?.message || 'Failed to update lead type', 'Error');
+        } finally {
+            setSavingLeadType(false);
+        }
     };
 
     const STATUS_OPTIONS = [
@@ -1046,9 +1090,36 @@ const Lead = () => {
                                         )}
                                     </div>
                                     <div className="lead-profile-meta">
-                                        <span>
+                                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                                             <strong>Lead Type:</strong>{' '}
-                                            {lead?.backend_profile?.lead_type || 'Not set'}
+                                            {editingLeadType ? (
+                                                <Dropdown
+                                                    value={lead?.backend_profile?.lead_type || null}
+                                                    options={LEAD_TYPE_OPTIONS}
+                                                    onChange={(e) => updateLeadType(e.value)}
+                                                    placeholder="Select type..."
+                                                    autoFocus
+                                                    onHide={() => setEditingLeadType(false)}
+                                                    style={{ minWidth: '140px', fontSize: '0.875rem' }}
+                                                />
+                                            ) : (
+                                                <span
+                                                    onClick={() => setEditingLeadType(true)}
+                                                    style={{
+                                                        cursor: 'pointer',
+                                                        borderBottom: '1px dashed hsl(var(--foreground-muted) / 0.4)',
+                                                        paddingBottom: '1px',
+                                                    }}
+                                                    title="Click to edit lead type"
+                                                >
+                                                    {savingLeadType ? 'Saving...' : (lead?.backend_profile?.lead_type || 'Not set')}
+                                                    {' '}
+                                                    <i
+                                                        className="pi pi-pencil"
+                                                        style={{ fontSize: '0.7rem', opacity: 0.5 }}
+                                                    />
+                                                </span>
+                                            )}
                                         </span>
                                         <span className="meta-divider">•</span>
                                         <span>
