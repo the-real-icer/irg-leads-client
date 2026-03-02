@@ -25,10 +25,11 @@ import MainLayout from '../../components/layout/MainLayout';
 // API & Utils
 import IrgApi from '../../assets/irgApi';
 import showToast from '../../utils/showToast';
+import getLeadDisplayName from '../../utils/getLeadDisplayName';
 
 const Calendar = () => {
     const isLoggedIn = useSelector((state) => state.isLoggedIn);
-    const allLeads = useSelector((state) => state.allLeadsPage);
+    const allLeads = useSelector((state) => state.allLeadsPage.leads);
 
     const calendarRef = useRef(null);
     const [transactions, setTransactions] = useState([]);
@@ -373,7 +374,7 @@ const Calendar = () => {
                         .forEach((reminder) => {
                             events.push({
                                 id: `reminder-${reminder.id}`,
-                                title: `📋 ${lead.first_name} ${lead.last_name}: ${reminder.description}`,
+                                title: `📋 ${getLeadDisplayName(lead)}: ${reminder.description}`,
                                 start: reminder.reminder_date,
                                 allDay: true,
                                 resourceId: 'leads', // Assign to Lead Follow Ups section
@@ -383,7 +384,7 @@ const Calendar = () => {
                                 extendedProps: {
                                     type: 'lead-reminder',
                                     leadId: lead._id,
-                                    leadName: `${lead.first_name} ${lead.last_name}`,
+                                    leadName: getLeadDisplayName(lead),
                                     reminderType: reminder.type,
                                     description: reminder.description,
                                 },
@@ -808,7 +809,7 @@ const Calendar = () => {
                             options={
                                 Array.isArray(allLeads)
                                     ? allLeads.map((lead) => ({
-                                          label: `${lead.first_name} ${lead.last_name}`,
+                                          label: getLeadDisplayName(lead),
                                           value: lead._id,
                                       }))
                                     : []

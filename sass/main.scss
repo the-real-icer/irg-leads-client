@@ -148,6 +148,103 @@
         color: hsl(var(--primary));
     }
 
+    .p-dropdown .p-dropdown-label.p-placeholder {
+        color: hsl(var(--foreground-muted));
+    }
+
+    .p-dropdown-panel .p-dropdown-header {
+        background: hsl(var(--surface-elevated));
+        border-bottom-color: hsl(var(--border));
+        color: hsl(var(--foreground));
+    }
+
+    .p-dropdown-panel .p-dropdown-header .p-dropdown-filter {
+        background: hsl(var(--surface));
+        border-color: hsl(var(--border));
+        color: hsl(var(--foreground));
+    }
+
+    .p-dropdown-panel .p-dropdown-header .p-dropdown-filter-icon {
+        color: hsl(var(--foreground-muted));
+    }
+
+    .p-dropdown.p-disabled {
+        background: hsl(var(--muted));
+        opacity: 0.6;
+    }
+
+    // MultiSelect
+    .p-multiselect {
+        background: hsl(var(--surface));
+        border-color: hsl(var(--border));
+        color: hsl(var(--foreground));
+    }
+
+    .p-multiselect:not(.p-disabled):hover {
+        border-color: hsl(var(--primary));
+    }
+
+    .p-multiselect .p-multiselect-label {
+        color: hsl(var(--foreground));
+    }
+
+    .p-multiselect .p-multiselect-label.p-placeholder {
+        color: hsl(var(--foreground-muted));
+    }
+
+    .p-multiselect .p-multiselect-trigger {
+        color: hsl(var(--foreground-muted));
+    }
+
+    .p-multiselect-panel {
+        background: hsl(var(--surface));
+        border-color: hsl(var(--border));
+    }
+
+    .p-multiselect-panel .p-multiselect-header {
+        background: hsl(var(--surface-elevated));
+        border-bottom-color: hsl(var(--border));
+        color: hsl(var(--foreground));
+    }
+
+    .p-multiselect-panel .p-multiselect-header .p-multiselect-close {
+        color: hsl(var(--foreground-muted));
+    }
+
+    .p-multiselect-panel .p-multiselect-header .p-multiselect-close:enabled:hover {
+        background: hsl(var(--accent));
+        color: hsl(var(--foreground));
+    }
+
+    .p-multiselect-panel .p-multiselect-header .p-multiselect-filter-container .p-inputtext {
+        background: hsl(var(--surface));
+        border-color: hsl(var(--border));
+        color: hsl(var(--foreground));
+    }
+
+    .p-multiselect-panel .p-multiselect-items .p-multiselect-item {
+        color: hsl(var(--foreground));
+    }
+
+    .p-multiselect-panel .p-multiselect-items .p-multiselect-item:hover {
+        background: hsl(var(--accent));
+        color: hsl(var(--accent-foreground));
+    }
+
+    .p-multiselect-panel .p-multiselect-items .p-multiselect-item.p-highlight {
+        background: hsl(var(--primary) / 0.15);
+        color: hsl(var(--primary));
+    }
+
+    .p-multiselect .p-multiselect-token {
+        background: hsl(var(--primary) / 0.15);
+        color: hsl(var(--primary));
+    }
+
+    .p-multiselect .p-multiselect-token .p-multiselect-token-icon {
+        color: hsl(var(--primary));
+    }
+
     // Dropdown / MultiSelect / Input focus rings
     // saga-blue theme uses #a6d5fa which looks white on dark backgrounds
     .p-dropdown:not(.p-disabled).p-focus {
@@ -499,5 +596,126 @@
         background: hsl(var(--surface-elevated));
         color: hsl(var(--foreground));
         box-shadow: 0 2px 8px hsl(var(--shadow-color) / 0.2);
+    }
+}
+
+// ============================================
+// React-Toastify — Design System Overrides
+// ============================================
+
+.Toastify__toast-container--top-left {
+    top: 20px;
+    left: 20px;
+    width: auto;
+    min-width: 320px;
+    max-width: 420px;
+}
+
+.Toastify__toast {
+    background: hsl(var(--surface));
+    border: 1px solid hsl(var(--border));
+    border-radius: 6px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+    padding: 14px 16px;
+    min-height: unset;
+    font-family: inherit;
+    cursor: default;
+    color: hsl(var(--foreground));
+}
+
+.Toastify__toast-body {
+    color: hsl(var(--foreground));
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.5;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.Toastify__close-button {
+    color: hsl(var(--foreground-muted));
+    opacity: 0.7;
+    align-self: flex-start;
+}
+
+.Toastify__close-button:hover {
+    opacity: 1;
+    color: hsl(var(--foreground));
+}
+
+.Toastify__progress-bar {
+    height: 2px;
+    border-radius: 0 0 6px 6px;
+}
+
+// Success
+.Toastify__toast--success {
+    border-left: 3px solid hsl(var(--success));
+}
+
+.Toastify__toast--success .Toastify__progress-bar {
+    background: hsl(var(--success));
+}
+
+.Toastify__toast--success .Toastify__toast-icon svg {
+    fill: hsl(var(--success));
+}
+
+// Error
+.Toastify__toast--error {
+    border-left: 3px solid hsl(var(--danger));
+}
+
+.Toastify__toast--error .Toastify__progress-bar {
+    background: hsl(var(--danger));
+}
+
+.Toastify__toast--error .Toastify__toast-icon svg {
+    fill: hsl(var(--danger));
+}
+
+// Warning
+.Toastify__toast--warning {
+    border-left: 3px solid hsl(var(--warning));
+}
+
+.Toastify__toast--warning .Toastify__progress-bar {
+    background: hsl(var(--warning));
+}
+
+.Toastify__toast--warning .Toastify__toast-icon svg {
+    fill: hsl(var(--warning));
+}
+
+// Info
+.Toastify__toast--info {
+    border-left: 3px solid hsl(var(--primary));
+}
+
+.Toastify__toast--info .Toastify__progress-bar {
+    background: hsl(var(--primary));
+}
+
+.Toastify__toast--info .Toastify__toast-icon svg {
+    fill: hsl(var(--primary));
+}
+
+// Dark mode
+.dark .Toastify__toast {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+// Mobile
+@media (max-width: 480px) {
+    .Toastify__toast-container--top-left {
+        top: 12px;
+        left: 12px;
+        right: 12px;
+        width: auto;
+        min-width: unset;
+        max-width: unset;
     }
 }

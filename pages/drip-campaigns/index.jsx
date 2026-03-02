@@ -16,6 +16,7 @@ import MainLayout from '../../components/layout/MainLayout';
 import CampaignPreviewDialog from '../../components/DripCampaigns/CampaignPreviewDialog';
 import IrgApi from '../../assets/irgApi';
 import showToast from '../../utils/showToast';
+import getLeadDisplayName from '../../utils/getLeadDisplayName';
 import { fetchLeads } from '../../store/actions';
 import { UPDATE_SINGLE_LEAD } from '../../store/actions/types';
 
@@ -60,7 +61,7 @@ const getTypeBadgeColor = (type) => {
 const DripCampaigns = () => {
     const isLoggedIn = useSelector((state) => state.isLoggedIn);
     const agent = useSelector((state) => state.agent);
-    const allLeads = useSelector((state) => state.allLeadsPage);
+    const allLeads = useSelector((state) => state.allLeadsPage.leads);
     const router = useRouter();
     const dispatch = useDispatch();
 
@@ -145,9 +146,9 @@ const DripCampaigns = () => {
         const query = leadSearch.toLowerCase().trim();
         return (allLeads || [])
             .filter((lead) => {
-                const fullName = `${lead.first_name || ''} ${lead.last_name || ''}`.toLowerCase();
+                const displayName = getLeadDisplayName(lead).toLowerCase();
                 const email = (lead.email || '').toLowerCase();
-                return fullName.includes(query) || email.includes(query);
+                return displayName.includes(query) || email.includes(query);
             })
             .slice(0, 8);
     }, [leadSearch, allLeads]);
@@ -166,7 +167,7 @@ const DripCampaigns = () => {
         setAssignError('');
         if (assignDialogCampaign && checkAlreadyEnrolled(lead, assignDialogCampaign)) {
             setAssignError(
-                `${lead.first_name} is already enrolled in "${assignDialogCampaign.name}"`
+                `${getLeadDisplayName(lead)} is already enrolled in "${assignDialogCampaign.name}"`
             );
         }
     }, [assignDialogCampaign]);
@@ -191,7 +192,7 @@ const DripCampaigns = () => {
             const message = err.response?.data?.message || '';
             if (message.toLowerCase().includes('already enrolled')) {
                 setAssignError(
-                    `${selectedLead.first_name} is already enrolled in "${assignDialogCampaign.name}"`
+                    `${getLeadDisplayName(selectedLead)} is already enrolled in "${assignDialogCampaign.name}"`
                 );
             } else {
                 setAssignError(message || 'Something went wrong. Please try again.');
@@ -616,17 +617,19 @@ const DripCampaigns = () => {
                                                 color: 'hsl(var(--foreground))',
                                             }}
                                         >
-                                            {selectedLead.first_name} {selectedLead.last_name}
+                                            {getLeadDisplayName(selectedLead)}
                                         </span>
-                                        <span
-                                            style={{
-                                                fontSize: '13px',
-                                                color: 'hsl(var(--muted-foreground))',
-                                                marginLeft: '8px',
-                                            }}
-                                        >
-                                            {selectedLead.email}
-                                        </span>
+                                        {selectedLead.email && getLeadDisplayName(selectedLead) !== selectedLead.email && (
+                                            <span
+                                                style={{
+                                                    fontSize: '13px',
+                                                    color: 'hsl(var(--muted-foreground))',
+                                                    marginLeft: '8px',
+                                                }}
+                                            >
+                                                {selectedLead.email}
+                                            </span>
+                                        )}
                                     </div>
                                     <button
                                         onClick={() => {
@@ -721,16 +724,18 @@ const DripCampaigns = () => {
                                                     display: 'block',
                                                 }}
                                             >
-                                                {lead.first_name} {lead.last_name}
+                                                {getLeadDisplayName(lead)}
                                             </span>
-                                            <span
-                                                style={{
-                                                    fontSize: '13px',
-                                                    color: 'hsl(var(--muted-foreground))',
-                                                }}
-                                            >
-                                                {lead.email}
-                                            </span>
+                                            {lead.email && getLeadDisplayName(lead) !== lead.email && (
+                                                <span
+                                                    style={{
+                                                        fontSize: '13px',
+                                                        color: 'hsl(var(--muted-foreground))',
+                                                    }}
+                                                >
+                                                    {lead.email}
+                                                </span>
+                                            )}
                                         </div>
                                     ))}
                                 </div>

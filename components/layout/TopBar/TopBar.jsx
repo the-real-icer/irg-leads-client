@@ -47,9 +47,6 @@ const TopBar = ({ onMobileMenuToggle }) => {
     const handleSignOut = () => {
         setProfileOpen(false);
         dispatch({ type: RESET_STORE });
-        if (typeof window !== 'undefined') {
-            localStorage.removeItem('googleCredential');
-        }
         router.push('/');
     };
 

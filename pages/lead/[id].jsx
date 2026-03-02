@@ -69,10 +69,11 @@ import IrgApi from '../../assets/irgApi';
 
 // Utils
 import showToast from '../../utils/showToast';
+import getLeadDisplayName, { getLeadInitials } from '../../utils/getLeadDisplayName';
 
 const Lead = () => {
     // __________________Redux State______________________\\
-    const leads = useSelector((state) => state.allLeadsPage);
+    const leads = useSelector((state) => state.allLeadsPage.leads);
     const isLoggedIn = useSelector((state) => state.isLoggedIn);
     const agent = useSelector((state) => state.agent);
     const dispatch = useDispatch();
@@ -166,9 +167,11 @@ const Lead = () => {
 
     const router = useRouter();
 
-    const leadId = router.asPath.replace(/\/lead\//, '');
+    const { id: leadId } = router.query;
 
     useEffect(() => {
+        if (!router.isReady || !leadId || !isLoggedIn) return;
+
         // Instant: show cached Redux data while API fetch is in-flight
         const cached = leads.find((l) => l._id === leadId);
         if (cached) {
@@ -197,10 +200,10 @@ const Lead = () => {
             }
         };
 
-        if (leadId && isLoggedIn) fetchLead();
+        fetchLead();
 
         return () => setLead({});
-    }, [leadId]); // eslint-disable-line
+    }, [router.isReady, leadId]); // eslint-disable-line
 
     useEffect(() => {
         if (lead?.backend_profile?.lead_category) {
@@ -316,11 +319,7 @@ const Lead = () => {
         }
     };
 
-    const getInitials = () => {
-        const first = lead?.first_name?.[0] || '';
-        const last = lead?.last_name?.[0] || '';
-        return `${first}${last}`.toUpperCase();
-    };
+    const getInitials = () => getLeadInitials(lead);
 
     // Calculate average price of viewed homes
     const getAveragePrice = () => {
@@ -658,7 +657,7 @@ const Lead = () => {
             );
 
             if (response.data.status === 'success') {
-                showToast('success', `Email sent successfully to ${lead.first_name}!`, 'Success');
+                showToast('success', `Email sent successfully to ${getLeadDisplayName(lead)}!`, 'Success');
                 setEmailSubject('');
                 setEmailBody(getInitialEmailBody());
                 setShowSendEmailDialog(false);
@@ -705,7 +704,7 @@ const Lead = () => {
             );
 
             if (response.data.status === 'success') {
-                showToast('success', `${lead.first_name} ${lead.last_name} added to Google Contacts!`, 'Success');
+                showToast('success', `${getLeadDisplayName(lead)} added to Google Contacts!`, 'Success');
             }
         } catch (error) {
             // Check if it's an authorization error (Google not connected)
@@ -971,7 +970,7 @@ const Lead = () => {
                                 <div className="lead-profile-info">
                                     <div className="lead-profile-name-row">
                                         <h2 className="lead-profile-name">
-                                            {lead?.first_name} {lead?.last_name}
+                                            {getLeadDisplayName(lead)}
                                         </h2>
                                         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                                             <div className="lead-status-pill" ref={statusRef}>
@@ -2047,7 +2046,7 @@ const Lead = () => {
                             autoFocus
                         />
                         <small style={{ display: 'block', marginTop: '0.5rem', color: 'hsl(var(--foreground-muted))' }}>
-                            Document key points from your conversation with {lead?.first_name}
+                            Document key points from your conversation with {getLeadDisplayName(lead)}
                         </small>
                     </div>
                 </Dialog>
@@ -2104,7 +2103,7 @@ const Lead = () => {
                             autoFocus
                         />
                         <small style={{ display: 'block', marginTop: '0.5rem', color: 'hsl(var(--foreground-muted))' }}>
-                            Add important information or observations about {lead?.first_name}
+                            Add important information or observations about {getLeadDisplayName(lead)}
                         </small>
                     </div>
                 </Dialog>
@@ -2218,7 +2217,7 @@ const Lead = () => {
                                 />
                             </div>
                             <small style={{ display: 'block', marginTop: '0.5rem', color: 'hsl(var(--foreground-muted))' }}>
-                                This email will be sent to {lead?.first_name} {lead?.last_name} at {lead?.email}
+                                This email will be sent to {getLeadDisplayName(lead)} at {lead?.email}
                             </small>
                         </div>
                     </div>
@@ -2337,7 +2336,7 @@ const Lead = () => {
                                 autoFocus
                             />
                             <small style={{ display: 'block', marginTop: '0.5rem', color: 'hsl(var(--foreground-muted))' }}>
-                                Add notes about what you need to do or discuss with {lead?.first_name}
+                                Add notes about what you need to do or discuss with {getLeadDisplayName(lead)}
                             </small>
                         </div>
                     </div>
@@ -2511,7 +2510,7 @@ const Lead = () => {
                             filterPlaceholder="Search campaigns..."
                         />
                         <small style={{ display: 'block', marginTop: '0.5rem', color: 'hsl(var(--foreground-muted))' }}>
-                            Choose a drip campaign to enroll {lead?.first_name} in. Emails will be sent automatically on schedule.
+                            Choose a drip campaign to enroll {getLeadDisplayName(lead)} in. Emails will be sent automatically on schedule.
                         </small>
                     </div>
                 </Dialog>

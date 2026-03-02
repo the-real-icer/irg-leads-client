@@ -6,16 +6,10 @@
     margin-bottom: 1rem;
     margin-left: 0.5rem;
 
-    &-light {
-        background-color: #fff;
+    &-light,
+    &-dark {
+        background-color: hsl(var(--surface));
     }
-
-    // &-dark {
-
-    //     @media (max-width: 700px) {
-    //         background-color: $dark-theme-background-darkest;
-    //     }
-    // }
 
     @media (max-width: 1600px) {
         margin-left: .25rem;
@@ -42,7 +36,7 @@
             padding: 4px 0px;
             transition: opacity 0.2s ease 0s;
             overflow: hidden;
-            background-color: #fff;
+            background-color: hsl(var(--surface));
             display: flex;
             flex-direction: column;
             padding: 1rem 1rem;
@@ -64,29 +58,17 @@
             margin: 0 0.25rem;
         }
 
-        &-light {
-            background: #fff;
+        &-light,
+        &-dark {
+            background: hsl(var(--surface));
         }
-
-        // &-dark {
-        //     background: $dark-theme-background-darkest;
-        // }
-        
-
-        // @media (max-width: 950px) {
-        //     font-size: 1.2rem;
-        //     // width: 10rem;
-        // }
 
         &__Panel {
 
-            &-light {
-                background: #fff;
+            &-light,
+            &-dark {
+                background: hsl(var(--surface));
             }
-
-            // &-dark {
-            //     background: $dark-theme-background-darkest;
-            // }
         }
     }
 
@@ -132,23 +114,17 @@
         //     font-size: 1.2rem;
         // }
 
-        &-light {
-            background: #fff;
+        &-light,
+        &-dark {
+            background: hsl(var(--surface));
         }
-
-        // &-dark {
-        //     background: $dark-theme-background-darkest;
-        // }
 
         &__Panel {
 
-            &-light {
-                background: #fff;
+            &-light,
+            &-dark {
+                background: hsl(var(--surface));
             }
-
-            // &-dark {
-            //     background: $dark-theme-background-darkest;
-            // }
         }
 
         &-Item {
@@ -164,7 +140,7 @@
                 border-radius: 3px;
                 display: inline-flex;
                 margin-right: 0.5rem;
-                border: 1px solid #ced4da;
+                border: 1px solid hsl(var(--border));
                 font-size: 1.3rem;
                 font-weight: 600;
             
@@ -176,7 +152,7 @@
             &__Label {
                 font-size: 1rem;
                 font-weight: 600;
-                color: #6c757d;
+                color: hsl(var(--foreground-muted));
                 padding: 0.25rem 0.5rem;
             
                 // @media (max-width: 950px) {
@@ -192,7 +168,8 @@
     width: 40rem;
     padding-top: 1rem;
     padding-bottom: 2rem;
-    background: #fff;
+    background: hsl(var(--surface));
+    color: hsl(var(--foreground));
 
     @media (max-width: 1600px) {
         overflow-y: scroll;
@@ -207,15 +184,11 @@
     }
 
 
-    &-light {
-        background: #fff;
-        color: black;
+    &-light,
+    &-dark {
+        background: hsl(var(--surface));
+        color: hsl(var(--foreground));
     }
-
-    // &-dark {
-    //     background: $dark-theme-background-light;
-    //     color: $dark-theme-text-primary;
-    // }
 
 
     &__row {

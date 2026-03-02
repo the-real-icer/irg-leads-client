@@ -45,6 +45,8 @@ const Address = () => {
     const { address } = router.query;
 
     useEffect(() => {
+        if (!address || !isLoggedIn) return;
+
         const getProperty = async () => {
             try {
                 const res = await IrgApi.get(`/mlsproperties/address/${address}`, {

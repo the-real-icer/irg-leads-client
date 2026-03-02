@@ -1,4 +1,5 @@
 // React & NextJS
+import { useState } from 'react';
 import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
 import showToast from '../utils/showToast';
@@ -21,13 +22,13 @@ const Index = () => {
     // _____________________Hooks_____________________\\
     const router = useRouter();
     const dispatch = useDispatch();
+    const [loginAttempted, setLoginAttempted] = useState(false);
 
     const responseGoogle = async (response) => {
         // Guard client-side operations
         if (typeof window === 'undefined') return;
 
         try {
-            window.localStorage.setItem('googleCredential', JSON.stringify(response.credential));
             const res = await IrgApi.post(
                 '/auth/google-login',
                 { credential: response.credential, clientId: response.clientId },
@@ -49,7 +50,11 @@ const Index = () => {
 
     const onError = () => {
         if (typeof window === 'undefined') return;
-        showToast('error', 'Google login failed.', 'Error');
+        if (loginAttempted) {
+            showToast('error', 'Google login failed. Please try again.', 'Error');
+        } else {
+            console.warn('Google GIS background error (non-critical)'); // eslint-disable-line
+        }
     };
 
     return (
@@ -62,12 +67,10 @@ const Index = () => {
                         alt="Ice Realty Group Logo"
                         className="login__page__form__logo"
                     />
-                    <div className="login__page__form__form">
+                    <div className="login__page__form__form" onClick={() => setLoginAttempted(true)}>
                         <GoogleLogin
                             onSuccess={responseGoogle}
                             onError={onError}
-                            useOneTap // Optional: Enables one-tap sign-in (new protocol feature)
-                            auto_select
                             scope="openid email profile"
                         />
                     </div>

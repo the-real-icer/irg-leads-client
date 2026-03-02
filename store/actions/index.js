@@ -1,4 +1,5 @@
 import IrgApi from '../../assets/irgApi';
+import showToast from '../../utils/showToast';
 
 import {
     ADD_AGENT,
@@ -7,7 +8,9 @@ import {
     CHANGE_CATEGORY,
     GET_LEAD_PROFILE,
     ADD_ACTION,
-    FETCH_LEADS,
+    FETCH_LEADS_START,
+    FETCH_LEADS_SUCCESS,
+    FETCH_LEADS_ERROR,
     UPDATE_LEADS,
     LOGIN_AGENT,
     LOGOUT_AGENT,
@@ -94,6 +97,8 @@ export function addAction(actions) {
 // Fetch Leads
 export function fetchLeads(agentId, isLoggedIn) {
     return async function fetchLeadsThunk(dispatch) {
+        dispatch({ type: FETCH_LEADS_START });
+
         try {
             const response = await IrgApi.post(
                 '/users/get-agent-users',
@@ -105,9 +110,16 @@ export function fetchLeads(agentId, isLoggedIn) {
                     },
                 },
             );
-            dispatch({ type: FETCH_LEADS, payload: response.data.data });
+            dispatch({ type: FETCH_LEADS_SUCCESS, payload: response.data.data });
         } catch (error) {
-            // Error handled — leads fetch dispatch skipped
+            // 401s are handled globally by the auth interceptor — skip toast for those
+            if (error.response?.status !== 401) {
+                const message = error.response?.data?.message
+                    || error.message
+                    || 'Failed to load leads';
+                dispatch({ type: FETCH_LEADS_ERROR, payload: message });
+                showToast('error', message, 'Could not load leads');
+            }
         }
     };
 }

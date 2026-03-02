@@ -256,12 +256,16 @@
 }
 
 .fancybox__slide {
-    padding: 40px 0 72px 0;
+    padding: 0;
 }
 
-.fancybox__image {
-    max-height: calc(100vh - 112px);
-    max-width: 100vw;
+// Image sizing overrides handled via JS MutationObserver
+// in PropertyGallery.jsx — CSS cannot override
+// Fancybox Panzoom runtime inline styles on .f-panzoom__wrapper
+
+.fancybox__slide img.f-panzoom__content {
+    max-height: 100%;
+    max-width: 100%;
     object-fit: contain;
 }
 
@@ -333,9 +337,10 @@
         display: none;
     }
     .fancybox__slide {
-        padding: 40px 0 8px 0;
+        padding: 0;
     }
-    .fancybox__image {
-        max-height: calc(100vh - 48px);
+    .fancybox__slide img.f-panzoom__content {
+        max-height: 100%;
+        max-width: 100%;
     }
 }

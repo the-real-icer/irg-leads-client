@@ -239,7 +239,7 @@ const TopBarSearch = () => {
                     <div className="topbar-search__item-content">
                         <div className="topbar-search__item-row">
                             <span className="topbar-search__item-name">
-                                {item.name || 'Unknown'}
+                                {item.name}
                             </span>
                             <span
                                 className="topbar-search__item-status"

@@ -29,6 +29,7 @@ import MainLayout from '../../../components/layout/MainLayout';
 // API & Utils
 import IrgApi from '../../../assets/irgApi';
 import showToast from '../../../utils/showToast';
+import getLeadDisplayName from '../../../utils/getLeadDisplayName';
 import { calculateCommission } from '../../../utils/calculateCommission';
 import { TRANSACTION_FEES } from '../../../constants/transactionFees';
 
@@ -146,7 +147,7 @@ const EditTransaction = () => {
     // ── Redux ────────────────────────────────────────────────────
     const isLoggedIn = useSelector((state) => state.isLoggedIn);
     const agent = useSelector((state) => state.agent);
-    const allLeads = useSelector((state) => state.allLeadsPage);
+    const allLeads = useSelector((state) => state.allLeadsPage.leads);
 
     // ── Loading & action states ──────────────────────────────────
     const [loading, setLoading] = useState(true);
@@ -290,7 +291,7 @@ const EditTransaction = () => {
                     if (txn.lead && typeof txn.lead === 'object') {
                         setLinkBuyerLead(true);
                         setSelectedBuyerLead(txn.lead);
-                        setBuyerLeadInput(`${txn.lead.first_name || ''} ${txn.lead.last_name || ''}`.trim());
+                        setBuyerLeadInput(getLeadDisplayName(txn.lead));
                         setBuyerInfo({
                             firstName: txn.lead.first_name || '',
                             lastName: txn.lead.last_name || '',
@@ -304,7 +305,7 @@ const EditTransaction = () => {
                     if (txn.sellerLead && typeof txn.sellerLead === 'object') {
                         setLinkSellerLead(true);
                         setSelectedSellerLead(txn.sellerLead);
-                        setSellerLeadInput(`${txn.sellerLead.first_name || ''} ${txn.sellerLead.last_name || ''}`.trim());
+                        setSellerLeadInput(getLeadDisplayName(txn.sellerLead));
                         setSellerInfo({
                             firstName: txn.sellerLead.first_name || '',
                             lastName: txn.sellerLead.last_name || '',
@@ -451,8 +452,9 @@ const EditTransaction = () => {
                 return;
             }
             const filtered = (allLeads || []).filter((lead) => {
-                const fullName = `${lead.first_name || ''} ${lead.last_name || ''}`.toLowerCase();
-                return fullName.includes(query);
+                const displayName = getLeadDisplayName(lead).toLowerCase();
+                const email = (lead.email || '').toLowerCase();
+                return displayName.includes(query) || email.includes(query);
             });
             setSuggestions(filtered.slice(0, 10));
         },
@@ -473,7 +475,7 @@ const EditTransaction = () => {
         const lead = e.value;
         if (lead && lead._id) {
             setSelectedBuyerLead(lead);
-            setBuyerLeadInput(`${lead.first_name} ${lead.last_name}`);
+            setBuyerLeadInput(getLeadDisplayName(lead));
             setBuyerInfo({
                 firstName: lead.first_name || '',
                 lastName: lead.last_name || '',
@@ -488,7 +490,7 @@ const EditTransaction = () => {
         const lead = e.value;
         if (lead && lead._id) {
             setSelectedSellerLead(lead);
-            setSellerLeadInput(`${lead.first_name} ${lead.last_name}`);
+            setSellerLeadInput(getLeadDisplayName(lead));
             setSellerInfo({
                 firstName: lead.first_name || '',
                 lastName: lead.last_name || '',
@@ -502,7 +504,7 @@ const EditTransaction = () => {
     const leadItemTemplate = (lead) => (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.125rem', padding: '0.125rem 0' }}>
             <span style={{ fontWeight: '600', color: 'hsl(var(--foreground))', fontSize: '0.9rem' }}>
-                {lead.first_name} {lead.last_name}
+                {getLeadDisplayName(lead)}
             </span>
             <span style={{ fontSize: '0.8rem', color: 'hsl(var(--foreground-muted))' }}>
                 {lead.email || ''}

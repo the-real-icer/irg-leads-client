@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { useRouter } from 'next/router';
+import getLeadDisplayName from '../../../utils/getLeadDisplayName';
 
 const typeIconMap = {
     call: 'pi pi-phone',
@@ -24,7 +25,7 @@ const formatReminderDate = (date, isToday, isTomorrow, isOverdue) => {
 
 const NotificationBell = () => {
     const router = useRouter();
-    const allLeads = useSelector((state) => state.allLeadsPage);
+    const allLeads = useSelector((state) => state.allLeadsPage.leads);
 
     const [open, setOpen] = useState(false);
     const bellRef = useRef(null);
@@ -77,7 +78,7 @@ const NotificationBell = () => {
                         type: reminder.type || 'general',
                         reminderDate,
                         leadId: lead._id,
-                        leadName: `${lead.first_name || ''} ${lead.last_name || ''}`.trim() || 'Unknown Lead',
+                        leadName: getLeadDisplayName(lead),
                         isOverdue: reminderDate < startOfToday,
                         isToday: reminderDate >= startOfToday && reminderDate < startOfTomorrow,
                         isTomorrow: reminderDate >= startOfTomorrow && reminderDate < startOfDayAfterTomorrow,

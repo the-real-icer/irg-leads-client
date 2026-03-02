@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import IrgApi from '../../assets/irgApi';
 import showToast from '../../utils/showToast';
+import getLeadDisplayName from '../../utils/getLeadDisplayName';
 
 const FREQUENCY_OPTIONS = [
     { value: 'Instantly', label: 'Instantly' },
@@ -63,7 +64,7 @@ const buildSearchFilter = (f) => ({
 });
 
 const SaveSearchDialog = ({ visible, onClose, appliedFilters, activeAreas = [], drawnPolygonGeoJSON, mapBounds }) => {
-    const allLeads = useSelector((state) => state.allLeadsPage);
+    const allLeads = useSelector((state) => state.allLeadsPage.leads);
     const isLoggedIn = useSelector((state) => state.isLoggedIn);
 
     const [selectedLead, setSelectedLead] = useState(null);
@@ -117,8 +118,9 @@ const SaveSearchDialog = ({ visible, onClose, appliedFilters, activeAreas = [], 
         if (!q) return recentLeads;
         return allLeads
             .filter((lead) => {
-                const fullName = `${lead.first_name || ''} ${lead.last_name || ''}`.toLowerCase();
-                return fullName.includes(q);
+                const displayName = getLeadDisplayName(lead).toLowerCase();
+                const email = (lead.email || '').toLowerCase();
+                return displayName.includes(q) || email.includes(q);
             })
             .slice(0, 10);
     }, [leadQuery, allLeads, recentLeads]);
@@ -196,7 +198,7 @@ const SaveSearchDialog = ({ visible, onClose, appliedFilters, activeAreas = [], 
 
     const handleSelectLead = useCallback((lead) => {
         setSelectedLead(lead);
-        setLeadQuery(`${lead.first_name} ${lead.last_name}`);
+        setLeadQuery(getLeadDisplayName(lead));
         setDropdownOpen(false);
     }, []);
 
@@ -241,7 +243,7 @@ const SaveSearchDialog = ({ visible, onClose, appliedFilters, activeAreas = [], 
                 { savedSearch },
                 { headers: { Authorization: `Bearer ${isLoggedIn}` } }
             );
-            showToast('success', `Search saved for ${selectedLead.first_name} ${selectedLead.last_name}`, 'Search Saved!', 'top-right');
+            showToast('success', `Search saved for ${getLeadDisplayName(selectedLead)}`, 'Search Saved!', 'top-right');
             onClose();
         } catch (err) {
             const msg = err.response?.data?.message || 'Failed to save search. Please try again.';
@@ -292,7 +294,7 @@ const SaveSearchDialog = ({ visible, onClose, appliedFilters, activeAreas = [], 
                             {selectedLead ? (
                                 <div className="save-search-dialog__lead-selected">
                                     <i className="pi pi-user" />
-                                    <span>{selectedLead.first_name} {selectedLead.last_name}</span>
+                                    <span>{getLeadDisplayName(selectedLead)}</span>
                                     <button type="button" onClick={handleClearLead} aria-label="Remove lead">
                                         <i className="pi pi-times" />
                                     </button>
@@ -327,11 +329,13 @@ const SaveSearchDialog = ({ visible, onClose, appliedFilters, activeAreas = [], 
                                                 onClick={() => handleSelectLead(lead)}
                                             >
                                                 <span className="save-search-dialog__lead-name">
-                                                    {lead.first_name} {lead.last_name}
+                                                    {getLeadDisplayName(lead)}
                                                 </span>
-                                                <span className="save-search-dialog__lead-email">
-                                                    {lead.email || 'No email'}
-                                                </span>
+                                                {lead.email && getLeadDisplayName(lead) !== lead.email && (
+                                                    <span className="save-search-dialog__lead-email">
+                                                        {lead.email}
+                                                    </span>
+                                                )}
                                             </button>
                                         ))
                                     )}

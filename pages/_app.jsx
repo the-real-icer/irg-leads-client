@@ -15,6 +15,7 @@ import PropTypes from 'prop-types';
 
 // React-Toastify
 import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 // Google Login
 import { GoogleOAuthProvider } from '@react-oauth/google';
@@ -60,14 +61,14 @@ const MyApp = ({ Component, ...rest }) => {
                 <PersistGate persistor={store.__persistor}>
                     <GoogleOAuthProvider clientId={CLIENT_ID}>
                         <ToastContainer
-                            position="top-right" // Default position
-                            autoClose={3000} // Close after 3 seconds
+                            position="top-left"
+                            autoClose={4000}
                             hideProgressBar={false}
-                            newestOnTop={false}
-                            closeOnClick
+                            newestOnTop
+                            closeOnClick={false}
                             rtl={false}
                             pauseOnFocusLoss
-                            draggable
+                            draggable={false}
                             pauseOnHover
                         />
                         <Component {...props.pageProps} />
@@ -83,4 +84,4 @@ MyApp.propTypes = {
     pageProps: PropTypes.object, // Optional, as pages may not pass props
 };
 
-export default wrapper.withRedux(MyApp);
+export default MyApp;

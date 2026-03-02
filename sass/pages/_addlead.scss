@@ -20,12 +20,12 @@
 
 .add-lead-header {
     margin-bottom: 1.5rem;
-    border-bottom: 2px solid #e9ecef;
+    border-bottom: 2px solid hsl(var(--border));
     padding-bottom: 1rem;
 
     h2 {
         margin: 0 0 0.5rem 0;
-        color: #2c3e50;
+        color: hsl(var(--foreground));
         font-size: 2rem;
         font-weight: 600;
 
@@ -37,7 +37,7 @@
 
 .add-lead-subtitle {
     margin: 0;
-    color: #6c757d;
+    color: hsl(var(--foreground-muted));
     font-size: 1rem;
 }
 
@@ -115,7 +115,7 @@
     .p-inputtext:disabled,
     .p-inputtextarea:disabled,
     .p-dropdown.p-disabled {
-        background-color: #f8f9fa;
+        background-color: hsl(var(--muted));
         opacity: 0.7;
     }
 }

@@ -32,13 +32,40 @@ app.prepare()
                     : {
                           directives: {
                               defaultSrc: ["'self'"],
-                              styleSrc: ["'self'", "'unsafe-inline'"], // Adjust based on your app
-                              scriptSrc: ["'self'", 'https://accounts.google.com'], // For Google Sign-In
-                              connectSrc: ["'self'", allowedOrigin], // Allow backend API
-                              imgSrc: ["'self'", 'data:', 'https:'], // Allow images
+                              scriptSrc: [
+                                  "'self'",
+                                  'https://accounts.google.com',
+                                  'https://apis.google.com',
+                                  "'unsafe-inline'",
+                              ],
+                              styleSrc: [
+                                  "'self'",
+                                  "'unsafe-inline'",
+                                  'https://accounts.google.com',
+                              ],
+                              frameSrc: [
+                                  'https://accounts.google.com',
+                                  'https://content.googleapis.com',
+                              ],
+                              frameAncestors: ["'none'"],
+                              connectSrc: [
+                                  "'self'",
+                                  allowedOrigin,
+                                  'https://accounts.google.com',
+                                  'https://oauth2.googleapis.com',
+                                  'https://openidconnect.googleapis.com',
+                                  'https://www.googleapis.com',
+                              ],
+                              imgSrc: [
+                                  "'self'",
+                                  'data:',
+                                  'https:',
+                                  'https://lh3.googleusercontent.com',
+                              ],
+                              fontSrc: ["'self'", 'https://fonts.gstatic.com'],
                           },
                       },
-                hsts: { maxAge: 31536000, includeSubDomains: true }, // Enable HSTS
+                hsts: { maxAge: 31536000, includeSubDomains: true },
                 xssFilter: true,
             }),
         );

@@ -14,6 +14,7 @@ const ScrollPanel = dynamic(() => import('primereact/scrollpanel').then((mod) =>
 import MainLayout from '../components/layout/MainLayout';
 import DashboardHotsheet from '../components/Dashboard/DashboardHotsheet';
 import IrgApi from '../assets/irgApi';
+import getLeadDisplayName from '../utils/getLeadDisplayName';
 
 const ProductionCard = ({ icon, value, label, format }) => {
     const displayValue = () => {
@@ -50,7 +51,7 @@ const ProductionCard = ({ icon, value, label, format }) => {
 
 const Dashboard = () => {
     // __________________Redux State______________________\\
-    const allLeads = useSelector((state) => state.allLeadsPage);
+    const allLeads = useSelector((state) => state.allLeadsPage.leads);
     const isLoggedIn = useSelector((state) => state.isLoggedIn);
 
     const router = useRouter();
@@ -297,7 +298,7 @@ const Dashboard = () => {
                                                             marginBottom: '0.25rem',
                                                         }}
                                                     >
-                                                        {lead.first_name} {lead.last_name}
+                                                        {getLeadDisplayName(lead)}
                                                     </div>
                                                     <div
                                                         style={{
@@ -449,7 +450,7 @@ const Dashboard = () => {
                                             )}
                                             <div>
                                                 <div style={{ fontSize: '0.9375rem', fontWeight: '600', color: 'hsl(var(--foreground))' }}>
-                                                    {session.lead_name || 'Unknown Lead'}
+                                                    {session.lead_name || getLeadDisplayName(allLeads?.find((l) => l._id === session.lead_id))}
                                                 </div>
                                                 <div style={{ fontSize: '0.8125rem', color: 'hsl(var(--foreground-muted))', marginTop: '0.125rem' }}>
                                                     {session.current_page_title || session.current_page || 'Unknown page'}

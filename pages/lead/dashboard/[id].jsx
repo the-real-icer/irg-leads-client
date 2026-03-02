@@ -6,15 +6,16 @@ const Button = dynamic(() => import('primereact/button').then((mod) => mod.Butto
 
 import MainLayout from '../../../components/layout/MainLayout';
 import LeadDashboard from '../../../components/LeadDashboard/LeadDashboard';
+import getLeadDisplayName from '../../../utils/getLeadDisplayName';
 
 const LeadDashboardPage = () => {
     const router = useRouter();
     const { id } = router.query;
     const isLoggedIn = useSelector((state) => state.isLoggedIn);
-    const leads = useSelector((state) => state.allLeadsPage);
+    const leads = useSelector((state) => state.allLeadsPage.leads);
 
     const lead = leads?.find((l) => l._id === id);
-    const leadName = lead ? `${lead.first_name || ''} ${lead.last_name || ''}`.trim() : '';
+    const leadName = lead ? getLeadDisplayName(lead) : '';
 
     if (!id || !isLoggedIn) return null;
 

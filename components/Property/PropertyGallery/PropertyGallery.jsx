@@ -125,6 +125,48 @@ const PropertyGallery = ({ property }) => {
                 },
                 touch: true,
                 dragToClose: true,
+                on: {
+                    ready: (fancybox) => {
+                        const container = fancybox.container;
+                        if (!container) return;
+                        // Fix Panzoom inline styles that cap images at natural pixel dimensions
+                        container.querySelectorAll('.f-panzoom__wrapper').forEach((el) => {
+                            el.style.maxWidth = '100%';
+                            el.style.maxHeight = '100%';
+                        });
+                        container.querySelectorAll('.f-panzoom__viewport').forEach((el) => {
+                            el.style.width = '100%';
+                            el.style.height = '100%';
+                        });
+                        // Watch for Panzoom re-applying pixel dimension caps on render frames
+                        const observer = new MutationObserver((mutations) => {
+                            for (const mutation of mutations) {
+                                if (mutation.attributeName !== 'style') continue;
+                                const el = mutation.target;
+                                if (el.classList.contains('f-panzoom__wrapper') && el.style.maxWidth !== '100%') {
+                                    el.style.maxWidth = '100%';
+                                    el.style.maxHeight = '100%';
+                                }
+                                if (el.classList.contains('f-panzoom__viewport')) {
+                                    const w = parseFloat(el.style.width);
+                                    if (w > 0 && w < container.offsetWidth * 0.8) {
+                                        el.style.width = '100%';
+                                        el.style.height = '100%';
+                                    }
+                                }
+                            }
+                        });
+                        observer.observe(container, {
+                            attributes: true,
+                            attributeFilter: ['style'],
+                            subtree: true,
+                        });
+                        fancybox.__styleObserver = observer;
+                    },
+                    close: (fancybox) => {
+                        fancybox.__styleObserver?.disconnect();
+                    },
+                },
             }
         );
     }, [images]);

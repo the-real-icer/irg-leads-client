@@ -43,7 +43,9 @@ export const ADD_SEARCH = 'ADD_SEARCH';
 export const CHANGE_SEARCH = 'CHANGE_SEARCH';
 
 // Lead List types
-export const FETCH_LEADS = 'FETCH_LEADS';
+export const FETCH_LEADS_START = 'FETCH_LEADS_START';
+export const FETCH_LEADS_SUCCESS = 'FETCH_LEADS_SUCCESS';
+export const FETCH_LEADS_ERROR = 'FETCH_LEADS_ERROR';
 export const UPDATE_LEADS = 'UPDATE_LEADS';
 export const UPDATE_SINGLE_LEAD = 'UPDATE_SINGLE_LEAD';
 

@@ -16,6 +16,7 @@ import { Button } from 'primereact/button';
 
 // IRG Components
 import MainLayout from '../../components/layout/MainLayout';
+import getLeadDisplayName from '../../utils/getLeadDisplayName';
 
 const formatPhoneNumber = (phoneNumberString) => {
     const cleaned = ('' + phoneNumberString).replace(/\D/g, '');
@@ -28,7 +29,11 @@ const formatPhoneNumber = (phoneNumberString) => {
 
 const Leads = () => {
     // __________________Redux State______________________\\
-    const allLeads = useSelector((state) => state.allLeadsPage);
+    const {
+        leads: allLeads,
+        loading: leadsLoading,
+        error: leadsError,
+    } = useSelector((state) => state.allLeadsPage);
 
     const [globalFilterValue, setGlobalFilterValue] = useState('');
     const [selectedStatus, setSelectedStatus] = useState(null);
@@ -202,7 +207,7 @@ const Leads = () => {
 
     const nameBodyTemplate = (rowData) => (
         <span>
-            {rowData.first_name} {rowData.last_name}
+            {getLeadDisplayName(rowData)}
         </span>
     );
 
@@ -364,12 +369,19 @@ const Leads = () => {
             <div className="card">
                 <DataTable
                     value={leads}
+                    loading={leadsLoading}
                     rows={10}
                     paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                     rowsPerPageOptions={[10, 25, 50]}
                     paginator
                     rowHover
-                    emptyMessage="No leads found."
+                    emptyMessage={
+                        leadsError
+                            ? `Error loading leads: ${leadsError}`
+                            : leadsLoading
+                                ? ' '
+                                : 'No leads found.'
+                    }
                     currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
                     selectionMode="single"
                     onRowSelect={onRowSelect}

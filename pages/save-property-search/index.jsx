@@ -30,6 +30,7 @@ const InputTextarea = dynamic(() => import('primereact/inputtextarea').then((mod
 });
 
 import showToast from '../../utils/showToast';
+import getLeadDisplayName from '../../utils/getLeadDisplayName';
 
 // IRG Components
 import MainLayout from '../../components/layout/MainLayout';
@@ -138,7 +139,7 @@ const formatLastVisit = (lastVisit) => {
 
 const SavePropertySearch = () => {
     // ── Redux State ──
-    const allLeads = useSelector((state) => state.allLeadsPage);
+    const allLeads = useSelector((state) => state.allLeadsPage.leads);
     const irgAreas = useSelector((state) => state.irgAreas);
 
     // ── Responsive helper for pair grids ──
@@ -228,8 +229,9 @@ const SavePropertySearch = () => {
             return;
         }
         const filtered = allLeads.filter((lead) => {
-            const fullName = `${lead.first_name || ''} ${lead.last_name || ''}`.toLowerCase();
-            return fullName.includes(query);
+            const displayName = getLeadDisplayName(lead).toLowerCase();
+            const email = (lead.email || '').toLowerCase();
+            return displayName.includes(query) || email.includes(query);
         });
         setLeadSuggestions(filtered.slice(0, 10));
     }, [allLeads, recentLeads]);
@@ -237,7 +239,7 @@ const SavePropertySearch = () => {
     const leadItemTemplate = (lead) => (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.125rem', padding: '0.125rem 0' }}>
             <span style={{ fontWeight: '600', color: 'hsl(var(--foreground))', fontSize: '0.9rem' }}>
-                {lead.first_name} {lead.last_name}
+                {getLeadDisplayName(lead)}
             </span>
             <span style={{ fontSize: '0.8rem', color: 'hsl(var(--foreground-muted))' }}>
                 {lead.email || formatLastVisit(lead.last_visit)}
@@ -249,7 +251,7 @@ const SavePropertySearch = () => {
         const lead = e.value;
         if (lead && lead._id) {
             setSelectedLead(lead);
-            setLeadInput(`${lead.first_name} ${lead.last_name}`);
+            setLeadInput(getLeadDisplayName(lead));
         }
     }, []);
 
@@ -261,7 +263,7 @@ const SavePropertySearch = () => {
             if (!val) setSelectedLead(null);
         } else {
             // It's a lead object from selection
-            setLeadInput(`${val.first_name} ${val.last_name}`);
+            setLeadInput(getLeadDisplayName(val));
         }
     }, []);
 
@@ -465,7 +467,7 @@ const SavePropertySearch = () => {
                                     fontWeight: '600',
                                 }}>
                                     <i className="pi pi-user" style={{ fontSize: '0.75rem' }} />
-                                    {selectedLead.first_name} {selectedLead.last_name}
+                                    {getLeadDisplayName(selectedLead)}
                                     <button
                                         type="button"
                                         onClick={() => { setSelectedLead(null); setLeadInput(''); }}

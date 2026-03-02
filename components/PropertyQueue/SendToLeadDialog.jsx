@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import { clearSelectedHomes } from '../../store/actions';
 import IrgApi from '../../assets/irgApi';
 import showToast from '../../utils/showToast';
+import getLeadDisplayName from '../../utils/getLeadDisplayName';
 
 const Dialog = dynamic(() => import('primereact/dialog').then((mod) => mod.Dialog), { ssr: false });
 const Button = dynamic(() => import('primereact/button').then((mod) => mod.Button), { ssr: false });
@@ -14,7 +15,7 @@ const Editor = dynamic(() => import('primereact/editor').then((mod) => mod.Edito
 
 const SendToLeadDialog = ({ visible, onHide }) => {
     const selectedHomes = useSelector((state) => state.selectedHomes);
-    const allLeads = useSelector((state) => state.allLeadsPage);
+    const allLeads = useSelector((state) => state.allLeadsPage.leads);
     const isLoggedIn = useSelector((state) => state.isLoggedIn);
     const agent = useSelector((state) => state.agent);
     const dispatch = useDispatch();
@@ -76,7 +77,7 @@ const SendToLeadDialog = ({ visible, onHide }) => {
                 dispatch(clearSelectedHomes());
                 resetForm();
                 onHide();
-                showToast('success', `${selectedHomes.length} properties sent to ${lead.first_name || lead.email}`, 'Email Sent!');
+                showToast('success', `${selectedHomes.length} properties sent to ${getLeadDisplayName(lead)}`, 'Email Sent!');
             }
         } catch (err) {
             showToast('error', 'Failed to send email. Please try again.', 'Error');
@@ -87,14 +88,16 @@ const SendToLeadDialog = ({ visible, onHide }) => {
 
     const leadOptionTemplate = (option) => (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
-            <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{option.first_name} {option.last_name || ''}</span>
-            <span style={{ fontSize: '0.8rem', color: '#6c757d' }}>{option.email}</span>
+            <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{getLeadDisplayName(option)}</span>
+            {option.email && getLeadDisplayName(option) !== option.email && (
+                <span style={{ fontSize: '0.8rem', color: '#6c757d' }}>{option.email}</span>
+            )}
         </div>
     );
 
     const selectedLeadTemplate = (option) => {
         if (!option) return <span style={{ color: '#6c757d' }}>Select a lead...</span>;
-        return <span>{option.first_name} {option.last_name || ''} ({option.email})</span>;
+        return <span>{getLeadDisplayName(option)} ({option.email})</span>;
     };
 
     return (

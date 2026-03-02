@@ -48,11 +48,11 @@ const MainLayout = (props) => {
         if (agent?._id && isLoggedIn) {
             dispatch(fetchLeads(agent._id, isLoggedIn));
         }
-    }, [agent?._id]); // eslint-disable-line
+    }, [agent?._id, isLoggedIn]); // eslint-disable-line
 
     // useInterval to update leads list every 2 minutes
     useInterval(() => {
-        if (agent?._id) {
+        if (agent?._id && isLoggedIn) {
             dispatch(fetchLeads(agent._id, isLoggedIn));
         }
     }, 120000);
