@@ -6,6 +6,7 @@ import { clearSelectedHomes } from '../../store/actions';
 import IrgApi from '../../assets/irgApi';
 import showToast from '../../utils/showToast';
 import getLeadDisplayName from '../../utils/getLeadDisplayName';
+import { usePropertyFallbackImage } from '../../utils/propertyImageFallback';
 
 const Dialog = dynamic(() => import('primereact/dialog').then((mod) => mod.Dialog), { ssr: false });
 const Button = dynamic(() => import('primereact/button').then((mod) => mod.Button), { ssr: false });
@@ -19,6 +20,7 @@ const SendToLeadDialog = ({ visible, onHide }) => {
     const isLoggedIn = useSelector((state) => state.isLoggedIn);
     const agent = useSelector((state) => state.agent);
     const dispatch = useDispatch();
+    const fallbackImage = usePropertyFallbackImage();
 
     const [lead, setLead] = useState(null);
     const [subject, setSubject] = useState('Check out these properties!');
@@ -26,7 +28,7 @@ const SendToLeadDialog = ({ visible, onHide }) => {
     const [sending, setSending] = useState(false);
 
     const getImage = (property) => {
-        if (!property?.listing_pics) return '/No-Photo-Light-Large.jpg';
+        if (!property?.listing_pics) return fallbackImage;
         return property.listing_pics.replace(/http:/, 'https:');
     };
 
@@ -117,6 +119,11 @@ const SendToLeadDialog = ({ visible, onHide }) => {
                         src={getImage(property)}
                         alt={property.address}
                         className="property-queue__preview-thumb"
+                        onError={(e) => {
+                            if (e.currentTarget.src !== fallbackImage) {
+                                e.currentTarget.src = fallbackImage;
+                            }
+                        }}
                     />
                 ))}
                 {selectedHomes.length > 6 && (

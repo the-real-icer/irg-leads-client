@@ -50,10 +50,10 @@ const MainLayout = (props) => {
         }
     }, [agent?._id, isLoggedIn]); // eslint-disable-line
 
-    // useInterval to update leads list every 2 minutes
+    // useInterval to update leads list every 2 minutes — silent refresh (no spinner)
     useInterval(() => {
         if (agent?._id && isLoggedIn) {
-            dispatch(fetchLeads(agent._id, isLoggedIn));
+            dispatch(fetchLeads(agent._id, isLoggedIn, { silent: true }));
         }
     }, 120000);
 

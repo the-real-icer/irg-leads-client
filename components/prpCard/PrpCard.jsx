@@ -11,6 +11,7 @@ import find from 'lodash.find';
 import { Button } from 'primereact/button';
 
 import showToast from '../../utils/showToast';
+import { usePropertyFallbackImage } from '../../utils/propertyImageFallback';
 import { addSelectedHome, removeSelectedHome } from '../../store/actions';
 
 const PrpCard = memo(({ property, handleOpenMapDialog }) => {
@@ -19,10 +20,11 @@ const PrpCard = memo(({ property, handleOpenMapDialog }) => {
 
     // _____________________Hooks_____________________\\
     const dispatch = useDispatch();
+    const fallbackImage = usePropertyFallbackImage();
 
     const goodImage = property?.listing_pics
         ? property.listing_pics.replace(/http:/, 'https:')
-        : '/No-Photo-Light-Large.jpg'; // Fallback image
+        : fallbackImage;
 
     const isSelected = find(selectedHomes, (home) => home.mls_number === property.mls_number);
 
@@ -58,6 +60,11 @@ const PrpCard = memo(({ property, handleOpenMapDialog }) => {
                         alt={`${property.address} - ${property.city} Home for Sale`}
                         className="PrpCard__Img PrpCard__Img__Main"
                         loading="lazy"
+                        onError={(e) => {
+                            if (e.currentTarget.src !== fallbackImage) {
+                                e.currentTarget.src = fallbackImage;
+                            }
+                        }}
                     />
                 </div>
             </Link>

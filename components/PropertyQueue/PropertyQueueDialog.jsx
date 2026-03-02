@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 
 import { removeSelectedHome, clearSelectedHomes } from '../../store/actions';
 import showToast from '../../utils/showToast';
+import { usePropertyFallbackImage } from '../../utils/propertyImageFallback';
 
 const Dialog = dynamic(() => import('primereact/dialog').then((mod) => mod.Dialog), { ssr: false });
 const Button = dynamic(() => import('primereact/button').then((mod) => mod.Button), { ssr: false });
@@ -11,6 +12,7 @@ const Button = dynamic(() => import('primereact/button').then((mod) => mod.Butto
 const PropertyQueueDialog = ({ visible, onHide, onSendClick }) => {
     const selectedHomes = useSelector((state) => state.selectedHomes);
     const dispatch = useDispatch();
+    const fallbackImage = usePropertyFallbackImage();
 
     const handleRemove = useCallback((property) => {
         dispatch(removeSelectedHome(property));
@@ -24,7 +26,7 @@ const PropertyQueueDialog = ({ visible, onHide, onSendClick }) => {
     }, [dispatch]);
 
     const getImage = (property) => {
-        if (!property?.listing_pics) return '/No-Photo-Light-Large.jpg';
+        if (!property?.listing_pics) return fallbackImage;
         return property.listing_pics.replace(/http:/, 'https:');
     };
 
@@ -71,6 +73,11 @@ const PropertyQueueDialog = ({ visible, onHide, onSendClick }) => {
                                 src={getImage(property)}
                                 alt={property.address}
                                 className="property-queue__thumbnail"
+                                onError={(e) => {
+                                    if (e.currentTarget.src !== fallbackImage) {
+                                        e.currentTarget.src = fallbackImage;
+                                    }
+                                }}
                             />
                             <div className="property-queue__item-info">
                                 <div className="property-queue__item-address">

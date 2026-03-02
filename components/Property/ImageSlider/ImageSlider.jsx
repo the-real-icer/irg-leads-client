@@ -8,6 +8,7 @@ import { IoIosArrowDroprightCircle, IoIosArrowDropleftCircle } from 'react-icons
 
 // IRG Componenents
 import ImageSlide from './ImageSlide';
+import { getPropertyFallbackImage } from '../../../utils/propertyImageFallback';
 
 class PropertyImageSlider extends React.Component {
     constructor(props) {
@@ -32,17 +33,9 @@ class PropertyImageSlider extends React.Component {
         } else if (
             this.props.property.listing_pictures &&
             this.props.property.listing_pictures.length === 0 &&
-            this.props.property.listing_pics.length === 0 &&
-            this.props.theme === 'light'
+            this.props.property.listing_pics.length === 0
         ) {
-            propertyImages = ['/No-Photo-Light-Large.jpg'];
-        } else if (
-            this.props.property.listing_pictures &&
-            this.props.property.listing_pictures.length === 0 &&
-            this.props.property.listing_pics.length === 0 &&
-            this.props.theme === 'dark'
-        ) {
-            propertyImages = ['/No-Photo-Dark-Large.jpg'];
+            propertyImages = [getPropertyFallbackImage(this.props.theme)];
         } else {
             const cleanURL = this.props.property.listing_pics
                 .replace(/\/120\/90\//g, '/2048/2048/')

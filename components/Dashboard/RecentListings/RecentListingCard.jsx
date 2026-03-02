@@ -2,7 +2,10 @@
 import Link from 'next/link';
 import PropTypes from 'prop-types';
 
+import { usePropertyFallbackImage } from '../../../utils/propertyImageFallback';
+
 const RecentListingCard = ({ home }) => {
+    const fallbackImage = usePropertyFallbackImage();
     const linkAddress = home?.property_url ? `/property/${home.property_url}` : '';
 
     const today = new Date();
@@ -17,7 +20,17 @@ const RecentListingCard = ({ home }) => {
                 style={{ cursor: 'pointer' }}
             >
                 <div className="flex align-items-start mr-0 lg:mr-5">
-                    <img src={home.listing_pics} alt="avatar-f-1" className="mr-3 w-6rem h-4rem" />
+                    <img
+                        src={home.listing_pics || fallbackImage}
+                        alt={home.address || 'Property'}
+                        className="mr-3 w-6rem h-4rem"
+                        style={{ objectFit: 'cover' }}
+                        onError={(e) => {
+                            if (e.currentTarget.src !== fallbackImage) {
+                                e.currentTarget.src = fallbackImage;
+                            }
+                        }}
+                    />
                     <div>
                         <span className="text-900 font-medium block mb-2">
                             {home.address}

@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { usePropertyFallbackImage } from '../../../utils/propertyImageFallback';
 
 // ── Build image array from property data ──
 const buildImages = (property) => {
@@ -65,6 +66,7 @@ const getStatusInfo = (status) => {
 };
 
 const PropertyGallery = ({ property }) => {
+    const fallbackImage = usePropertyFallbackImage();
     const [activeSlide, setActiveSlide] = useState(0);
     const carouselRef = useRef(null);
     const fancyboxRef = useRef(null);
@@ -198,8 +200,11 @@ const PropertyGallery = ({ property }) => {
     if (images.length === 0) {
         return (
             <div className="property-gallery__placeholder">
-                <i className="pi pi-image" style={{ fontSize: '2rem', marginRight: '0.75rem' }} />
-                No photos available
+                <img
+                    src={fallbackImage}
+                    alt="No photos available"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
             </div>
         );
     }
@@ -231,7 +236,15 @@ const PropertyGallery = ({ property }) => {
                         className="property-gallery__hero"
                         onClick={() => openGallery(0)}
                     >
-                        <img src={images[0].original} alt={images[0].originalAlt} />
+                        <img
+                            src={images[0].original}
+                            alt={images[0].originalAlt}
+                            onError={(e) => {
+                                if (e.currentTarget.src !== fallbackImage) {
+                                    e.currentTarget.src = fallbackImage;
+                                }
+                            }}
+                        />
                     </div>
 
                     {desktopSide.map((img) => (
@@ -240,7 +253,15 @@ const PropertyGallery = ({ property }) => {
                             className="property-gallery__cell"
                             onClick={() => openGallery(findImageIndex(img))}
                         >
-                            <img src={img.original} alt={img.originalAlt} />
+                            <img
+                                src={img.original}
+                                alt={img.originalAlt}
+                                onError={(e) => {
+                                    if (e.currentTarget.src !== fallbackImage) {
+                                        e.currentTarget.src = fallbackImage;
+                                    }
+                                }}
+                            />
                         </div>
                     ))}
 
@@ -268,7 +289,15 @@ const PropertyGallery = ({ property }) => {
                         className="property-gallery__hero"
                         onClick={() => openGallery(0)}
                     >
-                        <img src={images[0].original} alt={images[0].originalAlt} />
+                        <img
+                            src={images[0].original}
+                            alt={images[0].originalAlt}
+                            onError={(e) => {
+                                if (e.currentTarget.src !== fallbackImage) {
+                                    e.currentTarget.src = fallbackImage;
+                                }
+                            }}
+                        />
                     </div>
 
                     {laptopSide.map((img) => (
@@ -277,7 +306,15 @@ const PropertyGallery = ({ property }) => {
                             className="property-gallery__cell"
                             onClick={() => openGallery(findImageIndex(img))}
                         >
-                            <img src={img.original} alt={img.originalAlt} />
+                            <img
+                                src={img.original}
+                                alt={img.originalAlt}
+                                onError={(e) => {
+                                    if (e.currentTarget.src !== fallbackImage) {
+                                        e.currentTarget.src = fallbackImage;
+                                    }
+                                }}
+                            />
                         </div>
                     ))}
 
@@ -310,6 +347,11 @@ const PropertyGallery = ({ property }) => {
                                 src={img.original}
                                 alt={img.originalAlt}
                                 onClick={() => openGallery(i)}
+                                onError={(e) => {
+                                    if (e.currentTarget.src !== fallbackImage) {
+                                        e.currentTarget.src = fallbackImage;
+                                    }
+                                }}
                             />
                         </div>
                     ))}

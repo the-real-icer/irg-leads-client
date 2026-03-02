@@ -3,6 +3,7 @@ import Link from 'next/link';
 import PropTypes from 'prop-types';
 
 import { Button } from 'primereact/button';
+import { usePropertyFallbackImage } from '../../utils/propertyImageFallback';
 
 const NewPropertyCard = ({
     property,
@@ -15,6 +16,7 @@ const NewPropertyCard = ({
     handleOffMarketSubmit,
     handleOpenMapDialog
 }) => {
+    const fallbackImage = usePropertyFallbackImage();
     let goodImage = '';
 
     if (property?.listing_pictures?.length > 0) {
@@ -41,9 +43,14 @@ const NewPropertyCard = ({
                             </span>
                         )}
                         <img
-                            src={goodImage || '/No-Photo-Light-Large.jpg'}
+                            src={goodImage || fallbackImage}
                             alt={property.address}
                             className="new_property_card_img"
+                            onError={(e) => {
+                                if (e.currentTarget.src !== fallbackImage) {
+                                    e.currentTarget.src = fallbackImage;
+                                }
+                            }}
                         />
                     </div>
                 </Link>

@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import dynamic from 'next/dynamic';
 import NoteIconWithPreview from './NoteIconWithPreview';
+import { usePropertyFallbackImage } from '../../utils/propertyImageFallback';
 
 const Button = dynamic(() => import('primereact/button').then((mod) => mod.Button), { ssr: false });
 const Chip = dynamic(() => import('primereact/chip').then((mod) => mod.Chip), { ssr: false });
@@ -16,7 +17,7 @@ const getCleanImageUrl = (property) => {
         const url = property.listing_pictures[0].media_url || property.listing_pictures[0];
         return String(url).replace(/http:/, 'https:');
     }
-    return 'https://icerealtygroup.com/No-Photo-Light-Large.jpg';
+    return null;
 };
 
 const formatDate = (dateStr) => {
@@ -45,10 +46,11 @@ const showingStatusConfig = {
 };
 
 const AgentPropertyCard = ({ delivery, onOpenNotes, onShowingAction, leadId, isLoggedIn }) => {
+    const fallbackImage = usePropertyFallbackImage();
     const property = delivery.property;
     if (!property) return null;
 
-    const imageUrl = getCleanImageUrl(property);
+    const imageUrl = getCleanImageUrl(property) || fallbackImage;
     const unitSuffix = property.unit_number ? ` #${property.unit_number}` : '';
     const address = `${property.address}${unitSuffix}, ${property.city}, CA ${property.zip_code}`;
     const reaction = delivery.reaction;
@@ -64,6 +66,11 @@ const AgentPropertyCard = ({ delivery, onOpenNotes, onShowingAction, leadId, isL
                     alt={address}
                     className="agent-card__image"
                     loading="lazy"
+                    onError={(e) => {
+                        if (e.currentTarget.src !== fallbackImage) {
+                            e.currentTarget.src = fallbackImage;
+                        }
+                    }}
                 />
                 {/* Channel badge */}
                 <span className="agent-card__channel">

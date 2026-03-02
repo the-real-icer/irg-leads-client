@@ -11,6 +11,7 @@ import {
     FETCH_LEADS_START,
     FETCH_LEADS_SUCCESS,
     FETCH_LEADS_ERROR,
+    FETCH_LEADS_REFRESH,
     UPDATE_LEADS,
     LOGIN_AGENT,
     LOGOUT_AGENT,
@@ -95,9 +96,17 @@ export function addAction(actions) {
 }
 
 // Fetch Leads
-export function fetchLeads(agentId, isLoggedIn) {
-    return async function fetchLeadsThunk(dispatch) {
-        dispatch({ type: FETCH_LEADS_START });
+// options.silent: true → background refresh, no spinner; false → initial load (default)
+export function fetchLeads(agentId, isLoggedIn, options = {}) {
+    return async function fetchLeadsThunk(dispatch, getState) {
+        const { silent = false } = options;
+        const existingLeads = getState().allLeadsPage?.leads;
+        const hasData = existingLeads && existingLeads.length > 0;
+
+        // Only show spinner on initial load (no data exists yet)
+        if (!silent && !hasData) {
+            dispatch({ type: FETCH_LEADS_START });
+        }
 
         try {
             const response = await IrgApi.post(
@@ -110,15 +119,30 @@ export function fetchLeads(agentId, isLoggedIn) {
                     },
                 },
             );
-            dispatch({ type: FETCH_LEADS_SUCCESS, payload: response.data.data });
+
+            const payload = response.data.data;
+
+            // Silent refresh or already have data → REFRESH (no loading change)
+            // Initial load with no data → SUCCESS (clears loading spinner)
+            dispatch({
+                type: hasData || silent ? FETCH_LEADS_REFRESH : FETCH_LEADS_SUCCESS,
+                payload,
+            });
         } catch (error) {
             // 401s are handled globally by the auth interceptor — skip toast for those
             if (error.response?.status !== 401) {
                 const message = error.response?.data?.message
                     || error.message
                     || 'Failed to load leads';
-                dispatch({ type: FETCH_LEADS_ERROR, payload: message });
-                showToast('error', message, 'Could not load leads');
+
+                // Only show error state on initial load failure
+                if (!silent && !hasData) {
+                    dispatch({ type: FETCH_LEADS_ERROR, payload: message });
+                    showToast('error', message, 'Could not load leads');
+                } else {
+                    // Background refresh failed — existing data stays, no disruption
+                    console.warn('[fetchLeads background refresh failed]', message);
+                }
             }
         }
     };
