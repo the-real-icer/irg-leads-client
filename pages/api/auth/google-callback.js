@@ -34,6 +34,18 @@ export default async function handler(req, res) {
             return res.redirect(302, '/?error=no_credential');
         }
 
+        // Verify Google's CSRF token — Google sends g_csrf_token in both
+        // the POST body and a cookie. Both must be present and match.
+        const csrfTokenBody = params.get('g_csrf_token');
+        const csrfTokenCookie = req.cookies?.g_csrf_token;
+
+        if (!csrfTokenBody || !csrfTokenCookie) {
+            return res.redirect(302, '/?error=csrf_missing');
+        }
+        if (csrfTokenBody !== csrfTokenCookie) {
+            return res.redirect(302, '/?error=csrf_mismatch');
+        }
+
         return res.redirect(
             302,
             `/auth/google/callback#credential=${encodeURIComponent(credential)}`,

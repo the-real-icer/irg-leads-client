@@ -1,12 +1,11 @@
 // React & NextJS
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
 import showToast from '../utils/showToast';
-import isMobile from '../utils/deviceDetect';
 
 // Redux
-import { useDispatch } from 'react-redux';
+import { useDispatch, useStore } from 'react-redux';
 
 // Third Party Components
 const GoogleLogin = dynamic(() => import('@react-oauth/google').then((mod) => mod.GoogleLogin), {
@@ -23,18 +22,46 @@ const Index = () => {
     // _____________________Hooks_____________________\\
     const router = useRouter();
     const dispatch = useDispatch();
+    const store = useStore();
     const [loginAttempted, setLoginAttempted] = useState(false);
 
-    const responseGoogle = async (credentialResponse) => {
-        if (typeof window === 'undefined') return;
+    // Client-side device detection — runs after hydration to avoid SSR window access
+    const [authConfig, setAuthConfig] = useState({
+        uxMode: 'popup',
+        loginUri: undefined,
+        ready: false,
+    });
 
+    useEffect(() => {
+        const mobile =
+            /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+                navigator.userAgent,
+            ) ||
+            // iPadOS 13+ reports desktop Safari UA — detect via touch support
+            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+        setAuthConfig({
+            uxMode: mobile ? 'redirect' : 'popup',
+            loginUri: mobile
+                ? `${window.location.origin}/api/auth/google-callback`
+                : undefined,
+            ready: true,
+        });
+
+        console.log('[Google Auth] Device detection:', {
+            mobile,
+            userAgent: navigator.userAgent,
+            platform: navigator.platform,
+            maxTouchPoints: navigator.maxTouchPoints,
+        });
+    }, []);
+
+    const responseGoogle = async (credentialResponse) => {
         try {
             const res = await IrgApi.post(
                 '/auth/google-login',
-                { credential: credentialResponse.credential, clientId: credentialResponse.clientId },
-                {
-                    headers: { 'Content-Type': 'application/json' },
-                },
+                { credential: credentialResponse.credential },
+                { headers: { 'Content-Type': 'application/json' } },
             );
 
             const { token } = res.data;
@@ -42,6 +69,14 @@ const Index = () => {
 
             dispatch(addAgent(agent));
             dispatch(loginUser(token));
+
+            // Flush redux-persist to localStorage before navigating
+            try {
+                await store.__persistor?.flush();
+            } catch (e) {
+                console.warn('[Google Auth] persistor.flush failed:', e);
+            }
+
             router.push('/dashboard');
             showToast('success', 'Successfully logged in!', 'Login Success');
         } catch (err) {
@@ -50,7 +85,6 @@ const Index = () => {
     };
 
     const onError = () => {
-        if (typeof window === 'undefined') return;
         if (loginAttempted) {
             showToast('error', 'Google login failed. Please try again.', 'Error');
         }
@@ -67,16 +101,16 @@ const Index = () => {
                         className="login__page__form__logo"
                     />
                     <div className="login__page__form__form" onClick={() => setLoginAttempted(true)}>
-                        <GoogleLogin
-                            onSuccess={responseGoogle}
-                            onError={onError}
-                            ux_mode={isMobile() ? 'redirect' : 'popup'}
-                            login_uri={
-                                isMobile()
-                                    ? `${window.location.origin}/api/auth/google-callback`
-                                    : undefined
-                            }
-                        />
+                        {authConfig.ready ? (
+                            <GoogleLogin
+                                onSuccess={responseGoogle}
+                                onError={onError}
+                                ux_mode={authConfig.uxMode}
+                                login_uri={authConfig.loginUri}
+                            />
+                        ) : (
+                            <div style={{ height: '44px', width: '220px' }} />
+                        )}
                     </div>
                 </div>
             </div>

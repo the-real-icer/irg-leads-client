@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useStore } from 'react-redux';
 
 import IrgApi from '../../../assets/irgApi';
 import { addAgent, loginUser } from '../../../store/actions';
@@ -8,6 +8,7 @@ import showToast from '../../../utils/showToast';
 
 const GoogleCallbackPage = () => {
     const dispatch = useDispatch();
+    const store = useStore();
     const router = useRouter();
     const [status, setStatus] = useState('Signing you in...');
     const [error, setError] = useState(null);
@@ -28,10 +29,7 @@ const GoogleCallbackPage = () => {
                 setStatus('Verifying your account...');
                 const res = await IrgApi.post(
                     '/auth/google-login',
-                    {
-                        credential,
-                        clientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
-                    },
+                    { credential },
                     { headers: { 'Content-Type': 'application/json' } },
                 );
 
@@ -40,6 +38,14 @@ const GoogleCallbackPage = () => {
 
                 dispatch(addAgent(agent));
                 dispatch(loginUser(token));
+
+                // Flush redux-persist to localStorage before navigating
+                try {
+                    await store.__persistor?.flush();
+                } catch (e) {
+                    console.warn('[Google Callback] persistor.flush failed:', e);
+                }
+
                 showToast('success', 'Successfully logged in!', 'Login Success');
                 router.replace('/dashboard');
             } catch (err) {
