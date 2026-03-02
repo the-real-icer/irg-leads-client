@@ -4,10 +4,11 @@
 
 .property__features {
     display: flex;
-    width: 50%;
+    flex: 1;
     flex-direction: column;
 
     @media (max-width: 1000px) {
+        flex: unset;
         width: 100%;
     }
 

@@ -53,13 +53,21 @@ const MyApp = ({ Component, ...rest }) => {
             setupAuthInterceptor(store);
             interceptorSet.current = true;
         }
-    }, [store]);
+        console.log('[Google Auth] GoogleOAuthProvider initializing'); // eslint-disable-line
+        console.log(`[Google Auth] Client ID passed to provider: ${ // eslint-disable-line
+            CLIENT_ID ? CLIENT_ID.substring(0, 20) + '...' : 'MISSING'
+        }`);
+    }, [store]); // eslint-disable-line react-hooks/exhaustive-deps
 
     return (
         <div className={`${inter.variable} font-sans`}>
             <Provider store={store}>
                 <PersistGate persistor={store.__persistor}>
-                    <GoogleOAuthProvider clientId={CLIENT_ID}>
+                    <GoogleOAuthProvider
+                        clientId={CLIENT_ID}
+                        onScriptLoadSuccess={() => console.log('[Google Auth] GIS script loaded successfully')} // eslint-disable-line
+                        onScriptLoadError={() => console.error('[Google Auth] GIS script FAILED to load')} // eslint-disable-line
+                    >
                         <ToastContainer
                             position="top-left"
                             autoClose={4000}
