@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
 import showToast from '../utils/showToast';
+import isMobile from '../utils/deviceDetect';
 
 // Redux
 import { useDispatch } from 'react-redux';
@@ -110,7 +111,12 @@ const Index = () => {
                         <GoogleLogin
                             onSuccess={responseGoogle}
                             onError={onError}
-                            scope="openid email profile"
+                            ux_mode={isMobile() ? 'redirect' : 'popup'}
+                            login_uri={
+                                isMobile()
+                                    ? `${window.location.origin}/api/auth/google-callback`
+                                    : undefined
+                            }
                         />
                     </div>
                 </div>
