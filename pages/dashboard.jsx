@@ -376,8 +376,8 @@ const Dashboard = () => {
                                                             color: 'hsl(var(--foreground-muted))',
                                                         }}
                                                     >
-                                                        {lead.backend_profile?.homes_viewed_count || 0}{' '}
-                                                        {lead.backend_profile?.homes_viewed_count === 1
+                                                        {lead.viewed_homes?.length || 0}{' '}
+                                                        {lead.viewed_homes?.length === 1
                                                             ? 'home'
                                                             : 'homes'}{' '}
                                                         viewed
