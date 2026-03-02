@@ -30,17 +30,17 @@ app.prepare()
         // Using server.all with {*path} (Express 5 syntax) preserves the
         // full URL so next-auth's internal router matches correctly.
         server.all('/api/auth/{*path}', (req, res) => {
-    // Express 5 defines req.query as a non-writable getter.
-    // next-auth v4 attempts to write to req.query internally, which throws a TypeError.
-    // Redefine it as a writable property with the same value to allow next-auth to proceed.
-    const query = req.query;
-    Object.defineProperty(req, 'query', {
-        writable: true,
-        configurable: true,
-        value: query,
-    });
-    return nextHandler(req, res);
-});
+            // Express 5 defines req.query as a non-writable getter.
+            // next-auth v4 attempts to write to it, causing a TypeError.
+            // Redefine as writable so next-auth can proceed.
+            const query = req.query;
+            Object.defineProperty(req, 'query', {
+                writable: true,
+                configurable: true,
+                value: query,
+            });
+            return nextHandler(req, res);
+        });
 
         // Security headers
         server.use(

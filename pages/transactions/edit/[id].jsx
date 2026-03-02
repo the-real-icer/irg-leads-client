@@ -266,8 +266,8 @@ const EditTransaction = () => {
                     headers: { Authorization: `Bearer ${isLoggedIn}` },
                 });
 
-                if (response.data.status === 'success' && response.data.data?.[0]) {
-                    const txn = response.data.data[0];
+                if (response.data.status === 'success' && response.data.data) {
+                    const txn = response.data.data;
 
                     // Property (now populated from backend)
                     if (txn.property && typeof txn.property === 'object') {

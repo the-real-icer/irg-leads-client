@@ -32,11 +32,6 @@ export const authOptions = {
                 // account.id_token is the Google-signed JWT that the CRM
                 // backend verifies via OAuth2Client.verifyIdToken()
                 token.googleIdToken = account.id_token;
-
-                if (process.env.NODE_ENV === 'development') {
-                    console.log('[next-auth jwt] account keys:', Object.keys(account));
-                    console.log('[next-auth jwt] id_token present:', !!account.id_token);
-                }
             }
             return token;
         },
@@ -57,7 +52,6 @@ export const authOptions = {
         error: '/',
     },
 
-    debug: process.env.NODE_ENV === 'development',
 };
 
 export default NextAuth(authOptions);
