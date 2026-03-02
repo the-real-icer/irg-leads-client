@@ -1,22 +1,17 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/router';
 
 // Redux
-import {
-    useSelector,
-    //  useDispatch
-} from 'react-redux';
+import { useSelector } from 'react-redux';
 
 // Third Party Components
-import { DataTable } from 'primereact/datatable';
-import { Column } from 'primereact/column';
 import { InputText } from 'primereact/inputtext';
 import { Dropdown } from 'primereact/dropdown';
 import { Button } from 'primereact/button';
 
 // IRG Components
 import MainLayout from '../../components/layout/MainLayout';
-import getLeadDisplayName from '../../utils/getLeadDisplayName';
+import getLeadDisplayName, { getLeadInitials } from '../../utils/getLeadDisplayName';
 
 const formatPhoneNumber = (phoneNumberString) => {
     const cleaned = ('' + phoneNumberString).replace(/\D/g, '');
@@ -27,6 +22,459 @@ const formatPhoneNumber = (phoneNumberString) => {
     return null;
 };
 
+const KNOWN_STATUSES = ['watch', 'qualify', 'hot', 'nurture', 'new', 'closed', 'trash', 'archive', 'pending'];
+const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
+
+const SORT_COLUMNS = [
+    { label: 'Name / Email', field: 'name',     flex: '1.5', sortable: true  },
+    { label: 'Phone',        field: null,        flex: '1',   sortable: false },
+    { label: 'Status',       field: 'status',    flex: '0.8', sortable: true  },
+    { label: 'Type',         field: 'type',      flex: '0.8', sortable: true  },
+    { label: 'Source',       field: 'source',    flex: '1',   sortable: true  },
+    { label: 'Avg Price',    field: 'avgPrice',  flex: '0.8', sortable: true  },
+    { label: 'Last Visit',   field: 'lastVisit', flex: '0.7', sortable: true, textAlign: 'right' },
+];
+
+// --------------- Subcomponents ---------------
+
+const PaginationButton = ({ onClick, disabled, active, children, title }) => (
+    <button
+        onClick={onClick}
+        disabled={disabled}
+        title={title}
+        style={{
+            width: '30px',
+            height: '30px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: 'var(--radius)',
+            border: active
+                ? '1px solid hsl(var(--primary))'
+                : '1px solid hsl(var(--border))',
+            background: active
+                ? 'hsl(var(--primary))'
+                : 'transparent',
+            color: active
+                ? '#ffffff'
+                : disabled
+                    ? 'hsl(var(--muted-foreground))'
+                    : 'hsl(var(--foreground))',
+            fontSize: '13px',
+            fontWeight: active ? '700' : '400',
+            cursor: disabled ? 'not-allowed' : 'pointer',
+            opacity: disabled ? 0.4 : 1,
+            transition: 'all 0.1s ease'
+        }}
+    >
+        {children}
+    </button>
+);
+
+const LeadsPagination = ({
+    currentPage,
+    totalPages,
+    totalItems,
+    pageSize,
+    pageSizeOptions,
+    onPageChange,
+    onPageSizeChange
+}) => {
+    const startItem = totalItems === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+    const endItem = Math.min(currentPage * pageSize, totalItems);
+
+    return (
+        <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '14px 0',
+            borderTop: '1px solid hsl(var(--border))'
+        }}>
+            <span style={{
+                fontSize: '12px',
+                color: 'hsl(var(--muted-foreground))'
+            }}>
+                {totalItems === 0
+                    ? 'No leads found'
+                    : `Showing ${startItem}\u2013${endItem} of ${totalItems} leads`
+                }
+            </span>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                {/* Per page selector */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{
+                        fontSize: '12px',
+                        color: 'hsl(var(--muted-foreground))'
+                    }}>
+                        Per page
+                    </span>
+                    <select
+                        value={pageSize}
+                        onChange={e => onPageSizeChange(Number(e.target.value))}
+                        style={{
+                            background: 'hsl(var(--background))',
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: 'var(--radius)',
+                            color: 'hsl(var(--foreground))',
+                            fontSize: '12px',
+                            padding: '4px 8px',
+                            cursor: 'pointer',
+                            outline: 'none'
+                        }}
+                    >
+                        {pageSizeOptions.map(size => (
+                            <option key={size} value={size}>{size}</option>
+                        ))}
+                    </select>
+                </div>
+
+                {/* Page buttons */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <PaginationButton
+                        onClick={() => onPageChange(1)}
+                        disabled={currentPage === 1}
+                        title="First page"
+                    >
+                        &laquo;
+                    </PaginationButton>
+
+                    <PaginationButton
+                        onClick={() => onPageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        title="Previous page"
+                    >
+                        &lsaquo;
+                    </PaginationButton>
+
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                        .filter(page =>
+                            page === 1 ||
+                            page === totalPages ||
+                            Math.abs(page - currentPage) <= 2
+                        )
+                        .reduce((acc, page, idx, arr) => {
+                            if (idx > 0 && page - arr[idx - 1] > 1) {
+                                acc.push('...');
+                            }
+                            acc.push(page);
+                            return acc;
+                        }, [])
+                        .map((page, idx) =>
+                            page === '...' ? (
+                                <span
+                                    key={`ellipsis-${idx}`}
+                                    style={{
+                                        padding: '0 4px',
+                                        color: 'hsl(var(--muted-foreground))',
+                                        fontSize: '12px'
+                                    }}
+                                >
+                                    ...
+                                </span>
+                            ) : (
+                                <PaginationButton
+                                    key={page}
+                                    onClick={() => onPageChange(page)}
+                                    active={page === currentPage}
+                                >
+                                    {page}
+                                </PaginationButton>
+                            )
+                        )
+                    }
+
+                    <PaginationButton
+                        onClick={() => onPageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages || totalPages === 0}
+                        title="Next page"
+                    >
+                        &rsaquo;
+                    </PaginationButton>
+
+                    <PaginationButton
+                        onClick={() => onPageChange(totalPages)}
+                        disabled={currentPage === totalPages || totalPages === 0}
+                        title="Last page"
+                    >
+                        &raquo;
+                    </PaginationButton>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const LeadCard = ({ lead, onClick }) => {
+    const displayName = getLeadDisplayName(lead);
+    const initials = getLeadInitials(lead);
+    const phone = formatPhoneNumber(lead.phone_number);
+    const email = lead.email || '\u2014';
+    const status = lead.backend_profile?.lead_category || '\u2014';
+    const type = lead.backend_profile?.lead_type || '\u2014';
+    const source = lead.backend_profile?.lead_source || '\u2014';
+
+    const avgPrice = (() => {
+        const homes = lead.viewed_homes || [];
+        if (!homes.length) return 'N/A';
+        const prices = homes
+            .map(h => h.property_viewed?.list_price || h.property_viewed?.price_raw || 0)
+            .filter(p => p > 0);
+        if (!prices.length) return 'N/A';
+        const avg = prices.reduce((a, b) => a + b, 0) / prices.length;
+        if (avg >= 1_000_000) return `$${(avg / 1_000_000).toFixed(1)}M`;
+        if (avg >= 1_000) return `$${Math.round(avg / 1_000)}K`;
+        return `$${Math.round(avg).toLocaleString()}`;
+    })();
+
+    const lastVisit = (() => {
+        if (!lead.last_visit) return 'Never';
+        const date = new Date(lead.last_visit);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffDays = Math.floor(diffMs / 86400000);
+        if (diffDays === 0) return 'Today';
+        if (diffDays === 1) return 'Yesterday';
+        if (diffDays < 7) return `${diffDays}d ago`;
+        if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
+        if (diffDays < 365) return `${Math.floor(diffDays / 30)}mo ago`;
+        return `${Math.floor(diffDays / 365)}y ago`;
+    })();
+
+    const statusKey = status?.toLowerCase();
+    const isKnownStatus = KNOWN_STATUSES.includes(statusKey);
+    const statusStyle = isKnownStatus ? {
+        background: `hsl(var(--status-${statusKey}) / 0.15)`,
+        color: `hsl(var(--status-${statusKey}))`,
+        border: `1px solid hsl(var(--status-${statusKey}) / 0.3)`
+    } : {
+        background: 'hsl(var(--muted))',
+        color: 'hsl(var(--muted-foreground))',
+        border: '1px solid hsl(var(--border))'
+    };
+
+    return (
+        <div
+            onClick={onClick}
+            style={{
+                background: 'hsl(var(--card))',
+                border: '1px solid hsl(var(--border))',
+                borderRadius: 'var(--radius)',
+                padding: '18px 20px',
+                cursor: 'pointer',
+                transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '16px',
+                width: '100%'
+            }}
+            onMouseEnter={e => {
+                e.currentTarget.style.borderColor = 'hsl(var(--primary) / 0.5)';
+                e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.1)';
+            }}
+            onMouseLeave={e => {
+                e.currentTarget.style.borderColor = 'hsl(var(--border))';
+                e.currentTarget.style.boxShadow = 'none';
+            }}
+        >
+            {/* Avatar */}
+            <div style={{
+                width: '44px',
+                height: '44px',
+                borderRadius: '50%',
+                background: 'hsl(var(--primary) / 0.15)',
+                border: '1px solid hsl(var(--primary) / 0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '15px',
+                fontWeight: '700',
+                color: 'hsl(var(--primary))',
+                flexShrink: 0
+            }}>
+                {initials}
+            </div>
+
+            {/* Name + Email */}
+            <div style={{ minWidth: 0, flex: '1.5' }}>
+                <div style={{
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    color: 'hsl(var(--foreground))',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                }}>
+                    {displayName}
+                </div>
+                <div style={{
+                    fontSize: '12px',
+                    color: 'hsl(var(--muted-foreground))',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    marginTop: '2px'
+                }}>
+                    {email}
+                </div>
+            </div>
+
+            {/* Phone */}
+            <div style={{ flex: '1', minWidth: 0 }}>
+                <div style={{
+                    fontSize: '12px',
+                    color: 'hsl(var(--muted-foreground))',
+                    marginBottom: '2px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    fontWeight: '600'
+                }}>
+                    Phone
+                </div>
+                <div style={{
+                    fontSize: '14px',
+                    color: phone ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))'
+                }}>
+                    {phone || '\u2014'}
+                </div>
+            </div>
+
+            {/* Status */}
+            <div style={{ flex: '0.8', minWidth: 0 }}>
+                <div style={{
+                    fontSize: '12px',
+                    color: 'hsl(var(--muted-foreground))',
+                    marginBottom: '4px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    fontWeight: '600'
+                }}>
+                    Status
+                </div>
+                <span style={{
+                    display: 'inline-block',
+                    padding: '2px 10px',
+                    borderRadius: '999px',
+                    fontSize: '12px',
+                    fontWeight: '700',
+                    letterSpacing: '0.04em',
+                    textTransform: 'uppercase',
+                    ...statusStyle
+                }}>
+                    {status}
+                </span>
+            </div>
+
+            {/* Type */}
+            <div style={{ flex: '0.8', minWidth: 0 }}>
+                <div style={{
+                    fontSize: '12px',
+                    color: 'hsl(var(--muted-foreground))',
+                    marginBottom: '2px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    fontWeight: '600'
+                }}>
+                    Type
+                </div>
+                <div style={{
+                    fontSize: '14px',
+                    color: type !== '\u2014' ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))'
+                }}>
+                    {type}
+                </div>
+            </div>
+
+            {/* Source */}
+            <div style={{ flex: '1', minWidth: 0 }}>
+                <div style={{
+                    fontSize: '12px',
+                    color: 'hsl(var(--muted-foreground))',
+                    marginBottom: '2px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    fontWeight: '600'
+                }}>
+                    Source
+                </div>
+                <div style={{
+                    fontSize: '14px',
+                    color: source !== '\u2014' ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                }}>
+                    {source}
+                </div>
+            </div>
+
+            {/* Avg Price */}
+            <div style={{ flex: '0.8', minWidth: 0 }}>
+                <div style={{
+                    fontSize: '12px',
+                    color: 'hsl(var(--muted-foreground))',
+                    marginBottom: '2px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    fontWeight: '600'
+                }}>
+                    Avg Price
+                </div>
+                <div style={{
+                    fontSize: '14px',
+                    color: avgPrice !== 'N/A'
+                        ? 'hsl(var(--foreground))'
+                        : 'hsl(var(--muted-foreground))'
+                }}>
+                    {avgPrice}
+                </div>
+            </div>
+
+            {/* Last Visit */}
+            <div style={{ flex: '0.7', minWidth: 0, textAlign: 'right' }}>
+                <div style={{
+                    fontSize: '12px',
+                    color: 'hsl(var(--muted-foreground))',
+                    marginBottom: '2px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    fontWeight: '600'
+                }}>
+                    Last Visit
+                </div>
+                <div style={{
+                    fontSize: '14px',
+                    color: lastVisit === 'Never'
+                        ? 'hsl(var(--muted-foreground))'
+                        : 'hsl(var(--foreground))'
+                }}>
+                    {lastVisit}
+                </div>
+            </div>
+
+            {/* Chevron */}
+            <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                style={{
+                    color: 'hsl(var(--muted-foreground))',
+                    flexShrink: 0,
+                    opacity: 0.5
+                }}
+            >
+                <path d="M9 18l6-6-6-6" />
+            </svg>
+        </div>
+    );
+};
+
+// --------------- Main Component ---------------
+
 const Leads = () => {
     // __________________Redux State______________________\\
     const {
@@ -35,14 +483,20 @@ const Leads = () => {
         error: leadsError,
     } = useSelector((state) => state.allLeadsPage);
 
+    const router = useRouter();
+
     const [globalFilterValue, setGlobalFilterValue] = useState('');
     const [selectedStatus, setSelectedStatus] = useState(null);
     const [selectedType, setSelectedType] = useState(null);
     const [selectedSource, setSelectedSource] = useState(null);
 
-    // Sorting state — PrimeReact v8 requires non-null values for controlled sort
-    const [sortField, setSortField] = useState('');
-    const [sortOrder, setSortOrder] = useState(0);
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+
+    // Sort state — default: Last Visit descending (most recent first)
+    const [sortField, setSortField] = useState('lastVisit');
+    const [sortDirection, setSortDirection] = useState('desc');
 
     // Ensure allLeads is an array
     const leadsArray = Array.isArray(allLeads) ? allLeads : [];
@@ -72,9 +526,9 @@ const Leads = () => {
         ),
     ].sort(), [leadsArray]);
 
-    // Filter + sort leads — memoized to avoid O(n log n) on every render
+    // Filter + sort leads — memoized
     const leads = useMemo(() => {
-        let filtered = leadsArray.filter((lead) => {
+        const filtered = leadsArray.filter((lead) => {
             if (globalFilterValue) {
                 const searchLower = globalFilterValue.toLowerCase();
                 const matchesGlobal =
@@ -101,37 +555,80 @@ const Leads = () => {
             return true;
         });
 
-        // Apply sorting — skip if no field selected or sortOrder is 0 (unsorted)
-        if (sortField && sortOrder !== 0) {
-            filtered = [...filtered].sort((a, b) => {
-                let aValue, bValue;
+        // Sort
+        return [...filtered].sort((a, b) => {
+            let aVal, bVal;
 
-                if (sortField.includes('.')) {
-                    const fields = sortField.split('.');
-                    aValue = fields.reduce((obj, field) => obj?.[field], a);
-                    bValue = fields.reduce((obj, field) => obj?.[field], b);
-                } else {
-                    aValue = a[sortField];
-                    bValue = b[sortField];
+            switch (sortField) {
+                case 'name': {
+                    aVal = getLeadDisplayName(a).toLowerCase();
+                    bVal = getLeadDisplayName(b).toLowerCase();
+                    break;
                 }
-
-                if (aValue == null && bValue == null) return 0;
-                if (aValue == null) return 1;
-                if (bValue == null) return -1;
-
-                if (typeof aValue === 'string' && typeof bValue === 'string') {
-                    const comparison = aValue.toLowerCase().localeCompare(bValue.toLowerCase());
-                    return sortOrder === 1 ? comparison : -comparison;
+                case 'status': {
+                    aVal = (a.backend_profile?.lead_category || '').toLowerCase();
+                    bVal = (b.backend_profile?.lead_category || '').toLowerCase();
+                    break;
                 }
+                case 'type': {
+                    aVal = (a.backend_profile?.lead_type || '').toLowerCase();
+                    bVal = (b.backend_profile?.lead_type || '').toLowerCase();
+                    break;
+                }
+                case 'source': {
+                    aVal = (a.backend_profile?.lead_source || '').toLowerCase();
+                    bVal = (b.backend_profile?.lead_source || '').toLowerCase();
+                    break;
+                }
+                case 'avgPrice': {
+                    const getAvg = (lead) => {
+                        const homes = lead.viewed_homes || [];
+                        const prices = homes
+                            .map(h => h.property_viewed?.list_price || h.property_viewed?.price_raw || 0)
+                            .filter(p => p > 0);
+                        if (!prices.length) return 0;
+                        return prices.reduce((sum, p) => sum + p, 0) / prices.length;
+                    };
+                    aVal = getAvg(a);
+                    bVal = getAvg(b);
+                    break;
+                }
+                case 'lastVisit': {
+                    aVal = a.last_visit ? new Date(a.last_visit).getTime() : 0;
+                    bVal = b.last_visit ? new Date(b.last_visit).getTime() : 0;
+                    break;
+                }
+                default:
+                    return 0;
+            }
 
-                if (aValue < bValue) return sortOrder === 1 ? -1 : 1;
-                if (aValue > bValue) return sortOrder === 1 ? 1 : -1;
-                return 0;
-            });
-        }
+            // Nulls/empty sort to bottom
+            if (!aVal && aVal !== 0) return 1;
+            if (!bVal && bVal !== 0) return -1;
 
-        return filtered;
-    }, [leadsArray, globalFilterValue, selectedStatus, selectedType, selectedSource, sortField, sortOrder]);
+            // String comparison
+            if (typeof aVal === 'string') {
+                const cmp = aVal.localeCompare(bVal);
+                return sortDirection === 'asc' ? cmp : -cmp;
+            }
+
+            // Numeric comparison
+            return sortDirection === 'asc' ? aVal - bVal : bVal - aVal;
+        });
+    }, [leadsArray, globalFilterValue, selectedStatus, selectedType, selectedSource, sortField, sortDirection]);
+
+    // Paginated leads derived from filtered leads
+    const paginatedLeads = useMemo(() => {
+        const start = (currentPage - 1) * pageSize;
+        return leads.slice(start, start + pageSize);
+    }, [leads, currentPage, pageSize]);
+
+    const totalPages = Math.ceil(leads.length / pageSize);
+
+    // Reset to page 1 when filters change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [globalFilterValue, selectedStatus, selectedType, selectedSource]);
 
     const onGlobalFilterChange = (e) => {
         setGlobalFilterValue(e.target.value);
@@ -144,44 +641,43 @@ const Leads = () => {
         setSelectedSource(null);
     };
 
-    const onSort = (event) => {
-        setSortField(event.sortField || '');
-        setSortOrder(event.sortOrder ?? 0);
+    const handlePageSizeChange = (newSize) => {
+        setPageSize(newSize);
+        setCurrentPage(1);
     };
 
-    const router = useRouter();
-
-    const onRowSelect = (event) => {
-        router.push(`/lead/${event.data._id}`);
-    };
-
-    const formatDate = (val) => {
-        if (!val) {
-            return 'Not Visited';
+    const handleSort = (field) => {
+        if (sortField === field) {
+            setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortField(field);
+            setSortDirection(field === 'lastVisit' ? 'desc' : 'asc');
         }
-
-        const properDate = new Date(val);
-
-        if (isNaN(properDate.getTime())) {
-            return 'Not Visited';
-        }
-
-        return properDate.toLocaleDateString('en-US', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-        });
+        setCurrentPage(1);
     };
 
-    const dateBodyTemplate = (rowData) => formatDate(rowData.last_visit);
-
-    const statusBodyTemplate = (rowData) => {
-        const category = rowData.backend_profile?.lead_category;
-        if (!category) return <span>—</span>;
-        return (
-            <span className={`customer-badge status-${category}`}>
-                {category}
-            </span>
+    const SortIcon = ({ field }) => {
+        if (sortField !== field) {
+            return (
+                <svg width="12" height="12" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" strokeWidth="2"
+                    style={{ opacity: 0.3 }}>
+                    <path d="M7 15l5 5 5-5M7 9l5-5 5 5" />
+                </svg>
+            );
+        }
+        return sortDirection === 'asc' ? (
+            <svg width="12" height="12" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" strokeWidth="2.5"
+                style={{ color: 'hsl(var(--primary))' }}>
+                <path d="M7 15l5-5 5 5" />
+            </svg>
+        ) : (
+            <svg width="12" height="12" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" strokeWidth="2.5"
+                style={{ color: 'hsl(var(--primary))' }}>
+                <path d="M7 9l5 5 5-5" />
+            </svg>
         );
     };
 
@@ -205,43 +701,6 @@ const Leads = () => {
         );
     };
 
-    const nameBodyTemplate = (rowData) => (
-        <span>
-            {getLeadDisplayName(rowData)}
-        </span>
-    );
-
-    const phoneBodyTemplate = (rowData) => (
-        <span>{formatPhoneNumber(rowData.phone_number)}</span>
-    );
-
-    const avgPriceBodyTemplate = (rowData) => {
-        if (rowData.viewed_homes?.length) {
-            let totalPrice = 0;
-
-            for (const home of rowData.viewed_homes) {
-                if (home?.property_viewed?.price_raw) {
-                    totalPrice += home.property_viewed.price_raw;
-                }
-            }
-
-            const avgPrice = totalPrice / rowData.viewed_homes.length;
-
-            const formatter = new Intl.NumberFormat('en-US', {
-                style: 'currency',
-                currency: 'USD',
-                maximumFractionDigits: 0,
-                minimumFractionDigits: 0,
-            });
-
-            const avgPriceClean = formatter.format(avgPrice);
-
-            return <span>{avgPriceClean}</span>;
-        }
-
-        return <span>No Homes Viewed</span>;
-    };
-
     const renderHeader = () => {
         const hasActiveFilters = selectedStatus || selectedType || selectedSource || globalFilterValue;
 
@@ -260,11 +719,12 @@ const Leads = () => {
                         margin: 0,
                         fontSize: '1.75rem',
                         fontWeight: '600',
-                        color: 'hsl(var(--foreground))'
+                        color: 'hsl(var(--foreground))',
+                        paddingLeft: '6px'
                     }}>
                         Leads
                     </h2>
-                    <span className="p-input-icon-left">
+                    <span className="p-input-icon-left" style={{ marginTop: '4px' }}>
                         <i className="pi pi-search" style={{ color: 'hsl(var(--foreground-muted))' }} />
                         <InputText
                             value={globalFilterValue}
@@ -367,78 +827,146 @@ const Leads = () => {
     return (
         <MainLayout>
             <div className="card">
-                <DataTable
-                    value={leads}
-                    loading={leadsLoading}
-                    rows={10}
-                    paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-                    rowsPerPageOptions={[10, 25, 50]}
-                    paginator
-                    rowHover
-                    emptyMessage={
-                        leadsError
-                            ? `Error loading leads: ${leadsError}`
-                            : leadsLoading
-                                ? ' '
-                                : 'No leads found.'
-                    }
-                    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
-                    selectionMode="single"
-                    onRowSelect={onRowSelect}
-                    header={header}
-                    responsiveLayout="scroll"
-                    sortMode="single"
-                    sortField={sortField}
-                    sortOrder={sortOrder}
-                    onSort={onSort}
-                >
-                    <Column
-                        header="Name"
-                        sortable
-                        sortField="first_name"
-                        style={{ minWidth: '14rem' }}
-                        body={nameBodyTemplate}
+                {header}
+
+                {/* Loading state */}
+                {leadsLoading && (
+                    <div style={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        padding: '60px 0',
+                        gap: '12px',
+                        color: 'hsl(var(--muted-foreground))',
+                        fontSize: '14px'
+                    }}>
+                        <div style={{
+                            width: '20px',
+                            height: '20px',
+                            border: '2px solid hsl(var(--muted))',
+                            borderTopColor: 'hsl(var(--primary))',
+                            borderRadius: '50%',
+                            animation: 'spin 0.7s linear infinite'
+                        }} />
+                        Loading leads...
+                    </div>
+                )}
+
+                {/* Error state */}
+                {leadsError && !leadsLoading && (
+                    <div style={{
+                        textAlign: 'center',
+                        padding: '60px 0',
+                        color: 'hsl(var(--muted-foreground))'
+                    }}>
+                        <p style={{ color: 'hsl(var(--destructive))', marginBottom: '8px' }}>
+                            {leadsError}
+                        </p>
+                        <p style={{ fontSize: '12px' }}>
+                            Leads will retry automatically in 2 minutes
+                        </p>
+                    </div>
+                )}
+
+                {/* Column headers row — sortable */}
+                {!leadsLoading && !leadsError && leads.length > 0 && (
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        padding: '8px 20px 8px 76px',
+                        gap: '16px',
+                        marginBottom: '4px'
+                    }}>
+                        {SORT_COLUMNS.map(col => (
+                            <div
+                                key={col.label}
+                                onClick={col.sortable ? () => handleSort(col.field) : undefined}
+                                style={{
+                                    flex: col.flex,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '4px',
+                                    fontSize: '12px',
+                                    fontWeight: '700',
+                                    color: sortField === col.field
+                                        ? 'hsl(var(--foreground))'
+                                        : 'hsl(var(--muted-foreground))',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.06em',
+                                    justifyContent: col.textAlign === 'right'
+                                        ? 'flex-end' : 'flex-start',
+                                    cursor: col.sortable ? 'pointer' : 'default',
+                                    userSelect: 'none',
+                                    transition: 'color 0.15s ease'
+                                }}
+                                onMouseEnter={e => {
+                                    if (col.sortable) {
+                                        e.currentTarget.style.color = 'hsl(var(--foreground))';
+                                    }
+                                }}
+                                onMouseLeave={e => {
+                                    if (col.sortable && sortField !== col.field) {
+                                        e.currentTarget.style.color = 'hsl(var(--muted-foreground))';
+                                    }
+                                }}
+                            >
+                                {col.label}
+                                {col.sortable && <SortIcon field={col.field} />}
+                            </div>
+                        ))}
+                        <div style={{ width: '16px', flexShrink: 0 }} />
+                    </div>
+                )}
+
+                {/* Cards list */}
+                {!leadsLoading && !leadsError && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        {paginatedLeads.map(lead => (
+                            <LeadCard
+                                key={lead._id}
+                                lead={lead}
+                                onClick={() => router.push(`/lead/${lead._id}`)}
+                            />
+                        ))}
+                    </div>
+                )}
+
+                {/* Empty state */}
+                {!leadsLoading && !leadsError && leads.length === 0 && (
+                    <div style={{
+                        textAlign: 'center',
+                        padding: '80px 0',
+                        color: 'hsl(var(--muted-foreground))'
+                    }}>
+                        <div style={{ fontSize: '32px', marginBottom: '12px' }}>&#128100;</div>
+                        <p style={{
+                            fontWeight: '600',
+                            color: 'hsl(var(--foreground))',
+                            marginBottom: '4px'
+                        }}>
+                            No leads found
+                        </p>
+                        <p style={{ fontSize: '12px' }}>
+                            {globalFilterValue || selectedStatus || selectedType || selectedSource
+                                ? 'Try adjusting your filters'
+                                : 'Add your first lead to get started'
+                            }
+                        </p>
+                    </div>
+                )}
+
+                {/* Pagination */}
+                {!leadsLoading && leads.length > 0 && (
+                    <LeadsPagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        totalItems={leads.length}
+                        pageSize={pageSize}
+                        pageSizeOptions={PAGE_SIZE_OPTIONS}
+                        onPageChange={setCurrentPage}
+                        onPageSizeChange={handlePageSizeChange}
                     />
-                    <Column field="email" header="Email" sortable></Column>
-                    <Column
-                        body={phoneBodyTemplate}
-                        header="Phone"
-                        sortable
-                        sortField="phone_number"
-                    ></Column>
-                    <Column
-                        header="Status"
-                        sortable
-                        sortField="backend_profile.lead_category"
-                        style={{ minWidth: '10rem' }}
-                        body={statusBodyTemplate}
-                    />
-                    <Column
-                        field="backend_profile.lead_type"
-                        header="Type"
-                        sortable
-                        style={{ minWidth: '10rem' }}
-                    />
-                    <Column
-                        field="backend_profile.lead_source"
-                        header="Source"
-                        sortable
-                        style={{ minWidth: '10rem' }}
-                    />
-                    <Column
-                        header="Avg. Price"
-                        style={{ minWidth: '10rem' }}
-                        body={avgPriceBodyTemplate}
-                    />
-                    <Column
-                        header="Last Visit"
-                        sortable
-                        sortField="last_visit"
-                        dataType="date"
-                        style={{ minWidth: '8rem' }}
-                        body={dateBodyTemplate}
-                    />
-                </DataTable>
+                )}
             </div>
         </MainLayout>
     );
