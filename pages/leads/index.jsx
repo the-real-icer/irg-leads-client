@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import { useWindowSize } from 'react-use';
 
 // Redux
 import { useSelector } from 'react-redux';
@@ -206,7 +207,7 @@ const LeadsPagination = ({
     );
 };
 
-const LeadCard = ({ lead, onClick }) => {
+const LeadCard = ({ lead, onClick, isMobile }) => {
     const displayName = getLeadDisplayName(lead);
     const initials = getLeadInitials(lead);
     const phone = formatPhoneNumber(lead.phone_number);
@@ -253,6 +254,123 @@ const LeadCard = ({ lead, onClick }) => {
         color: 'hsl(var(--muted-foreground))',
         border: '1px solid hsl(var(--border))'
     };
+
+    if (isMobile) {
+        return (
+            <div
+                onClick={onClick}
+                style={{
+                    background: 'hsl(var(--card))',
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: 'var(--radius)',
+                    padding: '14px 16px',
+                    cursor: 'pointer',
+                    transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '10px',
+                    width: '100%'
+                }}
+            >
+                {/* Row 1: Avatar + Name + Status + Chevron */}
+                <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px'
+                }}>
+                    <div style={{
+                        width: '38px',
+                        height: '38px',
+                        borderRadius: '50%',
+                        background: 'hsl(var(--primary) / 0.15)',
+                        border: '1px solid hsl(var(--primary) / 0.3)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '13px',
+                        fontWeight: '700',
+                        color: 'hsl(var(--primary))',
+                        flexShrink: 0
+                    }}>
+                        {initials}
+                    </div>
+
+                    <div style={{
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        color: 'hsl(var(--foreground))',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        flex: 1,
+                        minWidth: 0
+                    }}>
+                        {displayName}
+                    </div>
+
+                    <span style={{
+                        display: 'inline-block',
+                        padding: '2px 8px',
+                        borderRadius: '999px',
+                        fontSize: '11px',
+                        fontWeight: '700',
+                        letterSpacing: '0.04em',
+                        textTransform: 'uppercase',
+                        flexShrink: 0,
+                        ...statusStyle
+                    }}>
+                        {status}
+                    </span>
+
+                    <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        style={{
+                            color: 'hsl(var(--muted-foreground))',
+                            flexShrink: 0,
+                            opacity: 0.5
+                        }}
+                    >
+                        <path d="M9 18l6-6-6-6" />
+                    </svg>
+                </div>
+
+                {/* Row 2: Email + Last Visit */}
+                <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    paddingLeft: '50px',
+                    gap: '12px'
+                }}>
+                    <div style={{
+                        fontSize: '12px',
+                        color: 'hsl(var(--muted-foreground))',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        minWidth: 0,
+                        flex: 1
+                    }}>
+                        {email}
+                    </div>
+                    <div style={{
+                        fontSize: '12px',
+                        color: lastVisit === 'Never'
+                            ? 'hsl(var(--muted-foreground))'
+                            : 'hsl(var(--foreground))',
+                        flexShrink: 0
+                    }}>
+                        {lastVisit}
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div
@@ -484,6 +602,8 @@ const Leads = () => {
     } = useSelector((state) => state.allLeadsPage);
 
     const router = useRouter();
+    const { width } = useWindowSize();
+    const isMobile = width < 768;
 
     const [globalFilterValue, setGlobalFilterValue] = useState('');
     const [selectedStatus, setSelectedStatus] = useState(null);
@@ -705,33 +825,35 @@ const Leads = () => {
         const hasActiveFilters = selectedStatus || selectedType || selectedSource || globalFilterValue;
 
         return (
-            <div style={{ marginBottom: '1.5rem' }}>
+            <div style={{ marginBottom: isMobile ? '1rem' : '1.5rem' }}>
                 {/* Title and Search Row */}
                 <div
                     style={{
                         display: 'flex',
+                        flexDirection: isMobile ? 'column' : 'row',
                         justifyContent: 'space-between',
-                        alignItems: 'center',
-                        marginBottom: '1.25rem'
+                        alignItems: isMobile ? 'stretch' : 'center',
+                        marginBottom: '1.25rem',
+                        gap: isMobile ? '12px' : '0'
                     }}
                 >
                     <h2 style={{
                         margin: 0,
-                        fontSize: '1.75rem',
+                        fontSize: isMobile ? '1.5rem' : '1.75rem',
                         fontWeight: '600',
                         color: 'hsl(var(--foreground))',
                         paddingLeft: '6px'
                     }}>
                         Leads
                     </h2>
-                    <span className="p-input-icon-left" style={{ marginTop: '4px' }}>
+                    <span className="p-input-icon-left" style={{ marginTop: isMobile ? 0 : '4px' }}>
                         <i className="pi pi-search" style={{ color: 'hsl(var(--foreground-muted))' }} />
                         <InputText
                             value={globalFilterValue}
                             onChange={onGlobalFilterChange}
                             placeholder="Search leads..."
                             style={{
-                                width: '320px',
+                                width: isMobile ? '100%' : '320px',
                                 borderRadius: '8px',
                                 padding: '0.75rem 1rem 0.75rem 2.5rem'
                             }}
@@ -743,9 +865,10 @@ const Leads = () => {
                 <div
                     style={{
                         display: 'flex',
-                        alignItems: 'center',
-                        gap: '1rem',
-                        padding: '1rem 1.25rem',
+                        flexDirection: isMobile ? 'column' : 'row',
+                        alignItems: isMobile ? 'stretch' : 'center',
+                        gap: isMobile ? '10px' : '1rem',
+                        padding: isMobile ? '12px' : '1rem 1.25rem',
                         backgroundColor: 'hsl(var(--muted))',
                         borderRadius: '10px',
                         border: '1px solid hsl(var(--border))'
@@ -762,12 +885,27 @@ const Leads = () => {
                     }}>
                         <i className="pi pi-filter" style={{ fontSize: '0.9rem' }}></i>
                         <span>Filters</span>
+                        {hasActiveFilters && isMobile && (
+                            <Button
+                                icon="pi pi-times"
+                                rounded
+                                text
+                                severity="secondary"
+                                onClick={clearFilters}
+                                style={{
+                                    width: '2rem',
+                                    height: '2rem',
+                                    marginLeft: 'auto'
+                                }}
+                            />
+                        )}
                     </div>
 
                     <div style={{
                         display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.75rem',
+                        alignItems: isMobile ? 'stretch' : 'center',
+                        flexDirection: isMobile ? 'column' : 'row',
+                        gap: isMobile ? '8px' : '0.75rem',
                         flex: 1
                     }}>
                         <Dropdown
@@ -778,7 +916,7 @@ const Leads = () => {
                             showClear
                             itemTemplate={statusItemTemplate}
                             valueTemplate={statusValueTemplate}
-                            style={{ minWidth: '160px' }}
+                            style={{ minWidth: isMobile ? undefined : '160px', width: isMobile ? '100%' : undefined }}
                             className="filter-dropdown"
                         />
                         <Dropdown
@@ -787,7 +925,7 @@ const Leads = () => {
                             onChange={(e) => setSelectedType(e.value)}
                             placeholder="Type"
                             showClear
-                            style={{ minWidth: '160px' }}
+                            style={{ minWidth: isMobile ? undefined : '160px', width: isMobile ? '100%' : undefined }}
                             className="filter-dropdown"
                         />
                         <Dropdown
@@ -796,12 +934,12 @@ const Leads = () => {
                             onChange={(e) => setSelectedSource(e.value)}
                             placeholder="Source"
                             showClear
-                            style={{ minWidth: '160px' }}
+                            style={{ minWidth: isMobile ? undefined : '160px', width: isMobile ? '100%' : undefined }}
                             className="filter-dropdown"
                         />
                     </div>
 
-                    {hasActiveFilters && (
+                    {hasActiveFilters && !isMobile && (
                         <Button
                             icon="pi pi-times"
                             rounded
@@ -868,8 +1006,8 @@ const Leads = () => {
                     </div>
                 )}
 
-                {/* Column headers row — sortable */}
-                {!leadsLoading && !leadsError && leads.length > 0 && (
+                {/* Column headers row — sortable (hidden on mobile) */}
+                {!leadsLoading && !leadsError && leads.length > 0 && !isMobile && (
                     <div style={{
                         display: 'flex',
                         alignItems: 'center',
@@ -926,6 +1064,7 @@ const Leads = () => {
                                 key={lead._id}
                                 lead={lead}
                                 onClick={() => router.push(`/lead/${lead._id}`)}
+                                isMobile={isMobile}
                             />
                         ))}
                     </div>

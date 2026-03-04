@@ -395,6 +395,8 @@ const GoogleConnectButton = () => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '0.75rem',
                 padding: '1rem',
                 backgroundColor: isConnected ? '#d4edda' : '#f8f9fa',
                 borderRadius: '6px',
@@ -495,7 +497,7 @@ const GoogleConnectButton = () => {
                                         key={calendar.id}
                                         style={{
                                             display: 'flex',
-                                            alignItems: 'center',
+                                            alignItems: 'flex-start',
                                             gap: '0.75rem',
                                             padding: '0.75rem',
                                             backgroundColor: 'white',
@@ -507,38 +509,41 @@ const GoogleConnectButton = () => {
                                             inputId={calendar.id}
                                             checked={selectedCalendarIds.includes(calendar.id)}
                                             onChange={() => handleToggleCalendar(calendar.id)}
+                                            style={{ marginTop: '2px' }}
                                         />
-                                        <label
-                                            htmlFor={calendar.id}
-                                            style={{
-                                                flex: 1,
-                                                cursor: 'pointer',
-                                                fontSize: '0.9rem',
-                                                color: '#2c3e50',
-                                                fontWeight: calendar.primary ? '600' : '400'
-                                            }}
-                                        >
-                                            {calendar.summary}
-                                            {calendar.primary && (
-                                                <span style={{
-                                                    marginLeft: '0.5rem',
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                            <label
+                                                htmlFor={calendar.id}
+                                                style={{
+                                                    display: 'block',
+                                                    cursor: 'pointer',
+                                                    fontSize: '0.9rem',
+                                                    color: '#2c3e50',
+                                                    fontWeight: calendar.primary ? '600' : '400'
+                                                }}
+                                            >
+                                                {calendar.summary}
+                                                {calendar.primary && (
+                                                    <span style={{
+                                                        marginLeft: '0.5rem',
+                                                        fontSize: '0.75rem',
+                                                        color: '#667eea',
+                                                        fontWeight: '600'
+                                                    }}>
+                                                        (Primary)
+                                                    </span>
+                                                )}
+                                            </label>
+                                            {calendar.description && (
+                                                <div style={{
                                                     fontSize: '0.75rem',
-                                                    color: '#667eea',
-                                                    fontWeight: '600'
+                                                    color: '#6c757d',
+                                                    marginTop: '0.25rem'
                                                 }}>
-                                                    (Primary)
-                                                </span>
+                                                    {calendar.description}
+                                                </div>
                                             )}
-                                        </label>
-                                        {calendar.description && (
-                                            <div style={{
-                                                fontSize: '0.75rem',
-                                                color: '#6c757d',
-                                                marginTop: '0.25rem'
-                                            }}>
-                                                {calendar.description}
-                                            </div>
-                                        )}
+                                        </div>
                                     </div>
                                 ))}
                                 <div style={{

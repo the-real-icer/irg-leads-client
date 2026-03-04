@@ -23,6 +23,10 @@
             @media (max-width: 1600px) {
                 font-size: 1.4rem;
             }
+
+            @media (max-width: 768px) {
+                font-size: 1.15rem;
+            }
         }
 
         &__city {
@@ -32,6 +36,10 @@
 
             @media (max-width: 1600px) {
                 font-size: 1.2rem;
+            }
+
+            @media (max-width: 768px) {
+                font-size: 0.9rem;
             }
         }
     }
@@ -50,6 +58,10 @@
 
             @media (max-width: 1600px) {
                 font-size: 1rem;
+            }
+
+            @media (max-width: 768px) {
+                font-size: 0.85rem;
             }
 
             &__active {
@@ -88,6 +100,10 @@
                 padding: 0 .5rem;
             }
 
+            @media (max-width: 480px) {
+                padding: 0 6px;
+            }
+
             &:last-of-type {
                 border-right: none;
             }
@@ -102,9 +118,9 @@
             font-size: 1.3rem;
         }
 
-        // @media (max-width: 700px) {
-        //     font-size: 1.5rem;
-        // }
+        @media (max-width: 768px) {
+            font-size: 1rem;
+        }
     }
 
     &__label {
@@ -113,6 +129,10 @@
 
         @media (max-width: 1600px) {
             font-size: 1.1rem;
+        }
+
+        @media (max-width: 768px) {
+            font-size: 0.75rem;
         }
     }
 
@@ -123,6 +143,10 @@
 
         @media (max-width: 1600px) {
             font-size: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            font-size: 0.85rem;
         }
     }
 

@@ -85,7 +85,7 @@ const TopBar = ({ onMobileMenuToggle }) => {
                     {/* Queue */}
                     <button
                         onClick={() => setShowQueueDialog(true)}
-                        className="hidden lg:flex relative items-center justify-center text-foreground-muted hover:text-foreground transition-colors duration-150"
+                        className="flex relative items-center justify-center text-foreground-muted hover:text-foreground transition-colors duration-150"
                         title="Property Queue"
                     >
                         <i className="pi pi-inbox text-xl" />

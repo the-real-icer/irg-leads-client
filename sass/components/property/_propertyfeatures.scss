@@ -16,6 +16,7 @@
     &__description {
         padding-right: 1.5rem;
         margin-bottom: 1.5rem;
+        overflow: hidden;
 
         @media (max-width: 1000px) {
             padding-right: 0;
@@ -27,8 +28,9 @@
             color: hsl(var(--foreground));
             margin: 0;
 
-            @media (max-width: 1000px) {
-                font-size: 1.6rem;
+            @media (max-width: 768px) {
+                font-size: 0.95rem;
+                line-height: 1.5;
             }
 
             &--clamped {
@@ -50,6 +52,10 @@
             border: none;
             padding: 0;
 
+            @media (max-width: 768px) {
+                font-size: 0.85rem;
+            }
+
             &:hover {
                 text-decoration: underline;
             }
@@ -67,6 +73,10 @@
         font-weight: 600;
         margin: 0 0 0.75rem;
         color: hsl(var(--foreground));
+
+        @media (max-width: 768px) {
+            font-size: 1.1rem;
+        }
     }
 
     &__grid {
@@ -84,17 +94,34 @@
         align-items: center;
         padding: 0.625rem 1rem;
         border-bottom: 1px solid hsl(var(--border));
+
+        @media (max-width: 768px) {
+            padding: 0.5rem 0.5rem;
+        }
     }
 
     &__label {
         font-size: 1.3rem;
         color: hsl(var(--foreground-muted));
         font-weight: 400;
+
+        @media (max-width: 768px) {
+            font-size: 0.85rem;
+        }
     }
 
     &__value {
         font-size: 1.3rem;
         font-weight: 600;
         color: hsl(var(--foreground));
+        text-align: right;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+
+        @media (max-width: 768px) {
+            font-size: 0.85rem;
+        }
     }
 }

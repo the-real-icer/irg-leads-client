@@ -1,5 +1,5 @@
 // React & NextJS
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import dynamic from 'next/dynamic';
 import DOMPurify from 'isomorphic-dompurify';
@@ -22,19 +22,6 @@ import GoogleConnectButton from '../../components/GoogleConnectButton';
 import IrgApi from '../../assets/irgApi';
 import showToast from '../../utils/showToast';
 
-const quillModules = {
-    toolbar: [
-        [{ header: [1, 2, 3, false] }],
-        [{ size: ['small', false, 'large', 'huge'] }],
-        ['bold', 'italic', 'underline', 'strike'],
-        [{ color: [] }, { background: [] }],
-        [{ list: 'ordered' }, { list: 'bullet' }],
-        [{ align: [] }],
-        ['link', 'image'],
-        ['clean'],
-    ],
-};
-
 const quillFormats = [
     'header', 'size', 'bold', 'italic', 'underline', 'strike',
     'color', 'background', 'list', 'bullet', 'align', 'link', 'image',
@@ -47,6 +34,48 @@ const Profile = () => {
 
     const [emailSignature, setEmailSignature] = useState('');
     const [savingSignature, setSavingSignature] = useState(false);
+
+    // Custom image handler — opens file picker and embeds as base64
+    // instead of Quill's default URL prompt (which leads to broken images when URLs expire).
+    // Must be a regular function (not arrow) so Quill binds `this.quill` correctly.
+    const quillModules = useMemo(() => ({
+        toolbar: {
+            container: [
+                [{ header: [1, 2, 3, false] }],
+                [{ size: ['small', false, 'large', 'huge'] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ color: [] }, { background: [] }],
+                [{ list: 'ordered' }, { list: 'bullet' }],
+                [{ align: [] }],
+                ['link', 'image'],
+                ['clean'],
+            ],
+            handlers: {
+                image: function () {
+                    const quill = this.quill;
+                    const input = document.createElement('input');
+                    input.setAttribute('type', 'file');
+                    input.setAttribute('accept', 'image/*');
+                    input.click();
+                    input.onchange = () => {
+                        const file = input.files?.[0];
+                        if (!file) return;
+                        if (file.size > 2 * 1024 * 1024) {
+                            showToast('warn', 'Image must be under 2MB', 'Too Large');
+                            return;
+                        }
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                            const range = quill.getSelection(true);
+                            quill.insertEmbed(range.index, 'image', reader.result);
+                            quill.setSelection(range.index + 1);
+                        };
+                        reader.readAsDataURL(file);
+                    };
+                },
+            },
+        },
+    }), []);
 
     useEffect(() => {
         if (agent?.email_signature) {
@@ -133,10 +162,12 @@ const Profile = () => {
                     <div style={{
                         display: 'flex',
                         justifyContent: 'space-between',
-                        alignItems: 'center',
+                        alignItems: 'flex-start',
+                        flexWrap: 'wrap',
+                        gap: '0.75rem',
                         marginBottom: '1rem'
                     }}>
-                        <div>
+                        <div style={{ flex: '1 1 200px', minWidth: 0 }}>
                             <h3 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#2c3e50', margin: 0 }}>
                                 Email Signature
                             </h3>
@@ -150,7 +181,7 @@ const Profile = () => {
                             className="p-button-primary"
                             onClick={handleSaveSignature}
                             loading={savingSignature}
-                            style={{ padding: '0.6rem 1.25rem', fontWeight: '600' }}
+                            style={{ padding: '0.6rem 1.25rem', fontWeight: '600', whiteSpace: 'nowrap' }}
                         />
                     </div>
 
@@ -184,7 +215,7 @@ const Profile = () => {
                                     borderRadius: '8px',
                                     border: '1px solid #e2e8f0',
                                 }}
-                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(emailSignature) }}
+                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(emailSignature, { ADD_DATA_URI_TAGS: ['img'] }) }}
                             />
                         </div>
                     )}
