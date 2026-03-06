@@ -192,14 +192,14 @@
 }
 
 // Tablet landscape (side-by-side layout): 1 card per row in narrow right panel
-@media (max-width: 1200px) and (min-width: 701px) {
+@media (max-width: 1200px) and (min-width: 851px) {
     .PrpCard {
         width: 100%;
     }
 }
 
 // Tablet portrait / stacked layout: 2 cards per row
-@media (max-width: 700px) and (min-width: 481px) {
+@media (max-width: 850px) and (min-width: 481px) {
     .PrpCard {
         width: calc(50% - 1rem);
     }

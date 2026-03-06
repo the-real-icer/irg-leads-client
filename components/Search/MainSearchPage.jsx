@@ -125,7 +125,7 @@ const MainSearchPage = () => {
     const { width } = useWindowSize();
     return (
         <div className="SrchRsltsCntnt__Container">
-            {width > 700 && (
+            {width > 850 && (
                 <div className="SrchRsltsCntnt__Left">
                     <SearchFilters />
                     <div className="SrchRsltsCntnt__Map SrchRsltsCntnt__Map_no_user">
