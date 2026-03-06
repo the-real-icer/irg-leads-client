@@ -19,6 +19,10 @@
         margin: 0;
     }
 
+    @media (max-width: 1200px) {
+        font-size: 0.95rem;
+    }
+
     @media (max-width: 1000px) {
         width: 45rem;
         margin-top: 1.5rem;

@@ -191,8 +191,22 @@
     }
 }
 
-// Responsive adjustments
-@media (max-width: 768px) {
+// Tablet landscape (side-by-side layout): 1 card per row in narrow right panel
+@media (max-width: 1200px) and (min-width: 701px) {
+    .PrpCard {
+        width: 100%;
+    }
+}
+
+// Tablet portrait / stacked layout: 2 cards per row
+@media (max-width: 700px) and (min-width: 481px) {
+    .PrpCard {
+        width: calc(50% - 1rem);
+    }
+}
+
+// Phone: single column
+@media (max-width: 480px) {
     .PrpCard {
         width: 100%;
         max-width: 24rem;

@@ -218,7 +218,7 @@ const TransactionsDashboard = () => {
                         <ScrollPanel style={{ width: '100%', height: '600px' }}>
                             <div style={{
                                 display: 'grid',
-                                gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
+                                gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
                                 gap: '1.5rem',
                                 padding: '0.5rem'
                             }}>

@@ -28,6 +28,11 @@
             color: hsl(var(--foreground));
             margin: 0;
 
+            @media (max-width: 1200px) {
+                font-size: 1.05rem;
+                line-height: 1.5;
+            }
+
             @media (max-width: 768px) {
                 font-size: 0.95rem;
                 line-height: 1.5;
@@ -52,6 +57,10 @@
             border: none;
             padding: 0;
 
+            @media (max-width: 1200px) {
+                font-size: 0.9rem;
+            }
+
             @media (max-width: 768px) {
                 font-size: 0.85rem;
             }
@@ -73,6 +82,10 @@
         font-weight: 600;
         margin: 0 0 0.75rem;
         color: hsl(var(--foreground));
+
+        @media (max-width: 1200px) {
+            font-size: 1.2rem;
+        }
 
         @media (max-width: 768px) {
             font-size: 1.1rem;
@@ -105,6 +118,10 @@
         color: hsl(var(--foreground-muted));
         font-weight: 400;
 
+        @media (max-width: 1200px) {
+            font-size: 0.95rem;
+        }
+
         @media (max-width: 768px) {
             font-size: 0.85rem;
         }
@@ -119,6 +136,10 @@
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+
+        @media (max-width: 1200px) {
+            font-size: 0.95rem;
+        }
 
         @media (max-width: 768px) {
             font-size: 0.85rem;

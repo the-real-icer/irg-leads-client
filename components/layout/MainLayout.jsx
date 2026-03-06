@@ -67,18 +67,20 @@ const MainLayout = (props) => {
         return () => clearTimeout(irgAreasTimer); //eslint-disable-line
     }, []); //eslint-disable-line
 
-    // ________________________________useEffect to get New Properties_____________\\
+    // ________________________________useEffect to get New Properties (admin only)_____________\\
     useEffect(() => {
+        if (agent?.role !== 'admin') return;
         const newPropertiesTimer = setTimeout(() => { //eslint-disable-line
             if (newProperties.length === 0) {
                 dispatch(fetchNewProperties(isLoggedIn));
             }
         }, 1000);
         return () => clearTimeout(newPropertiesTimer); //eslint-disable-line
-    }, []); //eslint-disable-line
+    }, [agent?.role]); //eslint-disable-line
 
-    // useInterval to check for new homes every 1 minute
+    // useInterval to check for new homes every 1 minute (admin only)
     useInterval(() => {
+        if (agent?.role !== 'admin') return;
         dispatch(fetchNewProperties(isLoggedIn));
     }, 60000);
 

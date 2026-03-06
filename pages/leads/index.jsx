@@ -207,7 +207,7 @@ const LeadsPagination = ({
     );
 };
 
-const LeadCard = ({ lead, onClick, isMobile }) => {
+const LeadCard = ({ lead, onClick, isMobile, isTablet }) => {
     const displayName = getLeadDisplayName(lead);
     const initials = getLeadInitials(lead);
     const phone = formatPhoneNumber(lead.phone_number);
@@ -528,26 +528,28 @@ const LeadCard = ({ lead, onClick, isMobile }) => {
             </div>
 
             {/* Avg Price */}
-            <div style={{ flex: '0.8', minWidth: 0 }}>
-                <div style={{
-                    fontSize: '12px',
-                    color: 'hsl(var(--muted-foreground))',
-                    marginBottom: '2px',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em',
-                    fontWeight: '600'
-                }}>
-                    Avg Price
+            {!isTablet && (
+                <div style={{ flex: '0.8', minWidth: 0 }}>
+                    <div style={{
+                        fontSize: '12px',
+                        color: 'hsl(var(--muted-foreground))',
+                        marginBottom: '2px',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em',
+                        fontWeight: '600'
+                    }}>
+                        Avg Price
+                    </div>
+                    <div style={{
+                        fontSize: '14px',
+                        color: avgPrice !== 'N/A'
+                            ? 'hsl(var(--foreground))'
+                            : 'hsl(var(--muted-foreground))'
+                    }}>
+                        {avgPrice}
+                    </div>
                 </div>
-                <div style={{
-                    fontSize: '14px',
-                    color: avgPrice !== 'N/A'
-                        ? 'hsl(var(--foreground))'
-                        : 'hsl(var(--muted-foreground))'
-                }}>
-                    {avgPrice}
-                </div>
-            </div>
+            )}
 
             {/* Last Visit */}
             <div style={{ flex: '0.7', minWidth: 0, textAlign: 'right' }}>
@@ -604,6 +606,7 @@ const Leads = () => {
     const router = useRouter();
     const { width } = useWindowSize();
     const isMobile = width < 768;
+    const isTablet = width >= 768 && width <= 1200;
 
     const [globalFilterValue, setGlobalFilterValue] = useState('');
     const [selectedStatus, setSelectedStatus] = useState(null);
@@ -1015,7 +1018,7 @@ const Leads = () => {
                         gap: '16px',
                         marginBottom: '4px'
                     }}>
-                        {SORT_COLUMNS.map(col => (
+                        {SORT_COLUMNS.filter(col => !(isTablet && col.field === 'avgPrice')).map(col => (
                             <div
                                 key={col.label}
                                 onClick={col.sortable ? () => handleSort(col.field) : undefined}
@@ -1065,6 +1068,7 @@ const Leads = () => {
                                 lead={lead}
                                 onClick={() => router.push(`/lead/${lead._id}`)}
                                 isMobile={isMobile}
+                                isTablet={isTablet}
                             />
                         ))}
                     </div>
