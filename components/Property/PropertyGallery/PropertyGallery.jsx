@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useMemo, useCallback, useRef } from 'react';
+import { useRouter } from 'next/router';
 import { usePropertyFallbackImage } from '../../../utils/propertyImageFallback';
 import ikUrl from '../../../utils/imageKit';
 
@@ -66,11 +67,15 @@ const getStatusInfo = (status) => {
     return map[status] || { text: status, cls: 'off_market' };
 };
 
+const useIsomorphicLayoutEffect =
+    typeof window !== 'undefined' ? useLayoutEffect : useEffect;
+
 const PropertyGallery = ({ property }) => {
     const fallbackImage = usePropertyFallbackImage();
     const [activeSlide, setActiveSlide] = useState(0);
     const carouselRef = useRef(null);
     const fancyboxRef = useRef(null);
+    const router = useRouter();
 
     // Build full image list
     const images = useMemo(() => buildImages(property), [property]);
@@ -89,10 +94,25 @@ const PropertyGallery = ({ property }) => {
         import('@fancyapps/ui').then(({ Fancybox }) => {
             fancyboxRef.current = Fancybox;
         });
-        return () => {
-            if (fancyboxRef.current) fancyboxRef.current.close();
+
+        const closeFancybox = () => {
+            try {
+                if (fancyboxRef.current) fancyboxRef.current.close();
+            } catch {
+                // Fancybox may reference removed DOM nodes — safe to ignore
+            }
         };
-    }, []);
+
+        // Close Fancybox on routeChangeStart (fires before DOM removal) to prevent
+        // NotFoundError from stale Fancybox internal references during
+        // property-to-property navigation. Same pattern as PropertyMap on main website.
+        router.events.on('routeChangeStart', closeFancybox);
+
+        return () => {
+            router.events.off('routeChangeStart', closeFancybox);
+            closeFancybox();
+        };
+    }, [router.events]);
 
     // ── Fancybox: open gallery programmatically ──
     const openGallery = useCallback(async (startIndex = 0) => {
@@ -195,6 +215,22 @@ const PropertyGallery = ({ property }) => {
         slideEls.forEach((slide) => observer.observe(slide));
 
         return () => observer.disconnect();
+    }, [images]);
+
+    // ── Reset carousel to first slide when property changes ──
+    // useLayoutEffect runs before paint so iOS Safari scroll-snap
+    // can't snap to a random position before we reset to slide 0.
+    useIsomorphicLayoutEffect(() => {
+        setActiveSlide(0);
+        const carousel = carouselRef.current;
+        if (!carousel) return;
+        // Disable scroll-snap so iOS Safari cannot override the reset
+        carousel.style.scrollSnapType = 'none';
+        carousel.scrollLeft = 0;
+        // Re-enable before browser paints
+        requestAnimationFrame(() => {
+            carousel.style.scrollSnapType = '';
+        });
     }, [images]);
 
     // ── No photos fallback ──

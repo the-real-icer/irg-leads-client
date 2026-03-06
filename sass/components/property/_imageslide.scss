@@ -219,16 +219,14 @@
     &__slide {
         flex: 0 0 100%;
         scroll-snap-align: start;
+        aspect-ratio: 16 / 9;
 
         img {
             width: 100%;
-            max-height: 350px;
-            object-fit: contain;
+            height: 100%;
+            object-fit: cover;
             cursor: pointer;
             display: block;
-
-            @media (max-width: 600px) { max-height: 280px; }
-            @media (max-width: 425px) { max-height: 240px; }
         }
     }
 
