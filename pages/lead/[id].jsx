@@ -138,6 +138,12 @@ const Lead = () => {
     const [emailEvents, setEmailEvents] = useState([]);
     const [loadingEmailEvents, setLoadingEmailEvents] = useState(false);
 
+    // Agent Saved Searches (e_alerts) state
+    const [editEAlertVisible, setEditEAlertVisible] = useState(false);
+    const [editEAlertTarget, setEditEAlertTarget] = useState(null);
+    const [editEAlertName, setEditEAlertName] = useState('');
+    const [editEAlertFrequency, setEditEAlertFrequency] = useState('Instantly');
+
     // Lead Type inline edit state
     const [editingLeadType, setEditingLeadType] = useState(false);
     const [savingLeadType, setSavingLeadType] = useState(false);
@@ -887,6 +893,57 @@ const Lead = () => {
         }
     };
 
+    // Agent Saved Searches (e_alert) handlers
+    const handleEditEAlert = (alert) => {
+        setEditEAlertTarget(alert);
+        setEditEAlertName(alert.searchName || '');
+        setEditEAlertFrequency(alert.searchFrequency || 'Instantly');
+        setEditEAlertVisible(true);
+    };
+
+    const handleSaveEAlert = async () => {
+        try {
+            const response = await IrgApi.put(
+                '/users/edit-e-alert',
+                {
+                    userId: lead._id,
+                    searchId: editEAlertTarget.searchId,
+                    updates: {
+                        searchName: editEAlertName,
+                        searchFrequency: editEAlertFrequency,
+                    },
+                },
+                { headers: { Authorization: `Bearer ${isLoggedIn}` } }
+            );
+            if (response.data.status === 'success') {
+                const updatedLead = { ...lead, e_alerts: response.data.data.e_alerts };
+                setLead(updatedLead);
+                dispatch({ type: UPDATE_SINGLE_LEAD, payload: updatedLead });
+                showToast('success', 'E-alert updated successfully', 'E-Alert Updated');
+                setEditEAlertVisible(false);
+            }
+        } catch (error) {
+            showToast('error', 'Failed to update e-alert. Please try again.', 'Error');
+        }
+    };
+
+    const handleDeleteEAlert = async (searchId) => {
+        try {
+            const response = await IrgApi.delete('/users/delete-e-alert', {
+                data: { userId: lead._id, searchId },
+                headers: { Authorization: `Bearer ${isLoggedIn}` },
+            });
+            if (response.data.status === 'success') {
+                const updatedLead = { ...lead, e_alerts: response.data.data.e_alerts };
+                setLead(updatedLead);
+                dispatch({ type: UPDATE_SINGLE_LEAD, payload: updatedLead });
+                showToast('success', 'E-alert has been deleted', 'E-Alert Deleted');
+            }
+        } catch (error) {
+            showToast('error', 'Failed to delete e-alert. Please try again.', 'Error');
+        }
+    };
+
     const getDripCampaignProgress = (enrollment) => {
         if (!enrollment?.scheduled_emails) return { sent: 0, total: 0, percent: 0 };
         const sent = enrollment.scheduled_emails.filter((e) => e.sent).length;
@@ -918,6 +975,21 @@ const Lead = () => {
             Both: { bg: 'hsl(var(--secondary) / 0.12)', color: 'hsl(var(--secondary))', border: 'hsl(var(--secondary) / 0.35)' },
         };
         return colors[type] || colors.Both;
+    };
+
+    // E-Alert helpers
+    const FREQUENCY_OPTIONS = [
+        { value: 'Instantly', label: 'Instantly' },
+        { value: 'Daily', label: 'Daily' },
+        { value: 'Twice A Week', label: 'Twice A Week' },
+        { value: 'Weekly', label: 'Weekly' },
+    ];
+
+    const formatPriceShort = (val) => {
+        if (!val) return 'Any';
+        if (val >= 1000000) return `$${(val / 1000000).toFixed(1)}m`;
+        if (val >= 1000) return `$${Math.round(val / 1000)}k`;
+        return `$${val}`;
     };
 
     // Check if there's an upcoming reminder (within next 7 days)
@@ -1637,6 +1709,111 @@ const Lead = () => {
                                 <i className="pi pi-send" style={{ fontSize: '2.5rem', display: 'block', marginBottom: '1rem', opacity: 0.5 }}></i>
                                 <p style={{ fontSize: '1rem', marginBottom: '0.5rem' }}>No active drip campaigns</p>
                                 <p style={{ fontSize: '0.9rem' }}>Click "Enroll In Campaign" to add an automated email sequence</p>
+                            </div>
+                        )}
+                    </Card>
+                </div>
+
+                {/* Agent Saved Searches Section */}
+                <div className="lead-agent-saved-searches" style={{ marginTop: '2rem', marginBottom: '2rem' }}>
+                    <Card>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                            <h3 style={{
+                                fontSize: '1.25rem',
+                                fontWeight: '700',
+                                color: 'hsl(var(--foreground))',
+                                margin: 0
+                            }}>
+                                Agent Saved Searches
+                            </h3>
+                            <Button
+                                label="Go to Property Search"
+                                icon="pi pi-search"
+                                className="p-button-sm p-button-outlined"
+                                onClick={() => router.push('/search')}
+                                style={{ fontWeight: '600' }}
+                            />
+                        </div>
+
+                        {lead?.e_alerts?.length > 0 ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                {lead.e_alerts.map((alert) => {
+                                    const area = alert.areas?.[0]?.areaName || alert.areaName || '\u2014';
+                                    const minPrice = formatPriceShort(alert.searchFilter?.minPriceFilter);
+                                    const maxPrice = formatPriceShort(alert.searchFilter?.maxPriceFilter);
+                                    const beds = alert.searchFilter?.minBedsFilter ? `${alert.searchFilter.minBedsFilter}+` : 'Any';
+                                    const baths = alert.searchFilter?.minBathsFilter ? `${alert.searchFilter.minBathsFilter}+` : 'Any';
+
+                                    return (
+                                        <div
+                                            key={alert.searchId}
+                                            style={{
+                                                padding: '1rem',
+                                                backgroundColor: 'hsl(var(--muted))',
+                                                borderLeft: '4px solid hsl(var(--primary))',
+                                                borderRadius: '8px',
+                                            }}
+                                        >
+                                            <div style={{
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'start',
+                                                marginBottom: '0.5rem'
+                                            }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                    <span style={{ fontWeight: '700', fontSize: '1rem', color: 'hsl(var(--foreground))' }}>
+                                                        {alert.searchName || 'Unnamed Search'}
+                                                    </span>
+                                                    <span style={{
+                                                        backgroundColor: '#e0f7fa',
+                                                        color: '#00838f',
+                                                        border: '1px solid #4dd0e1',
+                                                        padding: '0.15rem 0.5rem',
+                                                        borderRadius: '12px',
+                                                        fontSize: '0.7rem',
+                                                        fontWeight: '600',
+                                                    }}>
+                                                        {alert.searchFrequency || 'Instantly'}
+                                                    </span>
+                                                </div>
+                                                <div style={{ display: 'flex', gap: '0.25rem' }}>
+                                                    <Button
+                                                        icon="pi pi-pencil"
+                                                        className="p-button-sm p-button-text"
+                                                        onClick={() => handleEditEAlert(alert)}
+                                                        tooltip="Edit e-alert"
+                                                        tooltipOptions={{ position: 'top' }}
+                                                    />
+                                                    <Button
+                                                        icon="pi pi-times"
+                                                        className="p-button-sm p-button-danger p-button-text"
+                                                        onClick={() => handleDeleteEAlert(alert.searchId)}
+                                                        tooltip="Delete e-alert"
+                                                        tooltipOptions={{ position: 'top' }}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', fontSize: '0.85rem', color: 'hsl(var(--foreground-muted))' }}>
+                                                <span><i className="pi pi-map-marker" style={{ marginRight: '0.3rem' }}></i>{area}</span>
+                                                <span>{minPrice} – {maxPrice}</span>
+                                                <span>{beds} beds</span>
+                                                <span>{baths} baths</span>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        ) : (
+                            <div style={{
+                                textAlign: 'center',
+                                padding: '2rem',
+                                color: 'hsl(var(--foreground-muted))',
+                                backgroundColor: 'hsl(var(--muted))',
+                                borderRadius: '8px'
+                            }}>
+                                <i className="pi pi-search" style={{ fontSize: '2.5rem', display: 'block', marginBottom: '1rem', opacity: 0.5 }}></i>
+                                <p style={{ fontSize: '1rem', marginBottom: '0.5rem' }}>No agent searches created yet</p>
+                                <p style={{ fontSize: '0.9rem' }}>Go to Property Search to create an e-alert for this lead</p>
                             </div>
                         )}
                     </Card>
@@ -2781,6 +2958,64 @@ const Lead = () => {
                         <small style={{ display: 'block', marginTop: '0.5rem', color: 'hsl(var(--foreground-muted))' }}>
                             Choose a drip campaign to enroll {getLeadDisplayName(lead)} in. Emails will be sent automatically on schedule.
                         </small>
+                    </div>
+                </Dialog>
+
+                {/* Edit E-Alert Dialog */}
+                <Dialog
+                    header="Edit E-Alert"
+                    visible={editEAlertVisible}
+                    style={{ width: '450px' }}
+                    onHide={() => setEditEAlertVisible(false)}
+                    footer={
+                        <div>
+                            <Button
+                                label="Cancel"
+                                icon="pi pi-times"
+                                onClick={() => setEditEAlertVisible(false)}
+                                className="p-button-text"
+                            />
+                            <Button
+                                label="Save"
+                                icon="pi pi-check"
+                                onClick={handleSaveEAlert}
+                                className="p-button-success"
+                                disabled={!editEAlertName.trim()}
+                            />
+                        </div>
+                    }
+                >
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', padding: '1rem 0' }}>
+                        <div>
+                            <label
+                                htmlFor="edit-ealert-name"
+                                style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: 'hsl(var(--foreground-muted))' }}
+                            >
+                                Search Name *
+                            </label>
+                            <InputText
+                                id="edit-ealert-name"
+                                value={editEAlertName}
+                                onChange={(e) => setEditEAlertName(e.target.value)}
+                                style={{ width: '100%' }}
+                                placeholder="Enter search name"
+                            />
+                        </div>
+                        <div>
+                            <label
+                                htmlFor="edit-ealert-frequency"
+                                style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: 'hsl(var(--foreground-muted))' }}
+                            >
+                                Frequency
+                            </label>
+                            <Dropdown
+                                id="edit-ealert-frequency"
+                                value={editEAlertFrequency}
+                                options={FREQUENCY_OPTIONS}
+                                onChange={(e) => setEditEAlertFrequency(e.value)}
+                                style={{ width: '100%' }}
+                            />
+                        </div>
                     </div>
                 </Dialog>
             </div>
