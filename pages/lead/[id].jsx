@@ -80,6 +80,7 @@ import { bedFilterValues } from '../../components/Search/SearchFilters/filterVal
 import { bathFilterValues } from '../../components/Search/SearchFilters/filterValues/bathFilterValues';
 import { sqftFilterValues } from '../../components/Search/SearchFilters/filterValues/sqftFilterValues';
 import { yearFilterValues } from '../../components/Search/SearchFilters/filterValues/yearFilterValues';
+import { lotSizeFilterValues } from '../../components/Search/SearchFilters/filterValues/lotSizeFilterValues';
 
 const Lead = () => {
     // __________________Redux State______________________\\
@@ -162,6 +163,8 @@ const Lead = () => {
     const [editEAlertMinBaths, setEditEAlertMinBaths] = useState('');
     const [editEAlertMinSqft, setEditEAlertMinSqft] = useState('');
     const [editEAlertMaxSqft, setEditEAlertMaxSqft] = useState('');
+    const [editEAlertMinLotSize, setEditEAlertMinLotSize] = useState('');
+    const [editEAlertMaxLotSize, setEditEAlertMaxLotSize] = useState('');
     const [editEAlertMinYear, setEditEAlertMinYear] = useState('');
     const [editEAlertMaxYear, setEditEAlertMaxYear] = useState('');
     const [editEAlertPool, setEditEAlertPool] = useState(false);
@@ -935,6 +938,8 @@ const Lead = () => {
         setEditEAlertMinBaths(sf.minBathsFilter ? String(sf.minBathsFilter) : '');
         setEditEAlertMinSqft(sf.minSqFtFilter ? String(sf.minSqFtFilter) : '');
         setEditEAlertMaxSqft(sf.maxSqFtFilter ? String(sf.maxSqFtFilter) : '');
+        setEditEAlertMinLotSize(sf.minAcresFilter ? String(sf.minAcresFilter) : '');
+        setEditEAlertMaxLotSize(sf.maxAcresFilter && sf.maxAcresFilter !== 10000 ? String(sf.maxAcresFilter) : '');
         setEditEAlertMinYear(sf.minYearFilter ? String(sf.minYearFilter) : '');
         setEditEAlertMaxYear(sf.maxYearFilter ? String(sf.maxYearFilter) : '');
         setEditEAlertPool(sf.poolFilter || false);
@@ -967,6 +972,8 @@ const Lead = () => {
                             minBathsFilter: Number(editEAlertMinBaths) || 0,
                             minSqFtFilter: Number(editEAlertMinSqft) || 0,
                             maxSqFtFilter: Number(editEAlertMaxSqft) || 0,
+                            minAcresFilter: Number(editEAlertMinLotSize) || 0,
+                            maxAcresFilter: Number(editEAlertMaxLotSize) || 10000,
                             minYearFilter: Number(editEAlertMinYear) || 0,
                             maxYearFilter: Number(editEAlertMaxYear) || 0,
                             poolFilter: editEAlertPool,
@@ -3205,6 +3212,29 @@ const Lead = () => {
                                         style={{ width: '100%' }}
                                     />
                                 </div>
+                            </div>
+                        </div>
+
+                        {/* Section — Lot Size */}
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.85rem', color: 'hsl(var(--foreground-muted))' }}>
+                                Lot Size (Acres)
+                            </label>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                <Dropdown
+                                    value={editEAlertMinLotSize}
+                                    options={[{ value: '', label: 'No Min' }, ...lotSizeFilterValues]}
+                                    onChange={(e) => setEditEAlertMinLotSize(e.value)}
+                                    placeholder="No Min"
+                                    style={{ width: '100%' }}
+                                />
+                                <Dropdown
+                                    value={editEAlertMaxLotSize}
+                                    options={[{ value: '', label: 'No Max' }, ...lotSizeFilterValues]}
+                                    onChange={(e) => setEditEAlertMaxLotSize(e.value)}
+                                    placeholder="No Max"
+                                    style={{ width: '100%' }}
+                                />
                             </div>
                         </div>
 
