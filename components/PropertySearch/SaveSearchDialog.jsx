@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useSelector } from 'react-redux';
+import { v4 as uuidv4 } from 'uuid';
 import IrgApi from '../../assets/irgApi';
 import showToast from '../../utils/showToast';
 import getLeadDisplayName from '../../utils/getLeadDisplayName';
@@ -215,6 +216,7 @@ const SaveSearchDialog = ({ visible, onClose, appliedFilters, activeAreas = [], 
         const name = searchName.trim() || buildAutoName(appliedFilters, activeAreas);
 
         const savedSearch = {
+            searchId: uuidv4(),
             searchName: name,
             searchFrequency: frequency,
             searchFilter: buildSearchFilter(appliedFilters),

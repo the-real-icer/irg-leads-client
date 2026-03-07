@@ -181,7 +181,7 @@ const MoreFilters = ({ width }) => {
                                     placeholder: 'Min Lot Size',
                                     defaultValueforFilter: 0,
                                     reduxFunction: addMinAcres,
-                                    values: sqftFilterValues,
+                                    values: lotSizeFilterValues,
                                     searchFilter: searchFilter.minAcresFilter,
                                     reducerFunction: () =>
                                         lotSizeFilterValues.filter(
@@ -195,7 +195,7 @@ const MoreFilters = ({ width }) => {
                                     placeholder: 'Max Lot Size',
                                     defaultValueforFilter: 10000,
                                     reduxFunction: addMaxAcres,
-                                    values: sqftFilterValues,
+                                    values: lotSizeFilterValues,
                                     searchFilter: searchFilter.maxAcresFilter,
                                     reducerFunction: () =>
                                         lotSizeFilterValues.filter(

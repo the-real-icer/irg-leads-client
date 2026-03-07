@@ -81,6 +81,7 @@ import { bathFilterValues } from '../../components/Search/SearchFilters/filterVa
 import { sqftFilterValues } from '../../components/Search/SearchFilters/filterValues/sqftFilterValues';
 import { yearFilterValues } from '../../components/Search/SearchFilters/filterValues/yearFilterValues';
 import { lotSizeFilterValues } from '../../components/Search/SearchFilters/filterValues/lotSizeFilterValues';
+import { garageFilterValues } from '../../components/Search/SearchFilters/filterValues/garageFilterValues';
 
 const Lead = () => {
     // __________________Redux State______________________\\
@@ -167,6 +168,7 @@ const Lead = () => {
     const [editEAlertMaxLotSize, setEditEAlertMaxLotSize] = useState('');
     const [editEAlertMinYear, setEditEAlertMinYear] = useState('');
     const [editEAlertMaxYear, setEditEAlertMaxYear] = useState('');
+    const [editEAlertMinGarage, setEditEAlertMinGarage] = useState('');
     const [editEAlertPool, setEditEAlertPool] = useState(false);
     const [editEAlertSingleStory, setEditEAlertSingleStory] = useState(false);
     const [editEAlertExclude55, setEditEAlertExclude55] = useState(false);
@@ -942,6 +944,7 @@ const Lead = () => {
         setEditEAlertMaxLotSize(sf.maxAcresFilter && sf.maxAcresFilter !== 10000 ? String(sf.maxAcresFilter) : '');
         setEditEAlertMinYear(sf.minYearFilter ? String(sf.minYearFilter) : '');
         setEditEAlertMaxYear(sf.maxYearFilter ? String(sf.maxYearFilter) : '');
+        setEditEAlertMinGarage(sf.minGarageFilter || '');
         setEditEAlertPool(sf.poolFilter || false);
         setEditEAlertSingleStory(sf.singleStoryFilter === 'Yes');
         setEditEAlertExclude55(sf.ageRestrictFilter || false);
@@ -966,16 +969,18 @@ const Lead = () => {
                         areaName: editEAlertAreas[0]?.areaName || '',
                         areaType: editEAlertAreas[0]?.areaType || '',
                         searchFilter: {
+                            ...(editEAlertTarget?.searchFilter || {}),
                             minPriceFilter: Number(editEAlertMinPrice) || 0,
-                            maxPriceFilter: Number(editEAlertMaxPrice) || 0,
+                            maxPriceFilter: Number(editEAlertMaxPrice) || 200000000,
                             minBedsFilter: Number(editEAlertMinBeds) || 0,
                             minBathsFilter: Number(editEAlertMinBaths) || 0,
                             minSqFtFilter: Number(editEAlertMinSqft) || 0,
-                            maxSqFtFilter: Number(editEAlertMaxSqft) || 0,
+                            maxSqFtFilter: Number(editEAlertMaxSqft) || 100000,
                             minAcresFilter: Number(editEAlertMinLotSize) || 0,
                             maxAcresFilter: Number(editEAlertMaxLotSize) || 10000,
                             minYearFilter: Number(editEAlertMinYear) || 0,
-                            maxYearFilter: Number(editEAlertMaxYear) || 0,
+                            maxYearFilter: Number(editEAlertMaxYear) || 2100,
+                            minGarageFilter: Number(editEAlertMinGarage) || 0,
                             poolFilter: editEAlertPool,
                             singleStoryFilter: editEAlertSingleStory ? 'Yes' : undefined,
                             ageRestrictFilter: editEAlertExclude55,
@@ -1060,6 +1065,8 @@ const Lead = () => {
 
     const formatPriceShort = (val) => {
         if (!val) return 'Any';
+        if (val >= 200000000) return 'Any';
+        if (val >= 10000000) return `$${(val / 1000000).toFixed(0)}m`;
         if (val >= 1000000) return `$${(val / 1000000).toFixed(1)}m`;
         if (val >= 1000) return `$${Math.round(val / 1000)}k`;
         return `$${val}`;
@@ -3173,9 +3180,9 @@ const Lead = () => {
                             </div>
                         </div>
 
-                        {/* Section 4 — Beds / Baths / Sqft */}
+                        {/* Section 4 — Beds / Baths / Garage */}
                         <div>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
                                 <div>
                                     <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.85rem', color: 'hsl(var(--foreground-muted))' }}>
                                         Min Beds
@@ -3202,16 +3209,35 @@ const Lead = () => {
                                 </div>
                                 <div>
                                     <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.85rem', color: 'hsl(var(--foreground-muted))' }}>
-                                        Min Sqft
+                                        Min Garage
                                     </label>
                                     <Dropdown
-                                        value={editEAlertMinSqft}
-                                        options={[{ value: '', label: 'Any' }, ...sqftFilterValues]}
-                                        onChange={(e) => setEditEAlertMinSqft(e.value)}
+                                        value={editEAlertMinGarage}
+                                        options={[{ value: '', label: 'Any' }, ...garageFilterValues]}
+                                        onChange={(e) => setEditEAlertMinGarage(e.value)}
                                         placeholder="Any"
                                         style={{ width: '100%' }}
                                     />
                                 </div>
+                            </div>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.85rem', color: 'hsl(var(--foreground-muted))' }}>
+                                Sqft Range
+                            </label>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                <Dropdown
+                                    value={editEAlertMinSqft}
+                                    options={[{ value: '', label: 'No Min' }, ...sqftFilterValues]}
+                                    onChange={(e) => setEditEAlertMinSqft(e.value)}
+                                    placeholder="No Min"
+                                    style={{ width: '100%' }}
+                                />
+                                <Dropdown
+                                    value={editEAlertMaxSqft}
+                                    options={[{ value: '', label: 'No Max' }, ...sqftFilterValues]}
+                                    onChange={(e) => setEditEAlertMaxSqft(e.value)}
+                                    placeholder="No Max"
+                                    style={{ width: '100%' }}
+                                />
                             </div>
                         </div>
 
