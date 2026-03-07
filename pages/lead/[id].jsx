@@ -55,6 +55,9 @@ const Checkbox = dynamic(() => import('primereact/checkbox').then((mod) => mod.C
 const InputText = dynamic(() => import('primereact/inputtext').then((mod) => mod.InputText), {
     ssr: false,
 });
+const InputNumber = dynamic(() => import('primereact/inputnumber').then((mod) => mod.InputNumber), {
+    ssr: false,
+});
 const ReactQuill = dynamic(() => import('react-quill-new'), {
     ssr: false,
     loading: () => <p>Loading editor...</p>,
@@ -71,11 +74,19 @@ import IrgApi from '../../assets/irgApi';
 import showToast from '../../utils/showToast';
 import getLeadDisplayName, { getLeadInitials } from '../../utils/getLeadDisplayName';
 
+// Filter Value Options (for Edit E-Alert dialog)
+import { priceFilterValues } from '../../components/Search/SearchFilters/filterValues/priceFilterValues';
+import { bedFilterValues } from '../../components/Search/SearchFilters/filterValues/bedFilterValues';
+import { bathFilterValues } from '../../components/Search/SearchFilters/filterValues/bathFilterValues';
+import { sqftFilterValues } from '../../components/Search/SearchFilters/filterValues/sqftFilterValues';
+import { yearFilterValues } from '../../components/Search/SearchFilters/filterValues/yearFilterValues';
+
 const Lead = () => {
     // __________________Redux State______________________\\
     const leads = useSelector((state) => state.allLeadsPage.leads);
     const isLoggedIn = useSelector((state) => state.isLoggedIn);
     const agent = useSelector((state) => state.agent);
+    const irgAreas = useSelector((state) => state.irgAreas);
     const dispatch = useDispatch();
 
     const [lead, setLead] = useState({});
@@ -143,6 +154,23 @@ const Lead = () => {
     const [editEAlertTarget, setEditEAlertTarget] = useState(null);
     const [editEAlertName, setEditEAlertName] = useState('');
     const [editEAlertFrequency, setEditEAlertFrequency] = useState('Instantly');
+    const [editEAlertAreas, setEditEAlertAreas] = useState([]);
+    const [editEAlertAreaSearch, setEditEAlertAreaSearch] = useState('');
+    const [editEAlertMinPrice, setEditEAlertMinPrice] = useState('');
+    const [editEAlertMaxPrice, setEditEAlertMaxPrice] = useState('');
+    const [editEAlertMinBeds, setEditEAlertMinBeds] = useState('');
+    const [editEAlertMinBaths, setEditEAlertMinBaths] = useState('');
+    const [editEAlertMinSqft, setEditEAlertMinSqft] = useState('');
+    const [editEAlertMaxSqft, setEditEAlertMaxSqft] = useState('');
+    const [editEAlertMinYear, setEditEAlertMinYear] = useState('');
+    const [editEAlertMaxYear, setEditEAlertMaxYear] = useState('');
+    const [editEAlertPool, setEditEAlertPool] = useState(false);
+    const [editEAlertSingleStory, setEditEAlertSingleStory] = useState(false);
+    const [editEAlertExclude55, setEditEAlertExclude55] = useState(false);
+    const [editEAlertAdu, setEditEAlertAdu] = useState(false);
+    const [editEAlertSingleFamily, setEditEAlertSingleFamily] = useState(false);
+    const [editEAlertTownhomes, setEditEAlertTownhomes] = useState(false);
+    const [editEAlertCondos, setEditEAlertCondos] = useState(false);
 
     // Lead Type inline edit state
     const [editingLeadType, setEditingLeadType] = useState(false);
@@ -898,6 +926,24 @@ const Lead = () => {
         setEditEAlertTarget(alert);
         setEditEAlertName(alert.searchName || '');
         setEditEAlertFrequency(alert.searchFrequency || 'Instantly');
+        setEditEAlertAreas(alert.areas || (alert.areaName ? [{ areaName: alert.areaName, areaType: alert.areaType }] : []));
+        setEditEAlertAreaSearch('');
+        const sf = alert.searchFilter || {};
+        setEditEAlertMinPrice(sf.minPriceFilter ? String(sf.minPriceFilter) : '');
+        setEditEAlertMaxPrice(sf.maxPriceFilter ? String(sf.maxPriceFilter) : '');
+        setEditEAlertMinBeds(sf.minBedsFilter ? String(sf.minBedsFilter) : '');
+        setEditEAlertMinBaths(sf.minBathsFilter ? String(sf.minBathsFilter) : '');
+        setEditEAlertMinSqft(sf.minSqFtFilter ? String(sf.minSqFtFilter) : '');
+        setEditEAlertMaxSqft(sf.maxSqFtFilter ? String(sf.maxSqFtFilter) : '');
+        setEditEAlertMinYear(sf.minYearFilter ? String(sf.minYearFilter) : '');
+        setEditEAlertMaxYear(sf.maxYearFilter ? String(sf.maxYearFilter) : '');
+        setEditEAlertPool(sf.poolFilter || false);
+        setEditEAlertSingleStory(sf.singleStoryFilter === 'Yes');
+        setEditEAlertExclude55(sf.ageRestrictFilter || false);
+        setEditEAlertAdu(sf.aduFilter || false);
+        setEditEAlertSingleFamily(sf.singleFamily || false);
+        setEditEAlertTownhomes(sf.townHomes || false);
+        setEditEAlertCondos(sf.condos || false);
         setEditEAlertVisible(true);
     };
 
@@ -911,6 +957,26 @@ const Lead = () => {
                     updates: {
                         searchName: editEAlertName,
                         searchFrequency: editEAlertFrequency,
+                        areas: editEAlertAreas,
+                        areaName: editEAlertAreas[0]?.areaName || '',
+                        areaType: editEAlertAreas[0]?.areaType || '',
+                        searchFilter: {
+                            minPriceFilter: Number(editEAlertMinPrice) || 0,
+                            maxPriceFilter: Number(editEAlertMaxPrice) || 0,
+                            minBedsFilter: Number(editEAlertMinBeds) || 0,
+                            minBathsFilter: Number(editEAlertMinBaths) || 0,
+                            minSqFtFilter: Number(editEAlertMinSqft) || 0,
+                            maxSqFtFilter: Number(editEAlertMaxSqft) || 0,
+                            minYearFilter: Number(editEAlertMinYear) || 0,
+                            maxYearFilter: Number(editEAlertMaxYear) || 0,
+                            poolFilter: editEAlertPool,
+                            singleStoryFilter: editEAlertSingleStory ? 'Yes' : undefined,
+                            ageRestrictFilter: editEAlertExclude55,
+                            aduFilter: editEAlertAdu,
+                            singleFamily: editEAlertSingleFamily,
+                            townHomes: editEAlertTownhomes,
+                            condos: editEAlertCondos,
+                        },
                     },
                 },
                 { headers: { Authorization: `Bearer ${isLoggedIn}` } }
@@ -2965,7 +3031,9 @@ const Lead = () => {
                 <Dialog
                     header="Edit E-Alert"
                     visible={editEAlertVisible}
-                    style={{ width: '450px' }}
+                    style={{ width: '600px', maxWidth: '95vw' }}
+                    modal
+                    dismissableMask
                     onHide={() => setEditEAlertVisible(false)}
                     footer={
                         <div>
@@ -2985,36 +3053,228 @@ const Lead = () => {
                         </div>
                     }
                 >
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', padding: '1rem 0' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', padding: '0.5rem 0' }}>
+                        {/* Section 1 — Name + Frequency */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.85rem', color: 'hsl(var(--foreground-muted))' }}>
+                                    Search Name *
+                                </label>
+                                <InputText
+                                    value={editEAlertName}
+                                    onChange={(e) => setEditEAlertName(e.target.value)}
+                                    style={{ width: '100%' }}
+                                    placeholder="Enter search name"
+                                />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.85rem', color: 'hsl(var(--foreground-muted))' }}>
+                                    Frequency
+                                </label>
+                                <Dropdown
+                                    value={editEAlertFrequency}
+                                    options={FREQUENCY_OPTIONS}
+                                    onChange={(e) => setEditEAlertFrequency(e.value)}
+                                    style={{ width: '100%' }}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Section 2 — Area Selector */}
                         <div>
-                            <label
-                                htmlFor="edit-ealert-name"
-                                style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: 'hsl(var(--foreground-muted))' }}
-                            >
-                                Search Name *
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.85rem', color: 'hsl(var(--foreground-muted))' }}>
+                                Areas / Neighborhoods
                             </label>
                             <InputText
-                                id="edit-ealert-name"
-                                value={editEAlertName}
-                                onChange={(e) => setEditEAlertName(e.target.value)}
+                                value={editEAlertAreaSearch}
+                                onChange={(e) => setEditEAlertAreaSearch(e.target.value)}
                                 style={{ width: '100%' }}
-                                placeholder="Enter search name"
+                                placeholder="Search cities, neighborhoods..."
                             />
+                            {editEAlertAreaSearch.length > 0 && (
+                                <div style={{ border: '1px solid hsl(var(--border))', borderRadius: '6px', marginTop: '0.5rem', maxHeight: '180px', overflowY: 'auto' }}>
+                                    {[...(irgAreas?.City || []), ...(irgAreas?.Neighborhood || []), ...(irgAreas?.CondoBuilding || [])]
+                                        .filter((a) => a.name.toLowerCase().includes(editEAlertAreaSearch.toLowerCase()))
+                                        .filter((a) => !editEAlertAreas.some((sel) => sel.areaName === a.name && sel.areaType === a.type))
+                                        .slice(0, 5)
+                                        .map((a) => (
+                                            <div
+                                                key={`${a.type}-${a.name}`}
+                                                onClick={() => {
+                                                    setEditEAlertAreas((prev) => [...prev, { areaName: a.name, areaType: a.type }]);
+                                                    setEditEAlertAreaSearch('');
+                                                }}
+                                                style={{ padding: '0.5rem 0.75rem', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid hsl(var(--border))' }}
+                                                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'hsl(var(--muted))'; }}
+                                                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+                                            >
+                                                <span style={{ fontSize: '0.9rem' }}>{a.name}</span>
+                                                <span style={{ fontSize: '0.7rem', padding: '2px 8px', borderRadius: '4px', backgroundColor: '#e0f7fa', color: '#00838f', border: '1px solid #4dd0e1' }}>
+                                                    {a.type}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    {[...(irgAreas?.City || []), ...(irgAreas?.Neighborhood || []), ...(irgAreas?.CondoBuilding || [])]
+                                        .filter((a) => a.name.toLowerCase().includes(editEAlertAreaSearch.toLowerCase()))
+                                        .filter((a) => !editEAlertAreas.some((sel) => sel.areaName === a.name && sel.areaType === a.type))
+                                        .length === 0 && (
+                                        <div style={{ padding: '0.75rem', color: 'hsl(var(--foreground-muted))', fontSize: '0.85rem', textAlign: 'center' }}>
+                                            No areas found
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                            {editEAlertAreas.length > 0 && (
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.5rem' }}>
+                                    {editEAlertAreas.map((area, idx) => (
+                                        <span
+                                            key={`${area.areaType}-${area.areaName}`}
+                                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.25rem 0.6rem', borderRadius: '16px', fontSize: '0.8rem', backgroundColor: 'hsl(var(--muted))', border: '1px solid hsl(var(--border))' }}
+                                        >
+                                            {area.areaName}
+                                            <i
+                                                className="pi pi-times"
+                                                style={{ fontSize: '0.65rem', cursor: 'pointer', opacity: 0.7 }}
+                                                onClick={() => setEditEAlertAreas((prev) => prev.filter((_, i) => i !== idx))}
+                                            />
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
                         </div>
+
+                        {/* Section 3 — Price Range */}
                         <div>
-                            <label
-                                htmlFor="edit-ealert-frequency"
-                                style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: 'hsl(var(--foreground-muted))' }}
-                            >
-                                Frequency
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.85rem', color: 'hsl(var(--foreground-muted))' }}>
+                                Price Range
                             </label>
-                            <Dropdown
-                                id="edit-ealert-frequency"
-                                value={editEAlertFrequency}
-                                options={FREQUENCY_OPTIONS}
-                                onChange={(e) => setEditEAlertFrequency(e.value)}
-                                style={{ width: '100%' }}
-                            />
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                <Dropdown
+                                    value={editEAlertMinPrice}
+                                    options={[{ value: '', label: 'No Min' }, ...priceFilterValues]}
+                                    onChange={(e) => setEditEAlertMinPrice(e.value)}
+                                    placeholder="No Min"
+                                    style={{ width: '100%' }}
+                                />
+                                <Dropdown
+                                    value={editEAlertMaxPrice}
+                                    options={[{ value: '', label: 'No Max' }, ...priceFilterValues]}
+                                    onChange={(e) => setEditEAlertMaxPrice(e.value)}
+                                    placeholder="No Max"
+                                    style={{ width: '100%' }}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Section 4 — Beds / Baths / Sqft */}
+                        <div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.85rem', color: 'hsl(var(--foreground-muted))' }}>
+                                        Min Beds
+                                    </label>
+                                    <Dropdown
+                                        value={editEAlertMinBeds}
+                                        options={[{ value: '', label: 'Any' }, ...bedFilterValues]}
+                                        onChange={(e) => setEditEAlertMinBeds(e.value)}
+                                        placeholder="Any"
+                                        style={{ width: '100%' }}
+                                    />
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.85rem', color: 'hsl(var(--foreground-muted))' }}>
+                                        Min Baths
+                                    </label>
+                                    <Dropdown
+                                        value={editEAlertMinBaths}
+                                        options={[{ value: '', label: 'Any' }, ...bathFilterValues]}
+                                        onChange={(e) => setEditEAlertMinBaths(e.value)}
+                                        placeholder="Any"
+                                        style={{ width: '100%' }}
+                                    />
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.85rem', color: 'hsl(var(--foreground-muted))' }}>
+                                        Min Sqft
+                                    </label>
+                                    <Dropdown
+                                        value={editEAlertMinSqft}
+                                        options={[{ value: '', label: 'Any' }, ...sqftFilterValues]}
+                                        onChange={(e) => setEditEAlertMinSqft(e.value)}
+                                        placeholder="Any"
+                                        style={{ width: '100%' }}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Section 5 — Year Built */}
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.85rem', color: 'hsl(var(--foreground-muted))' }}>
+                                Year Built
+                            </label>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                <Dropdown
+                                    value={editEAlertMinYear}
+                                    options={[{ value: '', label: 'No Min' }, ...yearFilterValues]}
+                                    onChange={(e) => setEditEAlertMinYear(e.value)}
+                                    placeholder="No Min"
+                                    style={{ width: '100%' }}
+                                />
+                                <Dropdown
+                                    value={editEAlertMaxYear}
+                                    options={[{ value: '', label: 'No Max' }, ...yearFilterValues]}
+                                    onChange={(e) => setEditEAlertMaxYear(e.value)}
+                                    placeholder="No Max"
+                                    style={{ width: '100%' }}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Section 6 — Property Type */}
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.85rem', color: 'hsl(var(--foreground-muted))' }}>
+                                Property Type
+                            </label>
+                            <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <Checkbox checked={editEAlertSingleFamily} onChange={(e) => setEditEAlertSingleFamily(e.checked)} />
+                                    <span style={{ fontSize: '0.9rem' }}>Single Family</span>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <Checkbox checked={editEAlertTownhomes} onChange={(e) => setEditEAlertTownhomes(e.checked)} />
+                                    <span style={{ fontSize: '0.9rem' }}>Townhomes</span>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <Checkbox checked={editEAlertCondos} onChange={(e) => setEditEAlertCondos(e.checked)} />
+                                    <span style={{ fontSize: '0.9rem' }}>Condos</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Section 7 — Additional Options */}
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.85rem', color: 'hsl(var(--foreground-muted))' }}>
+                                Additional Options
+                            </label>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <Checkbox checked={editEAlertPool} onChange={(e) => setEditEAlertPool(e.checked)} />
+                                    <span style={{ fontSize: '0.9rem' }}>Must Have Pool</span>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <Checkbox checked={editEAlertSingleStory} onChange={(e) => setEditEAlertSingleStory(e.checked)} />
+                                    <span style={{ fontSize: '0.9rem' }}>Single Story Only</span>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <Checkbox checked={editEAlertExclude55} onChange={(e) => setEditEAlertExclude55(e.checked)} />
+                                    <span style={{ fontSize: '0.9rem' }}>Exclude 55+ Communities</span>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <Checkbox checked={editEAlertAdu} onChange={(e) => setEditEAlertAdu(e.checked)} />
+                                    <span style={{ fontSize: '0.9rem' }}>Has ADU</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </Dialog>
