@@ -961,7 +961,8 @@ const Lead = () => {
                 '/users/edit-e-alert',
                 {
                     userId: lead._id,
-                    searchId: editEAlertTarget.searchId,
+                    searchId: editEAlertTarget.searchId || undefined,
+                    alertId: editEAlertTarget.searchId ? undefined : editEAlertTarget._id,
                     updates: {
                         searchName: editEAlertName,
                         searchFrequency: editEAlertFrequency,
@@ -1005,10 +1006,14 @@ const Lead = () => {
         }
     };
 
-    const handleDeleteEAlert = async (searchId) => {
+    const handleDeleteEAlert = async (alert) => {
         try {
             const response = await IrgApi.delete('/users/delete-e-alert', {
-                data: { userId: lead._id, searchId },
+                data: {
+                    userId: lead._id,
+                    searchId: alert.searchId || undefined,
+                    alertId: alert.searchId ? undefined : alert._id,
+                },
                 headers: { Authorization: `Bearer ${isLoggedIn}` },
             });
             if (response.data.status === 'success') {
@@ -1867,7 +1872,7 @@ const Lead = () => {
                                                     <Button
                                                         icon="pi pi-times"
                                                         className="p-button-sm p-button-danger p-button-text"
-                                                        onClick={() => handleDeleteEAlert(alert.searchId)}
+                                                        onClick={() => handleDeleteEAlert(alert)}
                                                         tooltip="Delete e-alert"
                                                         tooltipOptions={{ position: 'top' }}
                                                     />
