@@ -85,6 +85,11 @@ const SideBar = ({ mobileOpen }) => {
                                 url="/traffic-dashboard"
                                 icon="pi pi-chart-line mr-2"
                             />
+                            <SideBarLink
+                                name="Send Update Email"
+                                url="/admin/send-update-email"
+                                icon="pi pi-envelope mr-2"
+                            />
                         </ul>
                     )}
                 </div>
