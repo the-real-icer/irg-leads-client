@@ -20,6 +20,7 @@ const PrpCard = memo(({ property, handleOpenMapDialog }) => {
     // __________________Redux State______________________\\
     const selectedHomes = useSelector((state) => state.selectedHomes);
     const agent = useSelector((state) => state.agent);
+    const isLoggedIn = useSelector((state) => state.isLoggedIn);
 
     // _____________________Hooks_____________________\\
     const dispatch = useDispatch();
@@ -53,6 +54,7 @@ const PrpCard = memo(({ property, handleOpenMapDialog }) => {
         try {
             const res = await IrgApi.get(
                 `/mlsproperties/un-approve-new-property/${property.mls_number}`,
+                { headers: { Authorization: `Bearer ${isLoggedIn}` } },
             );
             if (res.data.status === 'success') {
                 showToast('warn', `${property.address} moved off market`, 'Off Market');
@@ -60,7 +62,7 @@ const PrpCard = memo(({ property, handleOpenMapDialog }) => {
         } catch (_err) {
             showToast('error', 'Something went wrong', 'Error');
         }
-    }, [property]);
+    }, [property, isLoggedIn]);
 
     const linkAddress = property?.property_url ? `/property/${property.property_url}` : '';
 
