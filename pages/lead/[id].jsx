@@ -1299,16 +1299,6 @@ const Lead = () => {
                                             <i className="pi pi-envelope"></i>
                                             <span>{lead?.email || 'No email'}</span>
                                         </div>
-                                        {lead?.user_location?.city && (
-                                            <div className="contact-item">
-                                                <i className="pi pi-map-marker"></i>
-                                                <span>
-                                                    {lead.user_location.city}
-                                                    {lead.user_location.state &&
-                                                        `, ${lead.user_location.state}`}
-                                                </span>
-                                            </div>
-                                        )}
                                     </div>
                                     <div className="lead-profile-meta">
                                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
