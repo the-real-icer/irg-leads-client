@@ -1354,12 +1354,13 @@ const Lead = () => {
                                                 ? formatDate(lead.date_created)
                                                 : 'N/A'}
                                         </span>
-                                        {(lead?.user_location?.city || lead?.user_location?.state) && (
+                                        {(lead?.user_location?.city || lead?.user_location?.state || lead?.address?.city || lead?.address?.state) && (
                                             <>
                                                 <span className="meta-divider">•</span>
                                                 <span>
                                                     <i className="pi pi-map-marker" style={{ marginRight: '4px' }} />
-                                                    {[lead.user_location.city, lead.user_location.state]
+                                                    {[lead.user_location?.city || lead.address?.city,
+                                                      lead.user_location?.state || lead.address?.state]
                                                         .filter(Boolean)
                                                         .join(', ')}
                                                 </span>
