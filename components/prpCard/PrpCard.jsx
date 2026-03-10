@@ -10,6 +10,7 @@ import { MdAdd, MdClear } from 'react-icons/md';
 import find from 'lodash.find';
 import { Button } from 'primereact/button';
 
+import IrgApi from '../../assets/irgApi';
 import showToast from '../../utils/showToast';
 import { usePropertyFallbackImage } from '../../utils/propertyImageFallback';
 import ikUrl from '../../utils/imageKit';
@@ -45,6 +46,21 @@ const PrpCard = memo(({ property, handleOpenMapDialog }) => {
         const unitNum = property?.unit_number ? ` #${property.unit_number}` : '';
         showToast('success', `${property.address}${unitNum} has been removed!`, 'Home Removed!');
     }, [dispatch, property]);
+
+    const handleOffMarket = useCallback(async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        try {
+            const res = await IrgApi.get(
+                `/mlsproperties/un-approve-new-property/${property.mls_number}`,
+            );
+            if (res.data.status === 'success') {
+                showToast('warn', `${property.address} moved off market`, 'Off Market');
+            }
+        } catch (_err) {
+            showToast('error', 'Something went wrong', 'Error');
+        }
+    }, [property]);
 
     const linkAddress = property?.property_url ? `/property/${property.property_url}` : '';
 
@@ -96,7 +112,7 @@ const PrpCard = memo(({ property, handleOpenMapDialog }) => {
                     <Button
                         label="Off Market"
                         className="p-button-warning"
-                        // onClick={() => handleOffMarket(property)}
+                        onClick={handleOffMarket}
                     />
                 )}
                 <Button
