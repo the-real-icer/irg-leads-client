@@ -80,6 +80,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
+
+    &--photo {
+        border-radius: 50%;
+        object-fit: cover;
+    }
 }
 
 .lead-profile-info {

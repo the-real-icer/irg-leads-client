@@ -1226,12 +1226,20 @@ const Lead = () => {
                     <Card className="lead-profile-header-card">
                         <div className="lead-profile-header-content">
                             <div className="lead-profile-avatar-section">
-                                <Avatar
-                                    label={getInitials()}
-                                    className="lead-profile-avatar"
-                                    size="xlarge"
-                                    shape="circle"
-                                />
+                                {lead?.profilePhoto ? (
+                                    <img
+                                        src={lead.profilePhoto}
+                                        alt={getLeadDisplayName(lead)}
+                                        className="lead-profile-avatar lead-profile-avatar--photo"
+                                    />
+                                ) : (
+                                    <Avatar
+                                        label={getInitials()}
+                                        className="lead-profile-avatar"
+                                        size="xlarge"
+                                        shape="circle"
+                                    />
+                                )}
                                 <div className="lead-profile-info">
                                     <div className="lead-profile-name-row">
                                         <h2 className="lead-profile-name">

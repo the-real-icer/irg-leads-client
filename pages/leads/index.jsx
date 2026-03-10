@@ -278,22 +278,36 @@ const LeadCard = ({ lead, onClick, isMobile, isTablet }) => {
                     alignItems: 'center',
                     gap: '12px'
                 }}>
-                    <div style={{
-                        width: '38px',
-                        height: '38px',
-                        borderRadius: '50%',
-                        background: 'hsl(var(--primary) / 0.15)',
-                        border: '1px solid hsl(var(--primary) / 0.3)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '13px',
-                        fontWeight: '700',
-                        color: 'hsl(var(--primary))',
-                        flexShrink: 0
-                    }}>
-                        {initials}
-                    </div>
+                    {lead.profilePhoto ? (
+                        <img
+                            src={lead.profilePhoto}
+                            alt={displayName}
+                            style={{
+                                width: '38px',
+                                height: '38px',
+                                borderRadius: '50%',
+                                objectFit: 'cover',
+                                flexShrink: 0
+                            }}
+                        />
+                    ) : (
+                        <div style={{
+                            width: '38px',
+                            height: '38px',
+                            borderRadius: '50%',
+                            background: 'hsl(var(--primary) / 0.15)',
+                            border: '1px solid hsl(var(--primary) / 0.3)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '13px',
+                            fontWeight: '700',
+                            color: 'hsl(var(--primary))',
+                            flexShrink: 0
+                        }}>
+                            {initials}
+                        </div>
+                    )}
 
                     <div style={{
                         fontSize: '14px',
@@ -397,22 +411,36 @@ const LeadCard = ({ lead, onClick, isMobile, isTablet }) => {
             }}
         >
             {/* Avatar */}
-            <div style={{
-                width: '44px',
-                height: '44px',
-                borderRadius: '50%',
-                background: 'hsl(var(--primary) / 0.15)',
-                border: '1px solid hsl(var(--primary) / 0.3)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '15px',
-                fontWeight: '700',
-                color: 'hsl(var(--primary))',
-                flexShrink: 0
-            }}>
-                {initials}
-            </div>
+            {lead.profilePhoto ? (
+                <img
+                    src={lead.profilePhoto}
+                    alt={displayName}
+                    style={{
+                        width: '44px',
+                        height: '44px',
+                        borderRadius: '50%',
+                        objectFit: 'cover',
+                        flexShrink: 0
+                    }}
+                />
+            ) : (
+                <div style={{
+                    width: '44px',
+                    height: '44px',
+                    borderRadius: '50%',
+                    background: 'hsl(var(--primary) / 0.15)',
+                    border: '1px solid hsl(var(--primary) / 0.3)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '15px',
+                    fontWeight: '700',
+                    color: 'hsl(var(--primary))',
+                    flexShrink: 0
+                }}>
+                    {initials}
+                </div>
+            )}
 
             {/* Name + Email */}
             <div style={{ minWidth: 0, flex: '1.5' }}>
