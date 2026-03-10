@@ -14,7 +14,7 @@ import IrgApi from '../../assets/irgApi';
 import showToast from '../../utils/showToast';
 import { usePropertyFallbackImage } from '../../utils/propertyImageFallback';
 import ikUrl from '../../utils/imageKit';
-import { addSelectedHome, removeSelectedHome } from '../../store/actions';
+import { addSelectedHome, removeSelectedHome, fetchNewProperties } from '../../store/actions';
 
 const PrpCard = memo(({ property, handleOpenMapDialog }) => {
     // __________________Redux State______________________\\
@@ -58,11 +58,12 @@ const PrpCard = memo(({ property, handleOpenMapDialog }) => {
             );
             if (res.data.status === 'success') {
                 showToast('warn', `${property.address} moved off market`, 'Off Market');
+                dispatch(fetchNewProperties(isLoggedIn));
             }
         } catch (_err) {
             showToast('error', 'Something went wrong', 'Error');
         }
-    }, [property, isLoggedIn]);
+    }, [property, isLoggedIn, dispatch]);
 
     const linkAddress = property?.property_url ? `/property/${property.property_url}` : '';
 
