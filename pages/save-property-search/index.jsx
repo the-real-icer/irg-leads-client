@@ -54,14 +54,14 @@ const stripFormatting = (val) => val.replace(/[^0-9.]/g, '');
 const validatePrice = (val) => {
     if (!val) return '';
     const raw = stripFormatting(val);
-    if (!raw || isNaN(Number(raw)) || Number(raw) <= 0) return 'Please enter a valid price';
+    if (!raw || Number.isNaN(Number(raw)) || Number(raw) <= 0) return 'Please enter a valid price';
     return '';
 };
 
 const validateWholeNumber = (val) => {
     if (!val) return '';
     const raw = val.replace(/[^0-9]/g, '');
-    if (!raw || isNaN(Number(raw)) || Number(raw) < 0) return 'Please enter a whole number';
+    if (!raw || Number.isNaN(Number(raw)) || Number(raw) < 0) return 'Please enter a whole number';
     if (val.includes('.')) return 'Please enter a whole number';
     return '';
 };
@@ -70,7 +70,7 @@ const validateBathrooms = (val) => {
     if (!val) return '';
     const raw = val.trim();
     const num = Number(raw);
-    if (isNaN(num) || num < 0) return 'Please enter a valid number';
+    if (Number.isNaN(num) || num < 0) return 'Please enter a valid number';
     // Accept whole numbers and .5 increments
     const decimal = num % 1;
     if (decimal !== 0 && decimal !== 0.5) return 'Use whole numbers or .5 increments';
@@ -80,7 +80,7 @@ const validateBathrooms = (val) => {
 const validateSqft = (val) => {
     if (!val) return '';
     const raw = stripFormatting(val);
-    if (!raw || isNaN(Number(raw)) || Number(raw) <= 0) return 'Please enter a valid number';
+    if (!raw || Number.isNaN(Number(raw)) || Number(raw) <= 0) return 'Please enter a valid number';
     if (raw.includes('.')) return 'Please enter a whole number';
     return '';
 };

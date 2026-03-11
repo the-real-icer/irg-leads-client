@@ -5,6 +5,7 @@ import compression from 'compression';
 import cors from 'cors';
 import pinoHttp from 'pino-http';
 import { config } from 'dotenv';
+
 config(); // Load .env variables
 
 const port = parseInt(process.env.PORT, 10) || 2000;

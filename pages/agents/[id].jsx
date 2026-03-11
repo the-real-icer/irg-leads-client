@@ -129,7 +129,7 @@ const AgentProfile = () => {
         // Commission split validation
         if (formData.commissionSplit !== '' && formData.commissionSplit !== null && formData.commissionSplit !== undefined) {
             const splitVal = parseFloat(formData.commissionSplit);
-            if (isNaN(splitVal) || splitVal < 0 || splitVal > 100) {
+            if (Number.isNaN(splitVal) || splitVal < 0 || splitVal > 100) {
                 setCommissionSplitError('Please enter a valid percentage between 0 and 100');
                 showToast('error', 'Commission split must be between 0 and 100', 'Validation Error');
                 return;

@@ -76,9 +76,9 @@ const AddLead = () => {
         setDisplayPhone(formatPhoneNumber(digits));
     }, []);
 
-    const validateEmail = (email) => {
+    const validateEmail = (emailValue) => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(email);
+        return emailRegex.test(emailValue);
     };
 
     const onSubmit = useCallback(

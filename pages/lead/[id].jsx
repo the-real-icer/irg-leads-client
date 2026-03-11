@@ -25,7 +25,6 @@ const Avatar = dynamic(() => import('primereact/avatar').then((mod) => mod.Avata
 const ScrollPanel = dynamic(() => import('primereact/scrollpanel').then((mod) => mod.ScrollPanel), {
     ssr: false,
 });
-const Toast = dynamic(() => import('primereact/toast').then((mod) => mod.Toast), { ssr: false });
 const Button = dynamic(() => import('primereact/button').then((mod) => mod.Button), {
     ssr: false,
 });
@@ -53,9 +52,6 @@ const Checkbox = dynamic(() => import('primereact/checkbox').then((mod) => mod.C
     ssr: false,
 });
 const InputText = dynamic(() => import('primereact/inputtext').then((mod) => mod.InputText), {
-    ssr: false,
-});
-const InputNumber = dynamic(() => import('primereact/inputnumber').then((mod) => mod.InputNumber), {
     ssr: false,
 });
 const ReactQuill = dynamic(() => import('react-quill-new'), {
@@ -478,7 +474,7 @@ const Lead = () => {
             if (!price) return sum;
             // Remove $ and commas, then parse to number
             const numPrice = parseFloat(price.replace(/[$,]/g, ''));
-            return sum + (isNaN(numPrice) ? 0 : numPrice);
+            return sum + (Number.isNaN(numPrice) ? 0 : numPrice);
         }, 0);
 
         const average = total / viewedHomes.length;
@@ -680,7 +676,7 @@ const Lead = () => {
                 '/users/add-reminder',
                 {
                     userId: lead._id,
-                    reminderDate: reminderDate,
+                    reminderDate,
                     type: reminderType,
                     description: reminderDescription,
                     agentId: agent._id,
@@ -713,7 +709,7 @@ const Lead = () => {
                 '/users/update-reminder',
                 {
                     userId: lead._id,
-                    reminderId: reminderId,
+                    reminderId,
                     completed: true,
                 },
                 {
@@ -738,7 +734,7 @@ const Lead = () => {
                 '/users/delete-reminder',
                 {
                     userId: lead._id,
-                    reminderId: reminderId,
+                    reminderId,
                 },
                 {
                     headers: { Authorization: `Bearer ${isLoggedIn}` },
@@ -1086,8 +1082,8 @@ const Lead = () => {
         const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
         return reminders.some((reminder) => {
-            const reminderDate = new Date(reminder.reminder_date);
-            return reminderDate >= now && reminderDate <= sevenDaysFromNow;
+            const nextReminderDate = new Date(reminder.reminder_date);
+            return nextReminderDate >= now && nextReminderDate <= sevenDaysFromNow;
         });
     };
 
@@ -1152,7 +1148,7 @@ const Lead = () => {
                     leadId: lead._id,
                     newAgentId: selectedAgent,
                     note: transferNote,
-                    notifyAgent: notifyAgent,
+                    notifyAgent,
                 },
                 {
                     headers: { Authorization: `Bearer ${isLoggedIn}` },
@@ -1317,17 +1313,21 @@ const Lead = () => {
                                                     options={LEAD_TYPE_OPTIONS}
                                                     onChange={(e) => updateLeadType(e.value)}
                                                     placeholder="Select type..."
-                                                    autoFocus
                                                     onHide={() => setEditingLeadType(false)}
                                                     style={{ minWidth: '140px', fontSize: '0.875rem' }}
                                                 />
                                             ) : (
-                                                <span
+                                                <button
+                                                    type="button"
                                                     onClick={() => setEditingLeadType(true)}
                                                     style={{
                                                         cursor: 'pointer',
                                                         borderBottom: '1px dashed hsl(var(--foreground-muted) / 0.4)',
                                                         paddingBottom: '1px',
+                                                        background: 'transparent',
+                                                        borderTop: 'none',
+                                                        borderLeft: 'none',
+                                                        borderRight: 'none',
                                                     }}
                                                     title="Click to edit lead type"
                                                 >
@@ -1337,7 +1337,7 @@ const Lead = () => {
                                                         className="pi pi-pencil"
                                                         style={{ fontSize: '0.7rem', opacity: 0.5 }}
                                                     />
-                                                </span>
+                                                </button>
                                             )}
                                         </span>
                                         <span className="meta-divider">•</span>
@@ -1553,10 +1553,10 @@ const Lead = () => {
                                     gap: '1rem'
                                 }}>
                                     {getActiveReminders().map((reminder) => {
-                                        const reminderDate = new Date(reminder.reminder_date);
+                                        const currentReminderDate = new Date(reminder.reminder_date);
                                         const now = new Date();
-                                        const isOverdue = reminderDate < now;
-                                        const daysUntil = Math.ceil((reminderDate - now) / (1000 * 60 * 60 * 24));
+                                        const isOverdue = currentReminderDate < now;
+                                        const daysUntil = Math.ceil((currentReminderDate - now) / (1000 * 60 * 60 * 24));
 
                                         return (
                                             <div
@@ -2584,7 +2584,6 @@ const Lead = () => {
                             rows={8}
                             placeholder="Enter notes about this call..."
                             style={{ width: '100%', fontFamily: 'inherit' }}
-                            autoFocus
                         />
                         <small style={{ display: 'block', marginTop: '0.5rem', color: 'hsl(var(--foreground-muted))' }}>
                             Document key points from your conversation with {getLeadDisplayName(lead)}
@@ -2641,7 +2640,6 @@ const Lead = () => {
                             rows={8}
                             placeholder="Enter your note about this lead..."
                             style={{ width: '100%', fontFamily: 'inherit' }}
-                            autoFocus
                         />
                         <small style={{ display: 'block', marginTop: '0.5rem', color: 'hsl(var(--foreground-muted))' }}>
                             Add important information or observations about {getLeadDisplayName(lead)}
@@ -2726,7 +2724,6 @@ const Lead = () => {
                                 onChange={(e) => setEmailSubject(e.target.value)}
                                 placeholder="Enter email subject..."
                                 style={{ width: '100%' }}
-                                autoFocus
                             />
                         </div>
 
@@ -2874,7 +2871,6 @@ const Lead = () => {
                                 rows={5}
                                 placeholder="What do you need to follow up on?"
                                 style={{ width: '100%', fontFamily: 'inherit' }}
-                                autoFocus
                             />
                             <small style={{ display: 'block', marginTop: '0.5rem', color: 'hsl(var(--foreground-muted))' }}>
                                 Add notes about what you need to do or discuss with {getLeadDisplayName(lead)}
@@ -3127,13 +3123,14 @@ const Lead = () => {
                                         .filter((a) => !editEAlertAreas.some((sel) => sel.areaName === a.name && sel.areaType === a.type))
                                         .slice(0, 5)
                                         .map((a) => (
-                                            <div
+                                            <button
                                                 key={`${a.type}-${a.name}`}
+                                                type="button"
                                                 onClick={() => {
                                                     setEditEAlertAreas((prev) => [...prev, { areaName: a.name, areaType: a.type }]);
                                                     setEditEAlertAreaSearch('');
                                                 }}
-                                                style={{ padding: '0.5rem 0.75rem', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid hsl(var(--border))' }}
+                                                style={{ padding: '0.5rem 0.75rem', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid hsl(var(--border))', border: 'none', background: 'transparent', width: '100%', textAlign: 'left' }}
                                                 onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'hsl(var(--muted))'; }}
                                                 onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
                                             >
@@ -3141,7 +3138,7 @@ const Lead = () => {
                                                 <span style={{ fontSize: '0.7rem', padding: '2px 8px', borderRadius: '4px', backgroundColor: '#e0f7fa', color: '#00838f', border: '1px solid #4dd0e1' }}>
                                                     {a.type}
                                                 </span>
-                                            </div>
+                                            </button>
                                         ))}
                                     {[...(irgAreas?.City || []), ...(irgAreas?.Neighborhood || []), ...(irgAreas?.CondoBuilding || [])]
                                         .filter((a) => a.name.toLowerCase().includes(editEAlertAreaSearch.toLowerCase()))
@@ -3161,11 +3158,14 @@ const Lead = () => {
                                             style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.25rem 0.6rem', borderRadius: '16px', fontSize: '0.8rem', backgroundColor: 'hsl(var(--muted))', border: '1px solid hsl(var(--border))' }}
                                         >
                                             {area.areaName}
-                                            <i
-                                                className="pi pi-times"
-                                                style={{ fontSize: '0.65rem', cursor: 'pointer', opacity: 0.7 }}
+                                            <button
+                                                type="button"
+                                                style={{ fontSize: '0.65rem', cursor: 'pointer', opacity: 0.7, border: 'none', background: 'transparent', padding: 0 }}
                                                 onClick={() => setEditEAlertAreas((prev) => prev.filter((_, i) => i !== idx))}
-                                            />
+                                                aria-label={`Remove ${area.areaName}`}
+                                            >
+                                                <i className="pi pi-times" />
+                                            </button>
                                         </span>
                                     ))}
                                 </div>

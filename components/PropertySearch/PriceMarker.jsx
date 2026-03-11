@@ -12,6 +12,13 @@ const PriceMarker = memo(({ property, isActive, onClick, onMouseEnter, onMouseLe
         lng: property.coordinates.lng,
     };
 
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onClick(property._id);
+        }
+    };
+
     return (
         <OverlayView
             position={position}
@@ -24,6 +31,7 @@ const PriceMarker = memo(({ property, isActive, onClick, onMouseEnter, onMouseLe
                     onClick={() => onClick(property._id)}
                     onMouseEnter={() => onMouseEnter(property._id)}
                     onMouseLeave={onMouseLeave}
+                    onKeyDown={handleKeyDown}
                     role="button"
                     tabIndex={0}
                 >

@@ -53,7 +53,12 @@ const MoreFiltersDialog = ({ visible, filters, onApply, onClose }) => {
 
     return (
         <>
-            <div className="more-filters-dialog__backdrop" onClick={onClose} />
+            <button
+                className="more-filters-dialog__backdrop"
+                onClick={onClose}
+                type="button"
+                aria-label="Close more filters"
+            />
             <div className="more-filters-dialog__panel">
                 <div className="more-filters-dialog__header">
                     <span className="more-filters-dialog__title">More Filters</span>

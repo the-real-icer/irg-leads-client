@@ -68,7 +68,7 @@ const NotificationBell = () => {
                 if (reminder.completed) continue;
 
                 const reminderDate = new Date(reminder.reminder_date);
-                if (isNaN(reminderDate.getTime())) continue;
+                if (Number.isNaN(reminderDate.getTime())) continue;
 
                 // Include overdue (any past date) + next 7 days
                 if (reminderDate < sevenDaysOut) {

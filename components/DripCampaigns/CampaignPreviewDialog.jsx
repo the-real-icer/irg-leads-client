@@ -5,9 +5,6 @@ import DOMPurify from 'isomorphic-dompurify';
 const Dialog = dynamic(() => import('primereact/dialog').then((mod) => mod.Dialog), {
     ssr: false,
 });
-const Button = dynamic(() => import('primereact/button').then((mod) => mod.Button), {
-    ssr: false,
-});
 
 const TRUNCATE_LENGTH = 180;
 

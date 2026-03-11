@@ -655,7 +655,12 @@ const EditTransaction = () => {
         }
 
         const escrowVal = String(transactionInfo.escrowLength).trim();
-        if (!escrowVal || isNaN(escrowVal) || Number(escrowVal) <= 0 || !Number.isFinite(Number(escrowVal))) {
+        if (
+            !escrowVal
+            || Number.isNaN(Number(escrowVal))
+            || Number(escrowVal) <= 0
+            || !Number.isFinite(Number(escrowVal))
+        ) {
             setEscrowLengthError('Please enter a valid number of days');
             showToast('error', 'Escrow length must be a valid positive number', 'Validation Error');
             return;
@@ -696,13 +701,13 @@ const EditTransaction = () => {
             address: selectedProperty.address,
             city: selectedProperty.city,
             state: selectedProperty.state,
-            zipCode: parseInt(selectedProperty.zip_code),
+            zipCode: parseInt(selectedProperty.zip_code, 10),
             lead: leadId,
             salesPrice: parseFloat(transactionInfo.price),
             financing: transactionInfo.financing !== 'cash',
-            acceptanceDate: acceptanceDate,
+            acceptanceDate,
             anticipatedClosingDate: expectedCloseDate,
-            escrowLength: parseInt(transactionInfo.escrowLength),
+            escrowLength: parseInt(transactionInfo.escrowLength, 10),
             referralFee: transactionInfo.referralFee,
             referralFeeAmt: calc.referralFeeAmount,
             referral_fee_percentage: parseFloat(referralFeePercentage) || 0,

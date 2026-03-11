@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import PropTypes from 'prop-types';
 import dynamic from 'next/dynamic';
+import DOMPurify from 'isomorphic-dompurify';
 
 const AutoComplete = dynamic(
     () => import('primereact/autocomplete').then((mod) => mod.AutoComplete),
@@ -192,7 +193,11 @@ const EmailToLeadDialog = ({
                     {agentSignature ? (
                         <div
                             className="email-dialog__signature-content"
-                            dangerouslySetInnerHTML={{ __html: agentSignature }}
+                            dangerouslySetInnerHTML={{
+                                __html: DOMPurify.sanitize(agentSignature, {
+                                    ADD_DATA_URI_TAGS: ['img'],
+                                }),
+                            }}
                         />
                     ) : (
                         <p className="email-dialog__signature-empty">

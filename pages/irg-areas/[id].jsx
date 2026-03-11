@@ -256,7 +256,9 @@ const AreaDetail = () => {
                 }
 
                 return null;
-            }).filter(coord => coord !== null && !isNaN(coord.lat) && !isNaN(coord.lng));
+            }).filter((coord) => coord !== null
+                && !Number.isNaN(coord.lat)
+                && !Number.isNaN(coord.lng));
         }
 
         return (

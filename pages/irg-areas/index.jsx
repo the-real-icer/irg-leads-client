@@ -637,14 +637,17 @@ const IrgAreas = () => {
                         {filteredAreas.map((area) => {
                             const badgeStyle = getTypeBadgeColor(area.type);
                             return (
-                                <div
+                                <button
                                     key={area._id}
+                                    type="button"
                                     style={{
                                         background: 'white',
                                         borderRadius: '12px',
                                         boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
                                         padding: '1.25rem',
                                         cursor: 'pointer',
+                                        border: 'none',
+                                        textAlign: 'left',
                                         transition: 'all 0.2s ease',
                                     }}
                                     onClick={() => handleAreaClick(area._id)}
@@ -715,7 +718,7 @@ const IrgAreas = () => {
                                             </div>
                                         )}
                                     </div>
-                                </div>
+                                </button>
                             );
                         })}
                     </div>

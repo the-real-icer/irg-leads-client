@@ -1,6 +1,7 @@
 // Font
 import { Inter } from 'next/font/google';
 import { useEffect, useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 
 // Redux & Connect
 import { PersistGate } from 'redux-persist/integration/react';
@@ -8,7 +9,8 @@ import { Provider } from 'react-redux';
 import { wrapper } from '../store';
 
 // API
-import { setupAuthInterceptor } from '../assets/irgApi';
+import IrgApi, { COOKIE_AUTH_FALLBACK, setupAuthInterceptor } from '../assets/irgApi';
+import { addAgent, loginUser } from '../store/actions';
 
 // Prop-Types
 import PropTypes from 'prop-types';
@@ -40,6 +42,32 @@ const inter = Inter({
     variable: '--font-inter',
 });
 
+const AuthBootstrap = () => {
+    const dispatch = useDispatch();
+    const isLoggedIn = useSelector((state) => state.isLoggedIn);
+    const hasCheckedAuth = useRef(false);
+
+    useEffect(() => {
+        if (isLoggedIn || hasCheckedAuth.current) {
+            return;
+        }
+
+        hasCheckedAuth.current = true;
+
+        IrgApi.get('/auth/check-auth')
+            .then((response) => {
+                const agent = response.data?.data;
+                if (!agent) return;
+
+                dispatch(addAgent(agent));
+                dispatch(loginUser(COOKIE_AUTH_FALLBACK));
+            })
+            .catch(() => {});
+    }, [dispatch, isLoggedIn]);
+
+    return null;
+};
+
 const MyApp = ({ Component, ...rest }) => {
     // _________________________________Constants________________________\\
     // Redux STORE
@@ -63,6 +91,7 @@ const MyApp = ({ Component, ...rest }) => {
                         refetchInterval={0}
                         refetchOnWindowFocus={false}
                     >
+                        <AuthBootstrap />
                         <ToastContainer
                             position="top-left"
                             autoClose={4000}

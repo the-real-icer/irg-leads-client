@@ -51,7 +51,7 @@ const Profile = () => {
                 ['clean'],
             ],
             handlers: {
-                image: function () {
+                image() {
                     const quill = this.quill;
                     const input = document.createElement('input');
                     input.setAttribute('type', 'file');

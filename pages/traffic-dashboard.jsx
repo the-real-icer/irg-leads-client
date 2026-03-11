@@ -572,7 +572,8 @@ const TrafficDashboard = () => {
                                             {event.page_title || event.page_url}
                                         </span>
                                         {event.lead_id ? (
-                                            <span
+                                            <button
+                                                type="button"
                                                 style={{
                                                     fontSize: '0.75rem',
                                                     fontWeight: '600',
@@ -585,7 +586,7 @@ const TrafficDashboard = () => {
                                                 }}
                                             >
                                                 {event.lead_name || 'Lead'}
-                                            </span>
+                                            </button>
                                         ) : (
                                             <span style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))', fontStyle: 'italic', whiteSpace: 'nowrap' }}>
                                                 Anonymous

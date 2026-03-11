@@ -54,6 +54,13 @@ const SendPropertyDialog = ({ visible, onHide, leadId, isLoggedIn, onSuccess }) 
         setSearchQuery('');
     };
 
+    const handleResultKeyDown = (e, property) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleSelectProperty(property);
+        }
+    };
+
     const handleSend = async () => {
         if (!selectedProperty || sending) return;
 
@@ -148,6 +155,9 @@ const SendPropertyDialog = ({ visible, onHide, leadId, isLoggedIn, onSuccess }) 
                                         key={property._id}
                                         className="send-property__result"
                                         onClick={() => handleSelectProperty(property)}
+                                        onKeyDown={(e) => handleResultKeyDown(e, property)}
+                                        role="button"
+                                        tabIndex={0}
                                     >
                                         <div>
                                             <strong>{property.address}</strong>

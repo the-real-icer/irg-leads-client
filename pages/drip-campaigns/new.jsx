@@ -424,7 +424,7 @@ const NewDripCampaign = () => {
                                 >
                                     {emails
                                         .sort((a, b) => a.dayNumber - b.dayNumber)
-                                        .map((email) => (
+                                        .map((email, index) => (
                                             <div
                                                 key={email.dayNumber}
                                                 style={{

@@ -236,14 +236,15 @@ const Dashboard = () => {
                                                                 {urgency.label}
                                                             </span>
                                                         </div>
-                                                        <div
+                                                        <button
+                                                            type="button"
                                                             style={{ fontSize: '0.8rem', color: 'hsl(var(--foreground-muted))', marginTop: '0.2rem', cursor: 'pointer' }}
                                                             onClick={() => router.push(`/transactions/edit/${entry.transactionId}`)}
                                                             onMouseEnter={(e) => { e.currentTarget.style.textDecoration = 'underline'; }}
                                                             onMouseLeave={(e) => { e.currentTarget.style.textDecoration = 'none'; }}
                                                         >
                                                             {entry.address}
-                                                        </div>
+                                                        </button>
                                                     </div>
                                                 );
                                             })}
@@ -260,14 +261,16 @@ const Dashboard = () => {
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                                 {recentLeads.length > 0 ? (
                                     recentLeads.map((lead) => (
-                                        <div
+                                        <button
                                             key={lead._id}
+                                            type="button"
                                             style={{
                                                 padding: '1rem',
                                                 background: 'hsl(var(--surface))',
                                                 border: '1px solid hsl(var(--border))',
                                                 borderRadius: '8px',
                                                 cursor: 'pointer',
+                                                textAlign: 'left',
                                                 transition: 'all 0.2s ease',
                                             }}
                                             onMouseEnter={(e) => {
@@ -310,7 +313,8 @@ const Dashboard = () => {
                                                         Avg Price:{' '}
                                                         {lead.average_price_point
                                                             ? `$${parseInt(
-                                                                  lead.average_price_point
+                                                                  lead.average_price_point,
+                                                                  10
                                                               ).toLocaleString()}`
                                                             : 'N/A'}
                                                     </div>
@@ -384,7 +388,7 @@ const Dashboard = () => {
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
+                                        </button>
                                     ))
                                 ) : (
                                     <div
@@ -412,8 +416,9 @@ const Dashboard = () => {
                                 </div>
                             ) : activeLeads.length > 0 ? (
                                 activeLeads.map((session) => (
-                                    <div
+                                    <button
                                         key={session.lead_id}
+                                        type="button"
                                         style={{
                                             padding: '0.875rem 1rem',
                                             background: 'hsl(var(--surface))',
@@ -423,6 +428,7 @@ const Dashboard = () => {
                                             justifyContent: 'space-between',
                                             alignItems: 'center',
                                             cursor: 'pointer',
+                                            textAlign: 'left',
                                             transition: 'all 0.2s ease',
                                         }}
                                         onMouseEnter={(e) => {
@@ -465,7 +471,7 @@ const Dashboard = () => {
                                                 {session.total_pages_viewed} {session.total_pages_viewed === 1 ? 'page' : 'pages'} viewed
                                             </div>
                                         </div>
-                                    </div>
+                                    </button>
                                 ))
                             ) : (
                                 <div
@@ -558,17 +564,6 @@ const getDateUrgency = (dateStr) => {
         badgeBg: null,
         badgeColor: null,
     };
-};
-
-// Helper function to format currency
-const formatCurrency = (value) => {
-    if (value == null) return '$0';
-    return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-    }).format(value);
 };
 
 // Helper function to get status colors

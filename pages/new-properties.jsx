@@ -6,14 +6,14 @@ import { useSelector, useDispatch } from 'react-redux';
 
 // Third Party Components
 import showToast from '../utils/showToast';
-import { Button } from 'primereact/button';;
+import { Button } from 'primereact/button';
 
 // IRG Components
 import MainLayout from '../components/layout/MainLayout';
 import NewPropertyCard from '../components/NewProperties/NewPropertyCard';
 import NewPropertyEditDialog from '../components/NewProperties/NewPropertyEditDialog';
 import ConfirmOffMarketDialog from '../components/NewProperties/ConfirmOffMarketDialog';
-import MapDialog from '@/components/Shared/MapDialog';
+import MapDialog from '../components/Shared/MapDialog';
 
 // IRG API - HOOKS - INFO - UTILS
 import IrgApi from '../assets/irgApi';
@@ -344,7 +344,7 @@ const NewProperties = () => {
         ], 
     );
 
-    //Function to update the count of properties based on if "Hide Duplicates" is clicked
+    // Function to update the count of properties based on if "Hide Duplicates" is clicked
     const visiblePropertiesCount = useMemo(
         () => newProperties.filter((p) => !hideDuplicates || !p.is_duplicate_property).length,
         [newProperties, hideDuplicates],

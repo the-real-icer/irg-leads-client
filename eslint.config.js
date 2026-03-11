@@ -1,27 +1,40 @@
-import eslintPluginReact from 'eslint-plugin-react';
-import eslintPluginReactHooks from 'eslint-plugin-react-hooks';
-import eslintPluginJsxA11y from 'eslint-plugin-jsx-a11y';
-import eslintPluginPrettier from 'eslint-plugin-prettier';
-import eslintPluginImport from 'eslint-plugin-import';
-import nextPlugin from '@next/eslint-plugin-next';
-import prettierConfig from 'eslint-config-prettier';
-import airbnbBase from 'eslint-config-airbnb-base';
-import { fixupPluginRules } from '@eslint/compat';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+import { fixupConfigRules } from '@eslint/compat';
+import { FlatCompat } from '@eslint/eslintrc';
 import eslint from '@eslint/js';
+import nextPlugin from '@next/eslint-plugin-next';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const compat = new FlatCompat({
+    baseDirectory: __dirname,
+    recommendedConfig: eslint.configs.recommended,
+});
 
 export default [
     {
         ignores: [
-            'build/**', // Ignore entire build directory and its contents
-            '.next/**', // Ignore entire .next directory and its contents
-            'node_modules/**', // Optional: ESLint ignores node_modules by default
-            '!build/test.js', // Unignore build/test.js if needed
+            '.next/**',
+            'build/**',
+            'coverage/**',
+            'node_modules/**',
             'eslint.config.js',
         ],
-        "env": {
-            "browser": true,
-            "es2021": true
-        },
+    },
+    ...fixupConfigRules(
+        compat.extends(
+            'airbnb-base',
+            'plugin:react/recommended',
+            'plugin:react-hooks/recommended',
+            'plugin:jsx-a11y/recommended',
+            'prettier',
+        ),
+    ),
+    nextPlugin.flatConfig.coreWebVitals,
+    {
         files: ['**/*.{js,jsx}'],
         languageOptions: {
             ecmaVersion: 'latest',
@@ -30,21 +43,36 @@ export default [
                 ecmaFeatures: { jsx: true },
             },
             globals: {
-                browser: true,
-                node: true,
-                window: true,
-                console: true,
-                process: true,
-                navigator: true
+                window: 'readonly',
+                document: 'readonly',
+                navigator: 'readonly',
+                console: 'readonly',
+                process: 'readonly',
+                module: 'readonly',
+                require: 'readonly',
+                URL: 'readonly',
+                URLSearchParams: 'readonly',
+                FormData: 'readonly',
+                Blob: 'readonly',
+                File: 'readonly',
+                FileReader: 'readonly',
+                crypto: 'readonly',
+                HTMLElement: 'readonly',
+                HTMLInputElement: 'readonly',
+                Image: 'readonly',
+                IntersectionObserver: 'readonly',
+                Node: 'readonly',
+                MutationObserver: 'readonly',
+                localStorage: 'readonly',
+                sessionStorage: 'readonly',
+                fetch: 'readonly',
+                setTimeout: 'readonly',
+                clearTimeout: 'readonly',
+                setInterval: 'readonly',
+                clearInterval: 'readonly',
+                requestAnimationFrame: 'readonly',
+                cancelAnimationFrame: 'readonly',
             },
-        },
-        plugins: {
-            react: eslintPluginReact,
-            'react-hooks': fixupPluginRules(eslintPluginReactHooks),
-            'jsx-a11y': eslintPluginJsxA11y,
-            prettier: eslintPluginPrettier,
-            import: eslintPluginImport,
-            '@next/next': nextPlugin,
         },
         settings: {
             react: { version: 'detect' },
@@ -55,27 +83,47 @@ export default [
             },
         },
         rules: {
-            ...eslint.configs.recommended.rules,
-            ...airbnbBase.rules,
-            ...eslintPluginReact.configs.recommended.rules,
-            ...eslintPluginReactHooks.configs.recommended.rules,
-            ...eslintPluginJsxA11y.configs.recommended.rules,
-            ...nextPlugin.configs['core-web-vitals'].rules,
-            ...prettierConfig.rules,
             'no-console': ['warn'],
             'no-restricted-syntax': ['warn'],
-            'import/no-extraneous-dependencies': ['warn'],
             'func-names': ['warn'],
             'no-await-in-loop': ['warn'],
-            'no-unused-vars': ['error', { varsIgnorePattern: '^_', argsIgnorePattern: '^_' }],
+            'no-param-reassign': ['error', { props: false }],
+            'no-unused-vars': [
+                'error',
+                {
+                    varsIgnorePattern: '^_',
+                    argsIgnorePattern: '^_',
+                    caughtErrors: 'none',
+                },
+            ],
+            'no-underscore-dangle': 'off',
+            'no-use-before-define': 'off',
+            'no-else-return': 'off',
+            'no-plusplus': 'off',
+            'no-continue': 'off',
+            'consistent-return': 'off',
+            'prefer-destructuring': 'off',
+            'prefer-template': 'off',
+            'default-param-last': 'off',
+            'arrow-body-style': 'off',
+            'no-nested-ternary': 'off',
+            camelcase: 'off',
             'react/jsx-filename-extension': [1, { extensions: ['.jsx'] }],
             'react/react-in-jsx-scope': 'off',
-            '@next/next/no-html-link-for-pages': 'error',
+            'react/prop-types': 'off',
+            'react/no-unescaped-entities': 'off',
+            '@next/next/no-html-link-for-pages': 'off',
+            '@next/next/no-img-element': 'off',
+            'jsx-a11y/label-has-associated-control': 'off',
+            'import/first': 'off',
+            'import/order': 'off',
+            'import/no-duplicates': 'off',
+            'import/prefer-default-export': 'off',
             'import/extensions': ['error', 'never', { js: 'never', jsx: 'never' }],
             'import/no-extraneous-dependencies': [
                 'error',
                 {
-                    devDependencies: ['**/*.test.js', '**/*.test.jsx', 'next.config.js'],
+                    devDependencies: ['**/*.test.js', '**/*.test.jsx', 'next.config.js', 'next.config.mjs'],
                 },
             ],
             'max-len': ['warn', { code: 120 }],

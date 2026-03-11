@@ -174,9 +174,10 @@ const SendUpdateEmail = () => {
                             {agents.map((a) => {
                                 const isSelected = selectedIds.includes(a._id);
                                 return (
-                                    <div
+                                    <button
                                         key={a._id}
                                         onClick={() => toggleAgent(a._id)}
+                                        type="button"
                                         style={{
                                             display: 'flex',
                                             alignItems: 'center',
@@ -222,7 +223,7 @@ const SendUpdateEmail = () => {
                                         {isSelected && (
                                             <i className="pi pi-check" style={{ fontSize: '0.75rem', color: 'hsl(var(--primary))' }}></i>
                                         )}
-                                    </div>
+                                    </button>
                                 );
                             })}
                         </div>

@@ -5,7 +5,7 @@
  */
 const formatPrice = (price) => {
     const num = typeof price === 'number' ? price : parseInt(String(price).replace(/[^0-9]/g, ''), 10);
-    if (isNaN(num)) return price;
+    if (Number.isNaN(num)) return price;
     if (num >= 1000000) {
         const m = num / 1000000;
         return `$${m % 1 === 0 ? m.toFixed(0) : m.toFixed(1)}M`;

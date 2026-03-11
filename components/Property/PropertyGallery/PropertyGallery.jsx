@@ -70,6 +70,13 @@ const getStatusInfo = (status) => {
 const useIsomorphicLayoutEffect =
     typeof window !== 'undefined' ? useLayoutEffect : useEffect;
 
+const handleGalleryKeyDown = (e, onActivate) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        onActivate();
+    }
+};
+
 const PropertyGallery = ({ property }) => {
     const fallbackImage = usePropertyFallbackImage();
     const [activeSlide, setActiveSlide] = useState(0);
@@ -272,6 +279,9 @@ const PropertyGallery = ({ property }) => {
                     <div
                         className="property-gallery__hero"
                         onClick={() => openGallery(0)}
+                        onKeyDown={(e) => handleGalleryKeyDown(e, () => openGallery(0))}
+                        role="button"
+                        tabIndex={0}
                     >
                         <img
                             src={images[0].original}
@@ -289,6 +299,9 @@ const PropertyGallery = ({ property }) => {
                             key={img.original}
                             className="property-gallery__cell"
                             onClick={() => openGallery(findImageIndex(img))}
+                            onKeyDown={(e) => handleGalleryKeyDown(e, () => openGallery(findImageIndex(img)))}
+                            role="button"
+                            tabIndex={0}
                         >
                             <img
                                 src={img.original}
@@ -325,6 +338,9 @@ const PropertyGallery = ({ property }) => {
                     <div
                         className="property-gallery__hero"
                         onClick={() => openGallery(0)}
+                        onKeyDown={(e) => handleGalleryKeyDown(e, () => openGallery(0))}
+                        role="button"
+                        tabIndex={0}
                     >
                         <img
                             src={images[0].original}
@@ -342,6 +358,9 @@ const PropertyGallery = ({ property }) => {
                             key={img.original}
                             className="property-gallery__cell"
                             onClick={() => openGallery(findImageIndex(img))}
+                            onKeyDown={(e) => handleGalleryKeyDown(e, () => openGallery(findImageIndex(img)))}
+                            role="button"
+                            tabIndex={0}
                         >
                             <img
                                 src={img.original}
@@ -380,16 +399,22 @@ const PropertyGallery = ({ property }) => {
                             className="property-gallery__carousel__slide"
                             data-index={i}
                         >
-                            <img
-                                src={img.original}
-                                alt={img.originalAlt}
+                            <button
+                                type="button"
+                                className="property-gallery__carousel__image-button"
                                 onClick={() => openGallery(i)}
-                                onError={(e) => {
-                                    if (e.currentTarget.src !== fallbackImage) {
-                                        e.currentTarget.src = fallbackImage;
-                                    }
-                                }}
-                            />
+                                aria-label={`Open photo ${i + 1} of ${images.length}`}
+                            >
+                                <img
+                                    src={img.original}
+                                    alt={img.originalAlt}
+                                    onError={(e) => {
+                                        if (e.currentTarget.src !== fallbackImage) {
+                                            e.currentTarget.src = fallbackImage;
+                                        }
+                                    }}
+                                />
+                            </button>
                         </div>
                     ))}
                 </div>

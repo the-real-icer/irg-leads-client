@@ -108,7 +108,7 @@ const Agents = () => {
         // Commission split validation (optional field)
         if (formData.commissionSplit !== '' && formData.commissionSplit !== null && formData.commissionSplit !== undefined) {
             const splitVal = parseFloat(formData.commissionSplit);
-            if (isNaN(splitVal) || splitVal < 0 || splitVal > 100) {
+            if (Number.isNaN(splitVal) || splitVal < 0 || splitVal > 100) {
                 setCommissionSplitError('Please enter a valid percentage between 0 and 100');
                 showToast('error', 'Commission split must be between 0 and 100', 'Validation Error');
                 return;
@@ -532,14 +532,17 @@ const Agents = () => {
                         gap: '1.5rem',
                     }}>
                         {agents.map((agent) => (
-                            <div
+                            <button
                                 key={agent._id}
+                                type="button"
                                 style={{
                                     background: 'hsl(var(--surface))',
                                     borderRadius: '12px',
                                     boxShadow: '0 2px 12px hsl(var(--shadow-color) / 0.08)',
                                     overflow: 'hidden',
                                     cursor: 'pointer',
+                                    border: 'none',
+                                    textAlign: 'left',
                                     transition: 'all 0.2s ease',
                                 }}
                                 onClick={() => handleAgentClick(agent._id)}
@@ -667,7 +670,7 @@ const Agents = () => {
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </button>
                         ))}
                     </div>
                 )}

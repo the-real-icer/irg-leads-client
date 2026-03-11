@@ -31,6 +31,20 @@ const GoogleConnectButton = () => {
     const [loadingCalendars, setLoadingCalendars] = useState(false);
     const [savingCalendars, setSavingCalendars] = useState(false);
 
+    const getAllowedOrigins = () => {
+        const origins = new Set([window.location.origin, 'http://localhost:2000', 'http://localhost:4000']);
+
+        if (process.env.NEXT_PUBLIC_IRG_API_URL) {
+            try {
+                origins.add(new URL(process.env.NEXT_PUBLIC_IRG_API_URL).origin);
+            } catch {
+                // Ignore malformed env var and fall back to known origins.
+            }
+        }
+
+        return origins;
+    };
+
     // Ensure component is mounted (client-side only)
     useEffect(() => {
         setIsMounted(true);
@@ -88,14 +102,9 @@ const GoogleConnectButton = () => {
 
         const handleMessage = (event) => {
             // Verify message origin for security
-            const allowedOrigins = [
-                window.location.origin,
-                process.env.NEXT_PUBLIC_IRG_API_URL,
-                'http://localhost:2000',
-                'http://localhost:4000'
-            ];
+            const allowedOrigins = getAllowedOrigins();
 
-            if (!allowedOrigins.some(origin => event.origin.includes(origin))) {
+            if (!allowedOrigins.has(event.origin)) {
                 return;
             }
 
@@ -135,6 +144,7 @@ const GoogleConnectButton = () => {
             if (response.data.status === 'success') {
                 const connected = response.data.data.connected;
                 setIsConnected(connected);
+                setSelectedCalendarIds(response.data.data.selectedCalendars || ['primary']);
 
                 // Fetch calendars if connected
                 if (connected) {
@@ -161,10 +171,12 @@ const GoogleConnectButton = () => {
             if (response.data.status === 'success') {
                 setCalendars(response.data.data);
 
-                // Get agent's selected calendars (will be updated on first save)
-                // For now, default to primary
                 const primaryCalendar = response.data.data.find(cal => cal.primary);
-                if (primaryCalendar && selectedCalendarIds.length === 1 && selectedCalendarIds[0] === 'primary') {
+                if (
+                    primaryCalendar &&
+                    selectedCalendarIds.length === 1 &&
+                    selectedCalendarIds[0] === 'primary'
+                ) {
                     setSelectedCalendarIds([primaryCalendar.id]);
                 }
             }

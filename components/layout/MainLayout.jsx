@@ -102,9 +102,11 @@ const MainLayout = (props) => {
             <div className="min-h-screen flex relative bg-background">
                 {/* Mobile overlay */}
                 {mobileMenuOpen && (
-                    <div
+                    <button
                         className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[998] lg:hidden transition-opacity duration-200"
                         onClick={() => setMobileMenuOpen(false)}
+                        type="button"
+                        aria-label="Close navigation menu"
                     />
                 )}
 

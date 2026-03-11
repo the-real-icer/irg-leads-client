@@ -5,7 +5,7 @@ import { useInterval } from 'react-use';
 
 import MainLayout from '../components/layout/MainLayout';
 import PrpCard from '../components/prpCard/PrpCard';
-import MapDialog from '@/components/Shared/MapDialog';
+import MapDialog from '../components/Shared/MapDialog';
 
 const HotsheetDropdown = dynamic(() => import('../components/Hotsheet/HotsheetDropdown'), {
     ssr: false,

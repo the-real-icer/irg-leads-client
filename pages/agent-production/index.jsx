@@ -20,7 +20,7 @@ const ScrollPanel = dynamic(() => import('primereact/scrollpanel').then((mod) =>
 // IRG Components
 import MainLayout from '../../components/layout/MainLayout';
 import PrpCard from '../../components/prpCard/PrpCard';
-import MapDialog from '@/components/Shared/MapDialog';
+import MapDialog from '../../components/Shared/MapDialog';
 import showToast from '../../utils/showToast';
 
 // IRG API - HOOKS - INFO - UTILS

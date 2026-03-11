@@ -502,15 +502,18 @@ const DripCampaigns = () => {
             {assignDialogOpen && assignDialogCampaign && (
                 <>
                     {/* Backdrop */}
-                    <div
+                    <button
                         onClick={closeAssignDialog}
+                        type="button"
                         style={{
                             position: 'fixed',
                             inset: 0,
                             background: 'rgba(0,0,0,0.5)',
                             zIndex: 100,
                             backdropFilter: 'blur(2px)',
+                            border: 'none',
                         }}
+                        aria-label="Close assign dialog"
                     />
 
                     {/* Dialog */}
@@ -666,7 +669,6 @@ const DripCampaigns = () => {
                                         setTimeout(() => setLeadDropdownOpen(false), 150);
                                     }}
                                     placeholder="Type a name or email..."
-                                    autoFocus
                                     style={{
                                         width: '100%',
                                         padding: '10px 14px',
@@ -700,13 +702,18 @@ const DripCampaigns = () => {
                                     }}
                                 >
                                     {filteredLeads.map((lead) => (
-                                        <div
+                                        <button
                                             key={lead._id}
                                             onMouseDown={() => handleLeadSelect(lead)}
+                                            type="button"
                                             style={{
                                                 padding: '10px 14px',
                                                 cursor: 'pointer',
                                                 borderBottom: '1px solid hsl(var(--border) / 0.5)',
+                                                border: 'none',
+                                                background: 'transparent',
+                                                width: '100%',
+                                                textAlign: 'left',
                                             }}
                                             onMouseEnter={(e) => {
                                                 e.currentTarget.style.background =
@@ -736,7 +743,7 @@ const DripCampaigns = () => {
                                                     {lead.email}
                                                 </span>
                                             )}
-                                        </div>
+                                        </button>
                                     ))}
                                 </div>
                             )}

@@ -28,7 +28,12 @@ const MobileFilterDrawer = ({ visible, filters, onFilterChange, onSearch, onRese
 
     return (
         <>
-            <div className="mobile-filter-drawer__backdrop" onClick={onClose} />
+            <button
+                className="mobile-filter-drawer__backdrop"
+                onClick={onClose}
+                type="button"
+                aria-label="Close filters"
+            />
             <div className="mobile-filter-drawer__panel">
                 <div className="mobile-filter-drawer__header">
                     <span className="mobile-filter-drawer__title">Filters</span>

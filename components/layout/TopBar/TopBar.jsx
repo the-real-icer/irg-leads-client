@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { useSelector, useDispatch } from 'react-redux';
 
 import { signOut as nextAuthSignOut } from 'next-auth/react';
+import IrgApi from '../../../assets/irgApi';
 import { RESET_STORE } from '../../../store/actions/types';
 import useTheme from '../../../hooks/useTheme';
 import PropertyQueueDialog from '../../PropertyQueue/PropertyQueueDialog';
@@ -45,11 +46,16 @@ const TopBar = ({ onMobileMenuToggle }) => {
         setShowSendDialog(true);
     };
 
-    const handleSignOut = () => {
+    const handleSignOut = async () => {
         setProfileOpen(false);
+        try {
+            await IrgApi.post('/auth/logout');
+        } catch {
+            // Reset local auth state even if cookie clearing fails.
+        }
         dispatch({ type: RESET_STORE });
         // Clean up any lingering next-auth session (defensive)
-        nextAuthSignOut({ redirect: false }).catch(() => {});
+        await nextAuthSignOut({ redirect: false }).catch(() => {});
         router.push('/');
     };
 

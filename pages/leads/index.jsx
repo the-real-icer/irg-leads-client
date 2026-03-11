@@ -257,8 +257,9 @@ const LeadCard = ({ lead, onClick, isMobile, isTablet }) => {
 
     if (isMobile) {
         return (
-            <div
+            <button
                 onClick={onClick}
+                type="button"
                 style={{
                     background: 'hsl(var(--card))',
                     border: '1px solid hsl(var(--border))',
@@ -269,7 +270,8 @@ const LeadCard = ({ lead, onClick, isMobile, isTablet }) => {
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '10px',
-                    width: '100%'
+                    width: '100%',
+                    textAlign: 'left'
                 }}
             >
                 {/* Row 1: Avatar + Name + Status + Chevron */}
@@ -382,13 +384,14 @@ const LeadCard = ({ lead, onClick, isMobile, isTablet }) => {
                         {lastVisit}
                     </div>
                 </div>
-            </div>
+            </button>
         );
     }
 
     return (
-        <div
+        <button
             onClick={onClick}
+            type="button"
             style={{
                 background: 'hsl(var(--card))',
                 border: '1px solid hsl(var(--border))',
@@ -399,7 +402,8 @@ const LeadCard = ({ lead, onClick, isMobile, isTablet }) => {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '16px',
-                width: '100%'
+                width: '100%',
+                textAlign: 'left'
             }}
             onMouseEnter={e => {
                 e.currentTarget.style.borderColor = 'hsl(var(--primary) / 0.5)';
@@ -617,7 +621,7 @@ const LeadCard = ({ lead, onClick, isMobile, isTablet }) => {
             >
                 <path d="M9 18l6-6-6-6" />
             </svg>
-        </div>
+        </button>
     );
 };
 
@@ -708,7 +712,8 @@ const Leads = () => {
 
         // Sort
         return [...filtered].sort((a, b) => {
-            let aVal, bVal;
+            let aVal;
+            let bVal;
 
             switch (sortField) {
                 case 'name': {
@@ -1047,9 +1052,10 @@ const Leads = () => {
                         marginBottom: '4px'
                     }}>
                         {SORT_COLUMNS.filter(col => !(isTablet && col.field === 'avgPrice')).map(col => (
-                            <div
+                            <button
                                 key={col.label}
                                 onClick={col.sortable ? () => handleSort(col.field) : undefined}
+                                type="button"
                                 style={{
                                     flex: col.flex,
                                     display: 'flex',
@@ -1066,6 +1072,8 @@ const Leads = () => {
                                         ? 'flex-end' : 'flex-start',
                                     cursor: col.sortable ? 'pointer' : 'default',
                                     userSelect: 'none',
+                                    background: 'transparent',
+                                    border: 'none',
                                     transition: 'color 0.15s ease'
                                 }}
                                 onMouseEnter={e => {
@@ -1081,7 +1089,7 @@ const Leads = () => {
                             >
                                 {col.label}
                                 {col.sortable && <SortIcon field={col.field} />}
-                            </div>
+                            </button>
                         ))}
                         <div style={{ width: '16px', flexShrink: 0 }} />
                     </div>

@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useSelector } from 'react-redux';
-import { v4 as uuidv4 } from 'uuid';
 import IrgApi from '../../assets/irgApi';
 import showToast from '../../utils/showToast';
 import getLeadDisplayName from '../../utils/getLeadDisplayName';
@@ -216,7 +215,7 @@ const SaveSearchDialog = ({ visible, onClose, appliedFilters, activeAreas = [], 
         const name = searchName.trim() || buildAutoName(appliedFilters, activeAreas);
 
         const savedSearch = {
-            searchId: uuidv4(),
+            searchId: crypto.randomUUID(),
             searchName: name,
             searchFrequency: frequency,
             searchFilter: buildSearchFilter(appliedFilters),
@@ -259,7 +258,12 @@ const SaveSearchDialog = ({ visible, onClose, appliedFilters, activeAreas = [], 
 
     return (
         <>
-            <div className="save-search-dialog__backdrop" onClick={onClose} />
+            <button
+                className="save-search-dialog__backdrop"
+                onClick={onClose}
+                type="button"
+                aria-label="Close save search dialog"
+            />
             <div className="save-search-dialog__panel">
                 {/* Header */}
                 <div className="save-search-dialog__header">

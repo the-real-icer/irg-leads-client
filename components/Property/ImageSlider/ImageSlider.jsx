@@ -102,7 +102,7 @@ class PropertyImageSlider extends React.Component {
 
         return (
             <div className="property_image_slider_container">
-                <Slider ref={(slider) => (this.slider = slider)} {...settings}>
+                <Slider ref={(slider) => { this.slider = slider; }} {...settings}>
                     {this.state.images.map((image, index) => (
                         <ImageSlide
                             key={image}

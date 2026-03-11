@@ -2,7 +2,6 @@ import { useEffect, useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import dynamic from 'next/dynamic';
 
-const Card = dynamic(() => import('primereact/card').then((mod) => mod.Card), { ssr: false });
 const Button = dynamic(() => import('primereact/button').then((mod) => mod.Button), { ssr: false });
 
 import IrgApi from '../../assets/irgApi';

@@ -43,9 +43,9 @@ const RecentListingCard = ({ home }) => {
                             {home?.bathrooms} {home?.bathrooms === 1 ? 'Bath' : 'Baths'} |{' '}
                             {home.sqft} SqFt
                         </div>
-                        <a className="text-blue-500 cursor-pointer">
+                        <span className="text-blue-500">
                             <span>{home.price}</span>
-                        </a>
+                        </span>
                     </div>
                 </div>
                 <span className="block text-500 font-medium ml-7 md:ml-5 mt-2 md:mt-0">
