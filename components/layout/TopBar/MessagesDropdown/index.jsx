@@ -71,7 +71,7 @@ const MessagesDropdown = () => {
             console.error('Failed to mark read:', err);
         }
         setOpen(false);
-        router.push(`/lead/${msg.leadId}`);
+        router.push(`/lead/dashboard/${msg.leadId}`);
     };
 
     const formatTime = (dateStr) => {
