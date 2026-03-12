@@ -1,10 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useSelector } from 'react-redux';
 import { useRouter } from 'next/router';
 import IrgApi from '../../../../assets/irgApi';
 import styles from './MessagesDropdown.module.scss';
 
 const MessagesDropdown = () => {
     const router = useRouter();
+    const isLoggedIn = useSelector((state) => state.isLoggedIn);
+    const agent = useSelector((state) => state.agent);
     const [open, setOpen] = useState(false);
     const [messages, setMessages] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
@@ -24,12 +27,13 @@ const MessagesDropdown = () => {
         }
     }, []);
 
-    // Initial fetch + 60s polling
+    // Initial fetch + 60s polling (only when authenticated)
     useEffect(() => {
+        if (!isLoggedIn || !agent?._id) return;
         fetchMessages();
         intervalRef.current = setInterval(fetchMessages, 60000);
         return () => clearInterval(intervalRef.current);
-    }, [fetchMessages]);
+    }, [isLoggedIn, agent, fetchMessages]);
 
     // Refetch when dropdown opens
     useEffect(() => {
