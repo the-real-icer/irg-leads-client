@@ -14,6 +14,7 @@ const ScrollPanel = dynamic(() => import('primereact/scrollpanel').then((mod) =>
 import MainLayout from '../components/layout/MainLayout';
 import DashboardHotsheet from '../components/Dashboard/DashboardHotsheet';
 import IrgApi from '../assets/irgApi';
+import formatAgentLastLogin from '../utils/formatAgentLastLogin';
 import getLeadDisplayName from '../utils/getLeadDisplayName';
 
 const ProductionCard = ({ icon, value, label, format }) => {
@@ -52,7 +53,9 @@ const ProductionCard = ({ icon, value, label, format }) => {
 const Dashboard = () => {
     // __________________Redux State______________________\\
     const allLeads = useSelector((state) => state.allLeadsPage.leads);
+    const currentAgent = useSelector((state) => state.agent);
     const isLoggedIn = useSelector((state) => state.isLoggedIn);
+    const isAdmin = currentAgent?.role === 'admin';
 
     const router = useRouter();
 
@@ -64,6 +67,8 @@ const Dashboard = () => {
     const [txError, setTxError] = useState(false);
     const [upcomingDates, setUpcomingDates] = useState([]);
     const [upcomingDatesLoading, setUpcomingDatesLoading] = useState(true);
+    const [recentAgentLogins, setRecentAgentLogins] = useState([]);
+    const [recentAgentLoginsLoading, setRecentAgentLoginsLoading] = useState(true);
 
     // Sort leads by last visit date (most recent first)
     const sortedLeads = [...allLeads].sort((a, b) => {
@@ -126,14 +131,36 @@ const Dashboard = () => {
         }
     }, [isLoggedIn]);
 
+    const fetchRecentAgentLogins = useCallback(async () => {
+        if (!isLoggedIn || !isAdmin) {
+            setRecentAgentLogins([]);
+            setRecentAgentLoginsLoading(false);
+            return;
+        }
+
+        try {
+            const res = await IrgApi.get('/agents/recent-logins', {
+                headers: { Authorization: `Bearer ${isLoggedIn}` },
+            });
+            if (res.data.status === 'success') {
+                setRecentAgentLogins(res.data.data);
+            }
+        } catch {
+            setRecentAgentLogins([]);
+        } finally {
+            setRecentAgentLoginsLoading(false);
+        }
+    }, [isAdmin, isLoggedIn]);
+
     // Fetch on mount + refresh active leads every 60 seconds
     useEffect(() => {
         fetchActiveLeads();
         fetchTxMetrics();
         fetchUpcomingDates();
+        fetchRecentAgentLogins();
         const interval = setInterval(fetchActiveLeads, 60000);
         return () => clearInterval(interval);
-    }, [fetchActiveLeads, fetchTxMetrics, fetchUpcomingDates]);
+    }, [fetchActiveLeads, fetchTxMetrics, fetchUpcomingDates, fetchRecentAgentLogins]);
 
     return (
         <MainLayout>
@@ -405,6 +432,63 @@ const Dashboard = () => {
                         </ScrollPanel>
                     </Card>
                 </div>
+
+                {isAdmin && (
+                    <div style={{ marginBottom: '1.5rem' }}>
+                        <Card title="Recent Agent Logins" style={{ width: '100%' }}>
+                            {recentAgentLoginsLoading ? (
+                                <div style={{ padding: '1.5rem', textAlign: 'center', color: 'hsl(var(--foreground-muted))' }}>
+                                    <i className="pi pi-spin pi-spinner" style={{ fontSize: '1.25rem' }}></i>
+                                </div>
+                            ) : recentAgentLogins.length === 0 ? (
+                                <div style={{ padding: '1.5rem', textAlign: 'center', color: 'hsl(var(--foreground-muted))' }}>
+                                    No recent logins to display
+                                </div>
+                            ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                    {recentAgentLogins.map((agent) => {
+                                        const lastLogin = formatAgentLastLogin(agent.last_successful_login_at);
+
+                                        return (
+                                            <div
+                                                key={agent._id}
+                                                style={{
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'center',
+                                                    gap: '1rem',
+                                                    padding: '0.875rem 1rem',
+                                                    background: 'hsl(var(--surface))',
+                                                    border: '1px solid hsl(var(--border))',
+                                                    borderRadius: '8px',
+                                                }}
+                                            >
+                                                <div style={{ minWidth: 0 }}>
+                                                    <div style={{ fontSize: '0.95rem', fontWeight: '600', color: 'hsl(var(--foreground))' }}>
+                                                        {agent.name}
+                                                    </div>
+                                                    <div style={{ fontSize: '0.8125rem', color: 'hsl(var(--foreground-muted))', marginTop: '0.125rem' }}>
+                                                        {agent.title || (agent.role === 'admin' ? 'Admin' : 'Agent')}
+                                                    </div>
+                                                </div>
+                                                <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                                                    <div style={{ fontSize: '0.875rem', fontWeight: '600', color: 'hsl(var(--foreground))' }}>
+                                                        {lastLogin.primary}
+                                                    </div>
+                                                    {lastLogin.secondary && (
+                                                        <div style={{ fontSize: '0.75rem', color: 'hsl(var(--foreground-muted))', marginTop: '0.125rem' }}>
+                                                            {lastLogin.secondary}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </Card>
+                    </div>
+                )}
 
                 {/* Middle Section - Leads Active on Site */}
                 <div style={{ marginBottom: '1.5rem' }}>

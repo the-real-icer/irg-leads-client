@@ -17,6 +17,7 @@ import MainLayout from '../../components/layout/MainLayout';
 
 // API & Utils
 import IrgApi from '../../assets/irgApi';
+import formatAgentLastLogin from '../../utils/formatAgentLastLogin';
 import showToast from '../../utils/showToast';
 
 const AgentProfile = () => {
@@ -51,6 +52,7 @@ const AgentProfile = () => {
         commissionSplit: '',
     });
     const [commissionSplitError, setCommissionSplitError] = useState('');
+    const lastLogin = formatAgentLastLogin(agent?.last_successful_login_at);
 
     const roleOptions = [
         { label: 'Agent', value: 'agent' },
@@ -280,6 +282,25 @@ const AgentProfile = () => {
                                         />
                                     </div>
                                 )}
+
+                                <div
+                                    style={{
+                                        padding: '0.875rem 1rem',
+                                        borderRadius: '8px',
+                                        background: '#f8f9fa',
+                                        border: '1px solid #dee2e6',
+                                        color: '#495057',
+                                        fontSize: '0.95rem',
+                                    }}
+                                >
+                                    <strong>Last successful login:</strong>{' '}
+                                    {lastLogin.primary}
+                                    {lastLogin.secondary && (
+                                        <div style={{ color: '#6c757d', fontSize: '0.85rem', marginTop: '0.25rem' }}>
+                                            {lastLogin.secondary}
+                                        </div>
+                                    )}
+                                </div>
 
                                 {/* Name */}
                                 <div>

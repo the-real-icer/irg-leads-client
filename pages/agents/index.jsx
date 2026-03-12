@@ -18,6 +18,7 @@ import MainLayout from '../../components/layout/MainLayout';
 
 // API & Utils
 import IrgApi from '../../assets/irgApi';
+import formatAgentLastLogin from '../../utils/formatAgentLastLogin';
 import showToast from '../../utils/showToast';
 
 const Agents = () => {
@@ -531,7 +532,10 @@ const Agents = () => {
                         gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
                         gap: '1.5rem',
                     }}>
-                        {agents.map((agent) => (
+                        {agents.map((agent) => {
+                            const lastLogin = formatAgentLastLogin(agent.last_successful_login_at);
+
+                            return (
                             <button
                                 key={agent._id}
                                 type="button"
@@ -668,10 +672,25 @@ const Agents = () => {
                                                 {agent.dre_license}
                                             </span>
                                         </div>
+
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                            <i className="pi pi-clock" style={{ color: 'hsl(var(--foreground-muted))', fontSize: '0.875rem' }}></i>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.125rem' }}>
+                                                <span style={{ color: 'hsl(var(--foreground))' }}>
+                                                    Last login: {lastLogin.primary}
+                                                </span>
+                                                {lastLogin.secondary && (
+                                                    <span style={{ color: 'hsl(var(--foreground-muted))', fontSize: '0.75rem' }}>
+                                                        {lastLogin.secondary}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </button>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
             </div>
