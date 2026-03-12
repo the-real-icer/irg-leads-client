@@ -17,7 +17,9 @@ const MessagesDropdown = () => {
 
     const fetchMessages = useCallback(async () => {
         try {
-            const res = await IrgApi.get('/users/dashboard/messages');
+            const res = await IrgApi.get('/users/dashboard/messages', {
+                headers: { Authorization: `Bearer ${isLoggedIn}` },
+            });
             setMessages(res.data.data || []);
             setUnreadCount(res.data.unread_count || 0);
         } catch (err) {
@@ -25,7 +27,7 @@ const MessagesDropdown = () => {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [isLoggedIn]);
 
     // Initial fetch + 60s polling (only when authenticated)
     useEffect(() => {
@@ -61,7 +63,9 @@ const MessagesDropdown = () => {
     const handleMessageClick = async (msg) => {
         try {
             if (!msg.isRead) {
-                await IrgApi.put(`/users/dashboard/messages/${msg._id}/read`);
+                await IrgApi.put(`/users/dashboard/messages/${msg._id}/read`, null, {
+                    headers: { Authorization: `Bearer ${isLoggedIn}` },
+                });
             }
         } catch (err) {
             console.error('Failed to mark read:', err);
