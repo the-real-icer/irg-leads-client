@@ -369,7 +369,7 @@ const IrgAreas = () => {
 
                             <div>
                                 <label htmlFor="city" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600' }}>
-                                    City
+                                    City - SKIP!!
                                 </label>
                                 <InputText
                                     id="city"
@@ -384,13 +384,13 @@ const IrgAreas = () => {
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                             <div>
                                 <label htmlFor="as" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600' }}>
-                                    County/Area (as) *
+                                    Proper Url *
                                 </label>
                                 <InputText
                                     id="as"
                                     value={formData.as}
                                     onChange={(e) => handleChange('as', e.target.value)}
-                                    placeholder="e.g., San Diego County"
+                                    placeholder="e.g., /city/san-diego"
                                     style={{ width: '100%' }}
                                     required
                                 />
@@ -398,13 +398,13 @@ const IrgAreas = () => {
 
                             <div>
                                 <label htmlFor="href" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600' }}>
-                                    HREF/URL *
+                                    HREF/URL * (ie: /city/[city])
                                 </label>
                                 <InputText
                                     id="href"
                                     value={formData.href}
                                     onChange={(e) => handleChange('href', e.target.value)}
-                                    placeholder="e.g., /search/city/san-diego"
+                                    placeholder="e.g., /city/[city]"
                                     style={{ width: '100%' }}
                                     required
                                 />
@@ -430,7 +430,7 @@ const IrgAreas = () => {
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
                             <div>
                                 <label htmlFor="lat" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600' }}>
-                                    Latitude *
+                                    Latitude * 33, 34
                                 </label>
                                 <InputNumber
                                     id="lat"
@@ -445,7 +445,7 @@ const IrgAreas = () => {
 
                             <div>
                                 <label htmlFor="lng" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600' }}>
-                                    Longitude *
+                                    Longitude * -117
                                 </label>
                                 <InputNumber
                                     id="lng"
@@ -490,14 +490,16 @@ const IrgAreas = () => {
                                     minHeight: '200px',
                                     padding: '0.75rem',
                                     borderRadius: '6px',
-                                    border: '1px solid #ced4da',
+                                    border: '1px solid hsl(var(--input))',
+                                    backgroundColor: 'hsl(var(--surface))',
+                                    color: 'hsl(var(--foreground))',
                                     fontFamily: 'monospace',
                                     fontSize: '0.875rem',
                                     resize: 'vertical',
                                 }}
                                 required
                             />
-                            <small style={{ color: '#6c757d', display: 'block', marginTop: '0.25rem' }}>
+                            <small style={{ color: 'hsl(var(--foreground-muted))', display: 'block', marginTop: '0.25rem' }}>
                                 Format: Array of coordinate pairs [[lng, lat], [lng, lat], ...]
                             </small>
                         </div>
@@ -515,7 +517,7 @@ const IrgAreas = () => {
                         </div>
 
                         {/* Submit Buttons */}
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #dee2e6' }}>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid hsl(var(--border))' }}>
                             <Button
                                 label="Cancel"
                                 className="p-button-text"
@@ -641,30 +643,30 @@ const IrgAreas = () => {
                                     key={area._id}
                                     type="button"
                                     style={{
-                                        background: 'white',
+                                        background: 'hsl(var(--surface))',
                                         borderRadius: '12px',
-                                        boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
+                                        boxShadow: '0 2px 12px hsl(var(--shadow-color) / 0.08)',
                                         padding: '1.25rem',
                                         cursor: 'pointer',
-                                        border: 'none',
+                                        border: '1px solid hsl(var(--border))',
                                         textAlign: 'left',
                                         transition: 'all 0.2s ease',
                                     }}
                                     onClick={() => handleAreaClick(area._id)}
                                     onMouseEnter={(e) => {
                                         e.currentTarget.style.transform = 'translateY(-4px)';
-                                        e.currentTarget.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.12)';
+                                        e.currentTarget.style.boxShadow = '0 6px 20px hsl(var(--shadow-color) / 0.12)';
                                     }}
                                     onMouseLeave={(e) => {
                                         e.currentTarget.style.transform = 'translateY(0)';
-                                        e.currentTarget.style.boxShadow = '0 2px 12px rgba(0, 0, 0, 0.08)';
+                                        e.currentTarget.style.boxShadow = '0 2px 12px hsl(var(--shadow-color) / 0.08)';
                                     }}
                                 >
                                     {/* Area Name */}
                                     <h3 style={{
                                         fontSize: '1.25rem',
                                         fontWeight: '700',
-                                        color: '#2c3e50',
+                                        color: 'hsl(var(--foreground))',
                                         marginBottom: '0.5rem',
                                     }}>
                                         {area.name}
@@ -673,7 +675,7 @@ const IrgAreas = () => {
                                     {/* County */}
                                     <div style={{
                                         fontSize: '0.9rem',
-                                        color: '#6c757d',
+                                        color: 'hsl(var(--foreground-muted))',
                                         marginBottom: '1rem',
                                     }}>
                                         {area.county || area.as}
@@ -700,19 +702,19 @@ const IrgAreas = () => {
                                         gap: '0.5rem',
                                         fontSize: '0.875rem',
                                         paddingTop: '1rem',
-                                        borderTop: '1px solid #dee2e6',
+                                        borderTop: '1px solid hsl(var(--border))',
                                     }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                            <i className="pi pi-map-marker" style={{ color: '#6c757d', fontSize: '0.875rem' }}></i>
-                                            <span style={{ color: '#495057' }}>
+                                            <i className="pi pi-map-marker" style={{ color: 'hsl(var(--foreground-muted))', fontSize: '0.875rem' }}></i>
+                                            <span style={{ color: 'hsl(var(--foreground))' }}>
                                                 {area.coordinates.lat.toFixed(4)}, {area.coordinates.lng.toFixed(4)}
                                             </span>
                                         </div>
 
                                         {area.zipcode && (
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                <i className="pi pi-envelope" style={{ color: '#6c757d', fontSize: '0.875rem' }}></i>
-                                                <span style={{ color: '#495057' }}>
+                                                <i className="pi pi-envelope" style={{ color: 'hsl(var(--foreground-muted))', fontSize: '0.875rem' }}></i>
+                                                <span style={{ color: 'hsl(var(--foreground))' }}>
                                                     {area.zipcode}
                                                 </span>
                                             </div>
