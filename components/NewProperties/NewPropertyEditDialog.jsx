@@ -47,7 +47,7 @@ const NewPropertyEditDialog = (props) => {
             style={{ width: '600px', maxWidth: '90vw' }}
             contentStyle={{
                 padding: '1.5rem',
-                background: '#ffffff',
+                background: 'hsl(var(--surface))',
                 borderRadius: '8px',
             }}
         >
@@ -60,7 +60,7 @@ const NewPropertyEditDialog = (props) => {
                             display: 'block',
                             marginBottom: '0.5rem',
                             fontWeight: '600',
-                            color: '#495057',
+                            color: 'hsl(var(--foreground))',
                             fontSize: '0.95rem',
                         }}
                     >
@@ -84,7 +84,7 @@ const NewPropertyEditDialog = (props) => {
                             display: 'block',
                             marginBottom: '0.5rem',
                             fontWeight: '600',
-                            color: '#495057',
+                            color: 'hsl(var(--foreground))',
                             fontSize: '0.95rem',
                         }}
                     >
@@ -109,7 +109,7 @@ const NewPropertyEditDialog = (props) => {
                                 display: 'block',
                                 marginBottom: '0.5rem',
                                 fontWeight: '600',
-                                color: '#495057',
+                                color: 'hsl(var(--foreground))',
                                 fontSize: '0.95rem',
                             }}
                         >
@@ -131,7 +131,7 @@ const NewPropertyEditDialog = (props) => {
                                 display: 'block',
                                 marginBottom: '0.5rem',
                                 fontWeight: '600',
-                                color: '#495057',
+                                color: 'hsl(var(--foreground))',
                                 fontSize: '0.95rem',
                             }}
                         >
@@ -156,7 +156,7 @@ const NewPropertyEditDialog = (props) => {
                             display: 'block',
                             marginBottom: '0.5rem',
                             fontWeight: '600',
-                            color: '#495057',
+                            color: 'hsl(var(--foreground))',
                             fontSize: '0.95rem',
                         }}
                     >
@@ -174,7 +174,7 @@ const NewPropertyEditDialog = (props) => {
                         style={{
                             display: 'block',
                             marginTop: '0.5rem',
-                            color: '#667eea',
+                            color: 'hsl(var(--primary))',
                             fontWeight: '500',
                             fontSize: '0.85rem',
                         }}
@@ -199,7 +199,7 @@ const NewPropertyEditDialog = (props) => {
                                 display: 'block',
                                 marginBottom: '0.5rem',
                                 fontWeight: '600',
-                                color: '#495057',
+                                color: 'hsl(var(--foreground))',
                                 fontSize: '0.95rem',
                             }}
                         >
@@ -221,7 +221,7 @@ const NewPropertyEditDialog = (props) => {
                                 display: 'block',
                                 marginBottom: '0.5rem',
                                 fontWeight: '600',
-                                color: '#495057',
+                                color: 'hsl(var(--foreground))',
                                 fontSize: '0.95rem',
                             }}
                         >
@@ -242,7 +242,7 @@ const NewPropertyEditDialog = (props) => {
                 <div
                     style={{
                         padding: '1.25rem',
-                        background: '#f8f9fa',
+                        background: 'hsl(var(--accent))',
                         borderRadius: '8px',
                         marginBottom: '1.5rem',
                     }}
@@ -251,7 +251,7 @@ const NewPropertyEditDialog = (props) => {
                         style={{
                             fontSize: '1rem',
                             fontWeight: '600',
-                            color: '#495057',
+                            color: 'hsl(var(--foreground))',
                             marginBottom: '1rem',
                         }}
                     >
@@ -265,7 +265,7 @@ const NewPropertyEditDialog = (props) => {
                                 htmlFor="cb1"
                                 style={{
                                     fontWeight: '500',
-                                    color: '#495057',
+                                    color: 'hsl(var(--foreground))',
                                     cursor: 'pointer',
                                     fontSize: '0.95rem',
                                 }}
@@ -281,7 +281,7 @@ const NewPropertyEditDialog = (props) => {
                                 htmlFor="cb2"
                                 style={{
                                     fontWeight: '500',
-                                    color: '#495057',
+                                    color: 'hsl(var(--foreground))',
                                     cursor: 'pointer',
                                     fontSize: '0.95rem',
                                 }}
@@ -301,7 +301,7 @@ const NewPropertyEditDialog = (props) => {
                                 htmlFor="cb3"
                                 style={{
                                     fontWeight: '500',
-                                    color: '#495057',
+                                    color: 'hsl(var(--foreground))',
                                     cursor: 'pointer',
                                     fontSize: '0.95rem',
                                 }}
@@ -331,7 +331,7 @@ const NewPropertyEditDialog = (props) => {
                         style={{
                             padding: '0.75rem 1.5rem',
                             fontWeight: '600',
-                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                            background: 'hsl(var(--primary))',
                             border: 'none',
                         }}
                     />

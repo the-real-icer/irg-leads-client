@@ -143,7 +143,7 @@ const NewProperties = () => {
                 '/mlsproperties/edit-new-property',
                 {
                     address: formData.address,
-                    unitNumber: formData.unitNumber,
+                    unitNum: formData.unitNumber,
                     city: formData.city,
                     zipcode: formData.zipcode,
                     propertyUrl: formData.propertyUrl,
