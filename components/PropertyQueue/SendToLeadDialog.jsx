@@ -93,13 +93,13 @@ const SendToLeadDialog = ({ visible, onHide }) => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
             <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{getLeadDisplayName(option)}</span>
             {option.email && getLeadDisplayName(option) !== option.email && (
-                <span style={{ fontSize: '0.8rem', color: '#6c757d' }}>{option.email}</span>
+                <span style={{ fontSize: '0.8rem', color: 'hsl(var(--muted-foreground))' }}>{option.email}</span>
             )}
         </div>
     );
 
     const selectedLeadTemplate = (option) => {
-        if (!option) return <span style={{ color: '#6c757d' }}>Select a lead...</span>;
+        if (!option) return <span style={{ color: 'hsl(var(--muted-foreground))' }}>Select a lead...</span>;
         return <span>{getLeadDisplayName(option)} ({option.email})</span>;
     };
 
@@ -179,7 +179,7 @@ const SendToLeadDialog = ({ visible, onHide }) => {
             </div>
 
             {/* Info note */}
-            <p style={{ fontSize: '0.8rem', color: '#6c757d', fontStyle: 'italic', margin: '0 0 0.5rem' }}>
+            <p style={{ fontSize: '0.8rem', color: 'hsl(var(--muted-foreground))', fontStyle: 'italic', margin: '0 0 0.5rem' }}>
                 Your queued properties and agent signature will be automatically included in the email.
             </p>
 

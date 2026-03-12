@@ -17,7 +17,7 @@
         align-items: center;
         gap: 0.75rem;
         padding: 0.75rem 0;
-        border-bottom: 1px solid #dee2e6;
+        border-bottom: 1px solid hsl(var(--border));
 
         &:last-child {
             border-bottom: none;
@@ -40,7 +40,7 @@
     &__item-address {
         font-weight: 600;
         font-size: 0.9rem;
-        color: #2c3e50;
+        color: hsl(var(--foreground));
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -48,14 +48,14 @@
 
     &__item-details {
         font-size: 0.8rem;
-        color: #6c757d;
+        color: hsl(var(--muted-foreground));
         margin-top: 0.15rem;
     }
 
     &__item-price {
         font-weight: 700;
         font-size: 0.85rem;
-        color: #2c3e50;
+        color: hsl(var(--foreground));
         margin-top: 0.15rem;
     }
 
@@ -66,7 +66,7 @@
         border-radius: 50%;
         border: none;
         background: transparent;
-        color: #6c757d;
+        color: hsl(var(--muted-foreground));
         cursor: pointer;
         display: flex;
         align-items: center;
@@ -75,8 +75,8 @@
         transition: all 0.2s ease;
 
         &:hover {
-            background: #fee2e2;
-            color: #dc2626;
+            background: hsl(var(--danger) / 0.1);
+            color: hsl(var(--danger));
         }
     }
 
@@ -85,19 +85,19 @@
         justify-content: space-between;
         align-items: center;
         padding: 0.75rem 1.25rem;
-        border-top: 1px solid #dee2e6;
+        border-top: 1px solid hsl(var(--border));
     }
 
     &__empty {
         text-align: center;
         padding: 3rem 1.5rem;
-        color: #6c757d;
+        color: hsl(var(--muted-foreground));
 
         i {
             font-size: 2.5rem;
             margin-bottom: 1rem;
             display: block;
-            color: #adb5bd;
+            color: hsl(var(--muted-foreground));
         }
 
         p {
@@ -118,7 +118,7 @@
         align-items: center;
         gap: 0.5rem;
         padding: 0.75rem;
-        background: #f8f9fa;
+        background: hsl(var(--accent));
         border-radius: 8px;
         margin-bottom: 1.25rem;
         overflow-x: auto;
@@ -135,7 +135,7 @@
     &__preview-count {
         font-size: 0.85rem;
         font-weight: 600;
-        color: #495057;
+        color: hsl(var(--foreground));
         white-space: nowrap;
         margin-left: 0.5rem;
     }
@@ -147,7 +147,7 @@
             display: block;
             font-weight: 600;
             font-size: 0.9rem;
-            color: #495057;
+            color: hsl(var(--foreground));
             margin-bottom: 0.35rem;
         }
     }
