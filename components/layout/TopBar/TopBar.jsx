@@ -9,6 +9,7 @@ import useTheme from '../../../hooks/useTheme';
 import PropertyQueueDialog from '../../PropertyQueue/PropertyQueueDialog';
 import SendToLeadDialog from '../../PropertyQueue/SendToLeadDialog';
 import NotificationBell from './NotificationBell';
+import MessagesDropdown from './MessagesDropdown';
 import TopBarSearch from './TopBarSearch';
 
 const TopBar = ({ onMobileMenuToggle }) => {
@@ -104,6 +105,9 @@ const TopBar = ({ onMobileMenuToggle }) => {
 
                     {/* Reminders */}
                     <NotificationBell />
+
+                    {/* Messages */}
+                    <MessagesDropdown />
 
                     {/* Profile avatar */}
                     <div className="relative" ref={profileRef}>
