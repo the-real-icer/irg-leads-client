@@ -12,6 +12,7 @@ import { Button } from 'primereact/button';
 
 // IRG Components
 import MainLayout from '../../components/layout/MainLayout';
+import IrgApi from '../../assets/irgApi';
 import getLeadDisplayName, { getLeadInitials } from '../../utils/getLeadDisplayName';
 
 const formatPhoneNumber = (phoneNumberString) => {
@@ -634,16 +635,25 @@ const Leads = () => {
         loading: leadsLoading,
         error: leadsError,
     } = useSelector((state) => state.allLeadsPage);
+    const currentAgent = useSelector((state) => state.agent);
+    const isLoggedIn = useSelector((state) => state.isLoggedIn);
 
     const router = useRouter();
     const { width } = useWindowSize();
     const isMobile = width < 768;
     const isTablet = width >= 768 && width <= 1200;
+    const isAdmin = currentAgent?.role === 'admin';
 
     const [globalFilterValue, setGlobalFilterValue] = useState('');
     const [selectedStatus, setSelectedStatus] = useState(null);
     const [selectedType, setSelectedType] = useState(null);
     const [selectedSource, setSelectedSource] = useState(null);
+    const [leadView, setLeadView] = useState('mine');
+    const [adminScopedLeads, setAdminScopedLeads] = useState([]);
+    const [adminScopedLoading, setAdminScopedLoading] = useState(false);
+    const [adminScopedError, setAdminScopedError] = useState(null);
+    const [agentOptions, setAgentOptions] = useState([]);
+    const [agentOptionsLoading, setAgentOptionsLoading] = useState(false);
 
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
@@ -653,8 +663,87 @@ const Leads = () => {
     const [sortField, setSortField] = useState('lastVisit');
     const [sortDirection, setSortDirection] = useState('desc');
 
+    useEffect(() => {
+        if (!isAdmin || !isLoggedIn) return;
+
+        const fetchAgents = async () => {
+            setAgentOptionsLoading(true);
+            try {
+                const response = await IrgApi.get('/agents/all-agents', {
+                    headers: { Authorization: `Bearer ${isLoggedIn}` },
+                });
+
+                if (response.data.status === 'success') {
+                    setAgentOptions(
+                        (response.data.data || []).map((agent) => ({
+                            label: agent.name,
+                            value: `agent:${agent._id}`,
+                        }))
+                    );
+                }
+            } catch {
+                setAgentOptions([]);
+            } finally {
+                setAgentOptionsLoading(false);
+            }
+        };
+
+        fetchAgents();
+    }, [isAdmin, isLoggedIn]);
+
+    useEffect(() => {
+        if (!isAdmin || !isLoggedIn || leadView === 'mine') {
+            setAdminScopedError(null);
+            if (leadView === 'mine') {
+                setAdminScopedLeads([]);
+                setAdminScopedLoading(false);
+            }
+            return;
+        }
+
+        const fetchScopedLeads = async () => {
+            setAdminScopedLoading(true);
+            setAdminScopedError(null);
+
+            try {
+                const requestBody = leadView === 'all'
+                    ? { scope: 'all' }
+                    : { agentId: leadView.replace('agent:', '') };
+
+                const response = await IrgApi.post('/users/get-agent-users', JSON.stringify(requestBody), {
+                    headers: {
+                        Authorization: `Bearer ${isLoggedIn}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (response.data.status === 'success') {
+                    setAdminScopedLeads(Array.isArray(response.data.data) ? response.data.data : []);
+                }
+            } catch (error) {
+                const message = error.response?.data?.message || error.message || 'Failed to load leads';
+                setAdminScopedError(message);
+                setAdminScopedLeads([]);
+            } finally {
+                setAdminScopedLoading(false);
+            }
+        };
+
+        fetchScopedLeads();
+    }, [isAdmin, isLoggedIn, leadView]);
+
+    const viewOptions = useMemo(() => [
+        { label: 'My Leads', value: 'mine' },
+        { label: 'All Leads', value: 'all' },
+        ...agentOptions,
+    ], [agentOptions]);
+
+    const activeLeads = isAdmin && leadView !== 'mine' ? adminScopedLeads : allLeads;
+    const activeLeadsLoading = isAdmin && leadView !== 'mine' ? adminScopedLoading : leadsLoading;
+    const activeLeadsError = isAdmin && leadView !== 'mine' ? adminScopedError : leadsError;
+
     // Ensure allLeads is an array
-    const leadsArray = Array.isArray(allLeads) ? allLeads : [];
+    const leadsArray = Array.isArray(activeLeads) ? activeLeads : [];
 
     // Get unique values for dropdowns — memoized to avoid recalc on every render
     const statusValues = useMemo(() => [
@@ -784,7 +873,7 @@ const Leads = () => {
     // Reset to page 1 when filters change
     useEffect(() => {
         setCurrentPage(1);
-    }, [globalFilterValue, selectedStatus, selectedType, selectedSource]);
+    }, [globalFilterValue, selectedStatus, selectedType, selectedSource, leadView]);
 
     const onGlobalFilterChange = (e) => {
         setGlobalFilterValue(e.target.value);
@@ -973,6 +1062,17 @@ const Leads = () => {
                             style={{ minWidth: isMobile ? undefined : '160px', width: isMobile ? '100%' : undefined }}
                             className="filter-dropdown"
                         />
+                        {isAdmin && (
+                            <Dropdown
+                                value={leadView}
+                                options={viewOptions}
+                                onChange={(e) => setLeadView(e.value)}
+                                placeholder="Lead View"
+                                style={{ minWidth: isMobile ? undefined : '200px', width: isMobile ? '100%' : undefined }}
+                                className="filter-dropdown"
+                                disabled={agentOptionsLoading}
+                            />
+                        )}
                     </div>
 
                     {hasActiveFilters && !isMobile && (
@@ -1004,7 +1104,7 @@ const Leads = () => {
                 {header}
 
                 {/* Loading state */}
-                {leadsLoading && (
+                {activeLeadsLoading && (
                     <div style={{
                         display: 'flex',
                         justifyContent: 'center',
@@ -1027,14 +1127,14 @@ const Leads = () => {
                 )}
 
                 {/* Error state */}
-                {leadsError && !leadsLoading && (
+                {activeLeadsError && !activeLeadsLoading && (
                     <div style={{
                         textAlign: 'center',
                         padding: '60px 0',
                         color: 'hsl(var(--muted-foreground))'
                     }}>
                         <p style={{ color: 'hsl(var(--destructive))', marginBottom: '8px' }}>
-                            {leadsError}
+                            {activeLeadsError}
                         </p>
                         <p style={{ fontSize: '12px' }}>
                             Leads will retry automatically in 2 minutes
@@ -1043,7 +1143,7 @@ const Leads = () => {
                 )}
 
                 {/* Column headers row — sortable (hidden on mobile) */}
-                {!leadsLoading && !leadsError && leads.length > 0 && !isMobile && (
+                {!activeLeadsLoading && !activeLeadsError && leads.length > 0 && !isMobile && (
                     <div style={{
                         display: 'flex',
                         alignItems: 'center',
@@ -1096,7 +1196,7 @@ const Leads = () => {
                 )}
 
                 {/* Cards list */}
-                {!leadsLoading && !leadsError && (
+                {!activeLeadsLoading && !activeLeadsError && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                         {paginatedLeads.map(lead => (
                             <LeadCard
@@ -1111,7 +1211,7 @@ const Leads = () => {
                 )}
 
                 {/* Empty state */}
-                {!leadsLoading && !leadsError && leads.length === 0 && (
+                {!activeLeadsLoading && !activeLeadsError && leads.length === 0 && (
                     <div style={{
                         textAlign: 'center',
                         padding: '80px 0',
@@ -1128,6 +1228,8 @@ const Leads = () => {
                         <p style={{ fontSize: '12px' }}>
                             {globalFilterValue || selectedStatus || selectedType || selectedSource
                                 ? 'Try adjusting your filters'
+                                : isAdmin && leadView !== 'mine'
+                                    ? 'No leads found for the selected view'
                                 : 'Add your first lead to get started'
                             }
                         </p>
@@ -1135,7 +1237,7 @@ const Leads = () => {
                 )}
 
                 {/* Pagination */}
-                {!leadsLoading && leads.length > 0 && (
+                {!activeLeadsLoading && leads.length > 0 && (
                     <LeadsPagination
                         currentPage={currentPage}
                         totalPages={totalPages}
