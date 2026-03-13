@@ -83,6 +83,7 @@ const IrgAreas = () => {
 
     const countyOptions = [
         { label: 'All', value: 'All' },
+        { label: 'No County', value: 'none' },
         { label: 'San Diego', value: 'San Diego' },
         { label: 'Los Angeles', value: 'Los Angeles' },
         { label: 'Riverside', value: 'Riverside' },
@@ -138,7 +139,9 @@ const IrgAreas = () => {
         }
 
         // Filter by county
-        if (selectedCounty !== 'All') {
+        if (selectedCounty === 'none') {
+            filtered = filtered.filter(area => !area.county || area.county === '');
+        } else if (selectedCounty !== 'All') {
             filtered = filtered.filter(area => area.county === selectedCounty);
         }
 
