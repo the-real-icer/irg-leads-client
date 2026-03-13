@@ -37,10 +37,10 @@ const IrgAreas = () => {
     const [showDialog, setShowDialog] = useState(false);
     const [saving, setSaving] = useState(false);
 
-    // Filter state
-    const [selectedCounty, setSelectedCounty] = useState('All');
-    const [selectedType, setSelectedType] = useState('All');
-    const [searchQuery, setSearchQuery] = useState('');
+    // Filter state — initialize from URL query params
+    const [selectedCounty, setSelectedCounty] = useState(router.query.county || 'All');
+    const [selectedType, setSelectedType] = useState(router.query.type || 'All');
+    const [searchQuery, setSearchQuery] = useState(router.query.q || '');
 
     // Boundary text state for Add New dialog
     const [boundaryText, setBoundaryText] = useState('');
@@ -155,6 +155,29 @@ const IrgAreas = () => {
 
         setFilteredAreas(filtered);
     }, [areas, selectedCounty, selectedType, searchQuery]);
+
+    // Sync filters to URL query params
+    useEffect(() => {
+        const params = {};
+        if (selectedCounty !== 'All') params.county = selectedCounty;
+        if (selectedType !== 'All') params.type = selectedType;
+        if (searchQuery.trim()) params.q = searchQuery.trim();
+
+        const hasParams = Object.keys(params).length > 0;
+        const target = hasParams
+            ? { pathname: '/irg-areas', query: params }
+            : '/irg-areas';
+
+        router.replace(target, undefined, { shallow: true });
+    }, [selectedCounty, selectedType, searchQuery]);
+
+    const hasActiveFilters = selectedCounty !== 'All' || selectedType !== 'All' || searchQuery.trim() !== '';
+
+    const handleResetFilters = () => {
+        setSelectedCounty('All');
+        setSelectedType('All');
+        setSearchQuery('');
+    };
 
     // Handle form input changes
     const handleChange = (field, value) => {
@@ -554,13 +577,24 @@ const IrgAreas = () => {
                             Manage cities, neighborhoods, and zipcodes
                         </p>
                     </div>
-                    <Button
-                        label="Add New Area"
-                        icon="pi pi-plus"
-                        className="p-button-primary"
-                        onClick={() => setShowDialog(true)}
-                        style={{ padding: '0.75rem 1.5rem', fontSize: '1rem', fontWeight: '600' }}
-                    />
+                    <div style={{ display: 'flex', gap: '0.75rem' }}>
+                        {hasActiveFilters && (
+                            <Button
+                                label="Reset Filters"
+                                icon="pi pi-filter-slash"
+                                className="p-button-outlined p-button-secondary"
+                                onClick={handleResetFilters}
+                                style={{ padding: '0.75rem 1.5rem', fontSize: '1rem' }}
+                            />
+                        )}
+                        <Button
+                            label="Add New Area"
+                            icon="pi pi-plus"
+                            className="p-button-primary"
+                            onClick={() => setShowDialog(true)}
+                            style={{ padding: '0.75rem 1.5rem', fontSize: '1rem', fontWeight: '600' }}
+                        />
+                    </div>
                 </div>
 
                 {/* Filters */}
