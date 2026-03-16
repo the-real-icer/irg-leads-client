@@ -198,8 +198,8 @@ const PropertySearchPage = ({ areaParams }) => {
 
     // ── Block saving when non-Active statuses selected ──
     const isSaveSearchBlocked = useMemo(() => {
-        return appliedFilters.statuses.some((s) => s !== 'Active');
-    }, [appliedFilters.statuses]);
+        return filters.statuses.some((s) => s !== 'Active');
+    }, [filters.statuses]);
 
     // ── Auto-fill close date when Sold selected ──
     const soldSelected = filters.statuses.includes('Closed');
