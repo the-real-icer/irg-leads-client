@@ -177,6 +177,7 @@ const Lead = () => {
     const [editEAlertTownhomes, setEditEAlertTownhomes] = useState(false);
     const [editEAlertCondos, setEditEAlertCondos] = useState(false);
     const [editEAlertSyncCoBuyers, setEditEAlertSyncCoBuyers] = useState(false);
+    const [showCoBuyerSyncConfirm, setShowCoBuyerSyncConfirm] = useState(false);
 
     // Lead Type inline edit state
     const [editingLeadType, setEditingLeadType] = useState(false);
@@ -977,7 +978,7 @@ const Lead = () => {
         setEditEAlertVisible(true);
     };
 
-    const handleSaveEAlert = async () => {
+    const executeEAlertSave = async (includeCoBuyers) => {
         try {
             const response = await IrgApi.put(
                 '/users/edit-e-alert',
@@ -985,7 +986,7 @@ const Lead = () => {
                     userId: lead._id,
                     searchId: editEAlertTarget.searchId || undefined,
                     alertId: editEAlertTarget.searchId ? undefined : editEAlertTarget._id,
-                    coBuyerIds: editEAlertSyncCoBuyers && coBuyers.length > 0 ? coBuyers.map((cb) => cb._id) : [],
+                    coBuyerIds: includeCoBuyers && coBuyers.length > 0 ? coBuyers.map((cb) => cb._id) : [],
                     updates: {
                         searchName: editEAlertName,
                         searchFrequency: editEAlertFrequency,
@@ -1023,10 +1024,19 @@ const Lead = () => {
                 dispatch({ type: UPDATE_SINGLE_LEAD, payload: updatedLead });
                 showToast('success', 'E-alert updated successfully', 'E-Alert Updated');
                 setEditEAlertVisible(false);
+                setShowCoBuyerSyncConfirm(false);
             }
         } catch (error) {
             showToast('error', 'Failed to update e-alert. Please try again.', 'Error');
         }
+    };
+
+    const handleSaveEAlert = () => {
+        if (coBuyers.length > 0 && !editEAlertSyncCoBuyers) {
+            setShowCoBuyerSyncConfirm(true);
+            return;
+        }
+        executeEAlertSave(editEAlertSyncCoBuyers);
     };
 
     const handleDeleteEAlert = async (alert) => {
@@ -3423,6 +3433,39 @@ const Lead = () => {
                             </label>
                         </div>
                     )}
+                </Dialog>
+
+                {/* Co-buyer sync confirmation dialog */}
+                <Dialog
+                    header="Update Co-Buyers?"
+                    visible={showCoBuyerSyncConfirm}
+                    onHide={() => setShowCoBuyerSyncConfirm(false)}
+                    style={{ width: '420px', maxWidth: '95vw' }}
+                    modal
+                    draggable={false}
+                >
+                    <p style={{ fontSize: '14px', color: 'hsl(var(--foreground))', lineHeight: 1.5, margin: '0 0 1.25rem' }}>
+                        This search is shared with <strong>{coBuyers.map((cb) => `${cb.first_name} ${cb.last_name}`).join(', ')}</strong>.
+                        Would you like to update their saved search too?
+                    </p>
+                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                        <Button
+                            label="Cancel"
+                            className="p-button-text p-button-secondary"
+                            onClick={() => setShowCoBuyerSyncConfirm(false)}
+                        />
+                        <Button
+                            label="Update Primary Only"
+                            className="p-button-outlined"
+                            onClick={() => executeEAlertSave(false)}
+                        />
+                        <Button
+                            label="Update All"
+                            className="p-button-primary"
+                            icon="pi pi-users"
+                            onClick={() => executeEAlertSave(true)}
+                        />
+                    </div>
                 </Dialog>
             </div>
         </MainLayout>
