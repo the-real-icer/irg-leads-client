@@ -70,11 +70,6 @@ const SearchToolbar = ({ filters, onFilterChange, onSearch, onReset, isDrawing, 
     };
 
     const saveDisabled = !hasActiveFilters || isSaveSearchBlocked;
-    const saveTitle = isSaveSearchBlocked
-        ? 'Save Search is only available for Active listings'
-        : !hasActiveFilters
-            ? 'Apply at least one filter to save this search'
-            : 'Save this search for a lead';
 
     return (
         <div className="property-search__toolbar">
