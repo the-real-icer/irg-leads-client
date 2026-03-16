@@ -186,6 +186,10 @@ const SavePropertySearch = () => {
         hasADU: false,
     });
 
+    // ── Co-buyer state ──
+    const [saveToCoBuyers, setSaveToCoBuyers] = useState(false);
+    const coBuyers = selectedLead?.co_buyers || [];
+
     // ── Dialog state ──
     const [showDialog, setShowDialog] = useState(false);
     const [emailFrequency, setEmailFrequency] = useState('');
@@ -372,6 +376,7 @@ const SavePropertySearch = () => {
     const resetForm = () => {
         setSelectedLead(null);
         setLeadInput('');
+        setSaveToCoBuyers(false);
         setSelectedAreas([]);
         setSearchCriteria({
             minPrice: '',
@@ -403,6 +408,7 @@ const SavePropertySearch = () => {
         }
 
         // TODO: Send formData to API endpoint
+        // Include coBuyerIds in payload: saveToCoBuyers && coBuyers.length > 0 ? coBuyers.map((cb) => cb._id) : []
         showToast('success', 'Property Search has been saved!', 'Saved!', 'top-right');
         handleDialogClose();
         resetForm();
@@ -470,7 +476,7 @@ const SavePropertySearch = () => {
                                     {getLeadDisplayName(selectedLead)}
                                     <button
                                         type="button"
-                                        onClick={() => { setSelectedLead(null); setLeadInput(''); }}
+                                        onClick={() => { setSelectedLead(null); setLeadInput(''); setSaveToCoBuyers(false); }}
                                         style={{
                                             marginLeft: '0.25rem',
                                             cursor: 'pointer',
@@ -482,6 +488,16 @@ const SavePropertySearch = () => {
                                     >
                                         <i className="pi pi-times" />
                                     </button>
+                                </div>
+                            )}
+
+                            {/* Co-buyer option */}
+                            {selectedLead && coBuyers.length > 0 && (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '0.75rem' }}>
+                                    <input type="checkbox" id="saveToCoBuyersSPS" checked={saveToCoBuyers} onChange={(e) => setSaveToCoBuyers(e.target.checked)} />
+                                    <label htmlFor="saveToCoBuyersSPS" style={{ fontSize: '13px', color: 'hsl(var(--foreground))' }}>
+                                        Also save for co-buyer{coBuyers.length > 1 ? 's' : ''}: <strong>{coBuyers.map((cb) => `${cb.first_name} ${cb.last_name}`).join(', ')}</strong>
+                                    </label>
                                 </div>
                             )}
                         </div>
