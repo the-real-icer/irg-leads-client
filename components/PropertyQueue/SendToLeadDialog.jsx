@@ -27,6 +27,9 @@ const SendToLeadDialog = ({ visible, onHide }) => {
     const [subject, setSubject] = useState('Check out these properties!');
     const [message, setMessage] = useState('');
     const [sending, setSending] = useState(false);
+    const [sendToCoBuyers, setSendToCoBuyers] = useState(false);
+
+    const coBuyers = lead?.co_buyers || [];
 
     const getImage = (property) => {
         if (!property?.listing_pics) return fallbackImage;
@@ -35,6 +38,7 @@ const SendToLeadDialog = ({ visible, onHide }) => {
 
     const handleLeadChange = useCallback((e) => {
         setLead(e.value);
+        setSendToCoBuyers(false);
     }, []);
 
     const resetForm = useCallback(() => {
@@ -42,6 +46,7 @@ const SendToLeadDialog = ({ visible, onHide }) => {
         setSubject('Check out these properties!');
         setMessage('');
         setSending(false);
+        setSendToCoBuyers(false);
     }, []);
 
     const handleClose = useCallback(() => {
@@ -67,7 +72,7 @@ const SendToLeadDialog = ({ visible, onHide }) => {
         try {
             const res = await IrgApi.post(
                 '/users/send-many-properties',
-                { homes: selectedHomes, user: lead, agent, subject, message },
+                { homes: selectedHomes, user: lead, agent, subject, message, coBuyerIds: sendToCoBuyers && coBuyers.length > 0 ? coBuyers.map((cb) => cb._id) : [] },
                 {
                     headers: {
                         Authorization: `Bearer ${isLoggedIn}`,
@@ -155,6 +160,16 @@ const SendToLeadDialog = ({ visible, onHide }) => {
                     style={{ width: '100%' }}
                 />
             </div>
+
+            {/* Co-buyer option */}
+            {coBuyers.length > 0 && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0 0 0.5rem' }}>
+                    <input type="checkbox" id="sendQueueToCoBuyers" checked={sendToCoBuyers} onChange={(e) => setSendToCoBuyers(e.target.checked)} />
+                    <label htmlFor="sendQueueToCoBuyers" style={{ fontSize: '13px', color: 'hsl(var(--foreground))' }}>
+                        Also send to co-buyer{coBuyers.length > 1 ? 's' : ''}: <strong>{coBuyers.map((cb) => `${cb.first_name} ${cb.last_name}`).join(', ')}</strong>
+                    </label>
+                </div>
+            )}
 
             {/* Subject */}
             <div className="property-queue__field">
