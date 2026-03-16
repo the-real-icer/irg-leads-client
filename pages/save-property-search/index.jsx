@@ -29,6 +29,7 @@ const InputTextarea = dynamic(() => import('primereact/inputtextarea').then((mod
     ssr: false,
 });
 
+import IrgApi from '../../assets/irgApi';
 import showToast from '../../utils/showToast';
 import getLeadDisplayName from '../../utils/getLeadDisplayName';
 
@@ -141,6 +142,7 @@ const SavePropertySearch = () => {
     // ── Redux State ──
     const allLeads = useSelector((state) => state.allLeadsPage.leads);
     const irgAreas = useSelector((state) => state.irgAreas);
+    const isLoggedIn = useSelector((state) => state.isLoggedIn);
 
     // ── Responsive helper for pair grids ──
     const [isMobile, setIsMobile] = useState(false);
@@ -195,6 +197,7 @@ const SavePropertySearch = () => {
     const [emailFrequency, setEmailFrequency] = useState('');
     const [emailSubject, setEmailSubject] = useState('');
     const [emailBody, setEmailBody] = useState('');
+    const [submitting, setSubmitting] = useState(false);
 
     // ── Lot size dropdown options ──
     const lotSizeOptions = [
@@ -399,19 +402,74 @@ const SavePropertySearch = () => {
         });
     };
 
-    const handleFinalSubmit = (e) => {
+    const handleFinalSubmit = async (e) => {
         e.preventDefault();
 
         if (!emailFrequency) {
             showToast('warn', 'Please select an email frequency', 'Email Frequency Required', 'top-right');
             return;
         }
+        if (!selectedLead) {
+            showToast('warn', 'Please select a lead', 'Missing Lead', 'top-right');
+            return;
+        }
+        if (selectedAreas.length === 0) {
+            showToast('warn', 'Please select at least one area', 'Missing Area', 'top-right');
+            return;
+        }
 
-        // TODO: Send formData to API endpoint
-        // Include coBuyerIds in payload: saveToCoBuyers && coBuyers.length > 0 ? coBuyers.map((cb) => cb._id) : []
-        showToast('success', 'Property Search has been saved!', 'Saved!', 'top-right');
-        handleDialogClose();
-        resetForm();
+        setSubmitting(true);
+        try {
+            const sc = searchCriteria;
+            const so = searchOptions;
+            const areas = selectedAreas.map((a) => ({ areaName: a.name || a.label, areaType: a.type }));
+
+            const savedSearch = {
+                searchId: crypto.randomUUID(),
+                searchName: emailSubject.trim() || `${getLeadDisplayName(selectedLead)}'s Search`,
+                searchFrequency: emailFrequency,
+                areas,
+                areaName: areas[0]?.areaName || '',
+                areaType: areas[0]?.areaType || '',
+                searchFilter: {
+                    minPriceFilter: Number(sc.minPrice.replace(/[^0-9]/g, '')) || 0,
+                    maxPriceFilter: Number(sc.maxPrice.replace(/[^0-9]/g, '')) || 999999999,
+                    minSqFtFilter: Number(sc.minSqFt.replace(/[^0-9]/g, '')) || 0,
+                    maxSqFtFilter: Number(sc.maxSqFt.replace(/[^0-9]/g, '')) || 0,
+                    minBedsFilter: Number(sc.minBedrooms) || 0,
+                    minBathsFilter: Number(sc.minBathrooms) || 0,
+                    minGarageFilter: 0,
+                    minAcresFilter: sc.minLotSize ? sc.minLotSize / 43560 : 0,
+                    maxAcresFilter: sc.maxLotSize ? sc.maxLotSize / 43560 : 10000,
+                    minYearFilter: 0,
+                    maxYearFilter: 9999,
+                    ageRestrictFilter: !so.exclude55Plus,
+                    poolFilter: so.mustHavePool,
+                    singleStoryFilter: so.singleStoryOnly ? 'Yes' : undefined,
+                    aduFilter: so.hasADU,
+                    singleFamily: '',
+                    townHomes: '',
+                    condos: '',
+                },
+            };
+
+            const coBuyerIds = saveToCoBuyers && coBuyers.length > 0 ? coBuyers.map((cb) => cb._id) : [];
+
+            await IrgApi.post(
+                `/users/save-client-search?userId=${selectedLead.user_id}`,
+                { savedSearch, coBuyerIds },
+                { headers: { Authorization: `Bearer ${isLoggedIn}` } }
+            );
+
+            showToast('success', `Property search saved for ${getLeadDisplayName(selectedLead)}!`, 'Saved!', 'top-right');
+            handleDialogClose();
+            resetForm();
+        } catch (err) {
+            const msg = err.response?.data?.message || 'Failed to save search. Please try again.';
+            showToast('error', msg, 'Error', 'top-right');
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     // ══════════════════════════════════════════════════════════════
@@ -818,9 +876,10 @@ const SavePropertySearch = () => {
                             style={{ padding: '0.75rem 1.5rem', fontWeight: '600' }}
                         />
                         <Button
-                            label="Save Search & Notify"
-                            icon="pi pi-check"
+                            label={submitting ? 'Saving...' : 'Save Search & Notify'}
+                            icon={submitting ? 'pi pi-spin pi-spinner' : 'pi pi-check'}
                             type="submit"
+                            disabled={submitting}
                             style={{
                                 padding: '0.75rem 1.5rem',
                                 fontWeight: '600',
