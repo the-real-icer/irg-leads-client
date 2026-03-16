@@ -15,11 +15,24 @@ const SendPropertyDialog = ({ visible, onHide, leadId, isLoggedIn, onSuccess, co
     const [searchResults, setSearchResults] = useState([]);
     const [searching, setSearching] = useState(false);
     const [selectedProperty, setSelectedProperty] = useState(null);
+    const [subject, setSubject] = useState('');
     const [message, setMessage] = useState('');
     const [sending, setSending] = useState(false);
     const [sendToCoBuyers, setSendToCoBuyers] = useState(false);
 
-    useEffect(() => { if (visible) setSendToCoBuyers(false); }, [visible]);
+    useEffect(() => {
+        if (visible) {
+            setSubject('');
+            setMessage('');
+            setSendToCoBuyers(false);
+        }
+    }, [visible]);
+
+    useEffect(() => {
+        if (selectedProperty) {
+            setSubject(`Check out this property — ${selectedProperty.address || ''}`);
+        }
+    }, [selectedProperty]);
 
     const headers = { Authorization: `Bearer ${isLoggedIn}` };
 
@@ -74,6 +87,7 @@ const SendPropertyDialog = ({ visible, onHide, leadId, isLoggedIn, onSuccess, co
                 {
                     propertyId: selectedProperty._id,
                     message: message.trim() || undefined,
+                    subject: subject.trim() || undefined,
                 },
                 { headers },
             );
@@ -83,7 +97,7 @@ const SendPropertyDialog = ({ visible, onHide, leadId, isLoggedIn, onSuccess, co
                         coBuyers.map((cb) =>
                             IrgApi.post(
                                 `/users/dashboard/${cb._id}/send-property`,
-                                { propertyId: selectedProperty._id, message: message.trim() || undefined },
+                                { propertyId: selectedProperty._id, message: message.trim() || undefined, subject: subject.trim() || undefined },
                                 { headers }
                             )
                         )
@@ -104,6 +118,7 @@ const SendPropertyDialog = ({ visible, onHide, leadId, isLoggedIn, onSuccess, co
         setSearchQuery('');
         setSearchResults([]);
         setSelectedProperty(null);
+        setSubject('');
         setMessage('');
         onHide();
     };
@@ -190,6 +205,20 @@ const SendPropertyDialog = ({ visible, onHide, leadId, isLoggedIn, onSuccess, co
                     </>
                 )}
 
+                {/* Subject */}
+                <div className="send-property__message">
+                    <label style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '0.4rem', display: 'block' }}>
+                        Subject
+                    </label>
+                    <InputText
+                        value={subject}
+                        onChange={(e) => setSubject(e.target.value)}
+                        placeholder="Email subject line"
+                        maxLength={150}
+                        style={{ width: '100%' }}
+                    />
+                </div>
+
                 {/* Message */}
                 <div className="send-property__message">
                     <label style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '0.4rem', display: 'block' }}>
@@ -203,6 +232,10 @@ const SendPropertyDialog = ({ visible, onHide, leadId, isLoggedIn, onSuccess, co
                         autoResize
                         style={{ width: '100%' }}
                     />
+                    <p style={{ fontSize: '12px', color: 'hsl(var(--muted-foreground))', display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px', marginBottom: 0 }}>
+                        <i className="pi pi-info-circle" style={{ fontSize: '12px', flexShrink: 0 }} />
+                        Your saved email signature will be added automatically.
+                    </p>
                 </div>
 
                 {/* Co-buyer option */}
