@@ -1434,7 +1434,7 @@ const Lead = () => {
                     ) : (
                         <div className="lead-co-buyers__list">
                             {coBuyers.map((cb) => (
-                                <div key={cb._id} className="lead-co-buyers__card" onClick={() => router.push(`/lead/${cb._id}`)} role="button" tabIndex={0}>
+                                <div key={cb._id} className="lead-co-buyers__card" onClick={() => router.push(`/lead/${cb._id}`)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') router.push(`/lead/${cb._id}`); }} role="button" tabIndex={0}>
                                     <div className="lead-co-buyers__avatar">{cb.first_name?.[0]}{cb.last_name?.[0]}</div>
                                     <div className="lead-co-buyers__info">
                                         <span className="lead-co-buyers__name">{cb.first_name} {cb.last_name}</span>

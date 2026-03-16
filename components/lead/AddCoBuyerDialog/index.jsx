@@ -89,7 +89,6 @@ const AddCoBuyerDialog = ({ visible, onHide, leadId, existingCoBuyers = [], isLo
                             background: 'hsl(var(--background))', color: 'hsl(var(--foreground))',
                             fontSize: '14px', outline: 'none',
                         }}
-                        autoFocus
                     />
                 </div>
 
