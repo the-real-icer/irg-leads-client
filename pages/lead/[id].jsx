@@ -1434,17 +1434,14 @@ const Lead = () => {
                     ) : (
                         <div className="lead-co-buyers__list">
                             {coBuyers.map((cb) => (
-                                <div key={cb._id} className="lead-co-buyers__card">
+                                <div key={cb._id} className="lead-co-buyers__card" onClick={() => router.push(`/lead/${cb._id}`)} role="button" tabIndex={0}>
                                     <div className="lead-co-buyers__avatar">{cb.first_name?.[0]}{cb.last_name?.[0]}</div>
                                     <div className="lead-co-buyers__info">
                                         <span className="lead-co-buyers__name">{cb.first_name} {cb.last_name}</span>
                                         <span className="lead-co-buyers__email">{cb.email}</span>
                                     </div>
                                     <div className="lead-co-buyers__actions">
-                                        <button onClick={() => router.push(`/lead/${cb._id}`)} title="View profile" type="button" className="lead-co-buyers__view-btn">
-                                            <i className="pi pi-user" />
-                                        </button>
-                                        <button onClick={() => handleUnlinkCoBuyer(cb._id)} title="Unlink co-buyer" type="button" className="lead-co-buyers__unlink-btn" disabled={unlinkingId === cb._id}>
+                                        <button onClick={(e) => { e.stopPropagation(); handleUnlinkCoBuyer(cb._id); }} title="Unlink co-buyer" type="button" className="lead-co-buyers__unlink-btn" disabled={unlinkingId === cb._id}>
                                             <i className={unlinkingId === cb._id ? 'pi pi-spin pi-spinner' : 'pi pi-times'} />
                                         </button>
                                     </div>
