@@ -39,6 +39,69 @@ const EMPTY_FILTERS = {
     maxCloseDate: '',
 };
 
+const FILTER_KEYS = [
+    'minPrice', 'maxPrice', 'minBeds', 'maxBeds', 'minBaths', 'maxBaths',
+    'minSqft', 'maxSqft', 'minLotSize', 'maxLotSize', 'minYearBuilt', 'maxYearBuilt',
+    'minGarageSpaces', 'maxGarageSpaces', 'singleStory', 'hasPool', 'seniors',
+    'singleFamily', 'townHomes', 'condos', 'statuses', 'minCloseDate', 'maxCloseDate',
+];
+
+const serializeFiltersToParams = (f) => {
+    const params = {};
+    if (f.minPrice) params.minPrice = f.minPrice;
+    if (f.maxPrice) params.maxPrice = f.maxPrice;
+    if (f.minBeds) params.minBeds = f.minBeds;
+    if (f.maxBeds) params.maxBeds = f.maxBeds;
+    if (f.minBaths) params.minBaths = f.minBaths;
+    if (f.maxBaths) params.maxBaths = f.maxBaths;
+    if (f.minSqft > 0) params.minSqft = f.minSqft;
+    if (f.maxSqft > 0) params.maxSqft = f.maxSqft;
+    if (f.minLotSize) params.minLotSize = f.minLotSize;
+    if (f.maxLotSize) params.maxLotSize = f.maxLotSize;
+    if (f.minYearBuilt) params.minYearBuilt = f.minYearBuilt;
+    if (f.maxYearBuilt) params.maxYearBuilt = f.maxYearBuilt;
+    if (f.minGarageSpaces) params.minGarageSpaces = f.minGarageSpaces;
+    if (f.maxGarageSpaces) params.maxGarageSpaces = f.maxGarageSpaces;
+    if (f.singleStory) params.singleStory = 'true';
+    if (f.hasPool) params.hasPool = 'true';
+    if (f.includeSeniorCommunities) params.seniors = 'true';
+    if (f.singleFamily) params.singleFamily = 'true';
+    if (f.townHomes) params.townHomes = 'true';
+    if (f.condos) params.condos = 'true';
+    if (f.statuses && !(f.statuses.length === 1 && f.statuses[0] === 'Active')) {
+        params.statuses = f.statuses.join(',');
+    }
+    if (f.minCloseDate) params.minCloseDate = f.minCloseDate;
+    if (f.maxCloseDate) params.maxCloseDate = f.maxCloseDate;
+    return params;
+};
+
+const deserializeFiltersFromParams = (query) => ({
+    minPrice: query.minPrice || '',
+    maxPrice: query.maxPrice || '',
+    minBeds: query.minBeds || '',
+    maxBeds: query.maxBeds || '',
+    minBaths: query.minBaths || '',
+    maxBaths: query.maxBaths || '',
+    minSqft: Number(query.minSqft) || 0,
+    maxSqft: Number(query.maxSqft) || 0,
+    minLotSize: query.minLotSize || '',
+    maxLotSize: query.maxLotSize || '',
+    minYearBuilt: query.minYearBuilt || '',
+    maxYearBuilt: query.maxYearBuilt || '',
+    minGarageSpaces: query.minGarageSpaces || '',
+    maxGarageSpaces: query.maxGarageSpaces || '',
+    singleStory: query.singleStory === 'true',
+    hasPool: query.hasPool === 'true',
+    includeSeniorCommunities: query.seniors === 'true',
+    singleFamily: query.singleFamily === 'true',
+    townHomes: query.townHomes === 'true',
+    condos: query.condos === 'true',
+    statuses: query.statuses ? query.statuses.split(',') : ['Active'],
+    minCloseDate: query.minCloseDate || '',
+    maxCloseDate: query.maxCloseDate || '',
+});
+
 const PropertySearchPage = ({ areaParams }) => {
     const router = useRouter();
 
@@ -73,6 +136,7 @@ const PropertySearchPage = ({ areaParams }) => {
     const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
     const [moreFiltersOpen, setMoreFiltersOpen] = useState(false);
     const [saveSearchOpen, setSaveSearchOpen] = useState(false);
+    const [filtersInitialized, setFiltersInitialized] = useState(false);
 
     // Drawing state
     const [isDrawing, setIsDrawing] = useState(false);
@@ -91,6 +155,29 @@ const PropertySearchPage = ({ areaParams }) => {
     // Refs for scroll-to-card
     const cardRefs = useRef({});
     const listScrollRef = useRef(null);
+
+    // ── Initialize filters from URL params ──
+    useEffect(() => {
+        if (!router.isReady || filtersInitialized) return;
+        const hasFilterParams = Object.keys(router.query).some((k) => FILTER_KEYS.includes(k));
+        if (hasFilterParams) {
+            const parsed = deserializeFiltersFromParams(router.query);
+            setFilters(parsed);
+            setAppliedFilters(parsed);
+        }
+        setFiltersInitialized(true);
+    }, [router.isReady, router.query, filtersInitialized]);
+
+    // ── Sync applied filters to URL ──
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => {
+        if (!router.isReady || !filtersInitialized) return;
+        const filterParams = serializeFiltersToParams(appliedFilters);
+        const currentQuery = { ...router.query };
+        FILTER_KEYS.forEach((k) => delete currentQuery[k]);
+        const newQuery = { ...currentQuery, ...filterParams };
+        router.replace({ pathname: router.pathname, query: newQuery }, undefined, { shallow: true });
+    }, [appliedFilters, filtersInitialized]);
 
     // ── Look up IrgAreas from URL params ──
     useEffect(() => {
