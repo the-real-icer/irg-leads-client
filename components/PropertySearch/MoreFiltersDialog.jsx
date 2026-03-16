@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { sqftFilterValues } from '../Search/SearchFilters/filterValues/sqftFilterValues';
 
 const EMPTY_MORE = {
     minSqft: 0,
@@ -52,10 +51,6 @@ const MoreFiltersDialog = ({ visible, filters, onApply, onClose }) => {
 
     const handleCheckbox = (field) => () => {
         setLocal((prev) => ({ ...prev, [field]: !prev[field] }));
-    };
-
-    const handleSelectChange = (field) => (e) => {
-        setLocal((prev) => ({ ...prev, [field]: Number(e.target.value) || 0 }));
     };
 
     const handleApply = () => {
@@ -121,26 +116,28 @@ const MoreFiltersDialog = ({ visible, filters, onApply, onClose }) => {
                     <div className="more-filters-dialog__group">
                         <div className="more-filters-dialog__label">Square Feet</div>
                         <div className="more-filters-dialog__row">
-                            <select
+                            <input
+                                type="number"
                                 className="more-filters-dialog__input"
+                                placeholder="No Min"
                                 value={local.minSqft || ''}
-                                onChange={handleSelectChange('minSqft')}
-                            >
-                                <option value="">No Min</option>
-                                {sqftFilterValues.map((opt) => (
-                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                ))}
-                            </select>
-                            <select
+                                min={0}
+                                onChange={(e) => setLocal((prev) => ({
+                                    ...prev,
+                                    minSqft: Number(e.target.value) || 0,
+                                }))}
+                            />
+                            <input
+                                type="number"
                                 className="more-filters-dialog__input"
+                                placeholder="No Max"
                                 value={local.maxSqft || ''}
-                                onChange={handleSelectChange('maxSqft')}
-                            >
-                                <option value="">No Max</option>
-                                {sqftFilterValues.map((opt) => (
-                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                ))}
-                            </select>
+                                min={0}
+                                onChange={(e) => setLocal((prev) => ({
+                                    ...prev,
+                                    maxSqft: Number(e.target.value) || 0,
+                                }))}
+                            />
                         </div>
                     </div>
 
