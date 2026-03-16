@@ -177,16 +177,22 @@ const SearchToolbar = ({ filters, onFilterChange, onSearch, onReset, isDrawing, 
             <div className="ps-toolbar__divider" />
 
             {/* Save Search */}
-            <button
-                className={`ps-toolbar__btn ps-toolbar__btn--save-search${saveDisabled ? ' ps-toolbar__btn--disabled' : ''}`}
-                onClick={saveDisabled ? undefined : onOpenSaveSearch}
-                type="button"
-                disabled={saveDisabled}
-                title={saveTitle}
-            >
-                <i className="pi pi-bookmark" style={{ marginRight: '0.375rem' }} />
-                Save Search
-            </button>
+            <div className="ps-toolbar__save-wrap">
+                <button
+                    className={`ps-toolbar__btn ps-toolbar__btn--save-search${saveDisabled ? ' ps-toolbar__btn--disabled' : ''}`}
+                    onClick={saveDisabled ? undefined : onOpenSaveSearch}
+                    type="button"
+                    disabled={saveDisabled}
+                >
+                    <i className="pi pi-bookmark" style={{ marginRight: '0.375rem' }} />
+                    Save Search
+                </button>
+                {isSaveSearchBlocked && (
+                    <div className="ps-toolbar__save-tooltip">
+                        Only Active listings can be saved
+                    </div>
+                )}
+            </div>
 
             <div className="ps-toolbar__divider" />
 
