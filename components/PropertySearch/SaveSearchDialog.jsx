@@ -78,6 +78,9 @@ const SaveSearchDialog = ({ visible, onClose, appliedFilters, activeAreas = [], 
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [frequency, setFrequency] = useState('Instantly');
     const [searchName, setSearchName] = useState('');
+    const [saveToCoBuyers, setSaveToCoBuyers] = useState(false);
+
+    const coBuyers = selectedLead?.co_buyers || [];
     const [saving, setSaving] = useState(false);
 
     const dropdownRef = useRef(null);
@@ -92,6 +95,7 @@ const SaveSearchDialog = ({ visible, onClose, appliedFilters, activeAreas = [], 
             setFrequency('Instantly');
             setSearchName('');
             setSaving(false);
+            setSaveToCoBuyers(false);
         }
     }, [visible]);
 
@@ -267,7 +271,7 @@ const SaveSearchDialog = ({ visible, onClose, appliedFilters, activeAreas = [], 
         try {
             await IrgApi.post(
                 `/users/save-client-search?userId=${selectedLead.user_id}`,
-                { savedSearch },
+                { savedSearch, coBuyerIds: saveToCoBuyers && coBuyers.length > 0 ? coBuyers.map((cb) => cb._id) : [] },
                 { headers: { Authorization: `Bearer ${isLoggedIn}` } }
             );
             showToast('success', `Search saved for ${getLeadDisplayName(selectedLead)}`, 'Search Saved!', 'top-right');
@@ -375,6 +379,18 @@ const SaveSearchDialog = ({ visible, onClose, appliedFilters, activeAreas = [], 
                             )}
                         </div>
                     </div>
+
+                    {/* Co-buyer option */}
+                    {coBuyers.length > 0 && (
+                        <div className="save-search-dialog__section" style={{ paddingTop: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <input type="checkbox" id="saveToCoBuyers" checked={saveToCoBuyers} onChange={(e) => setSaveToCoBuyers(e.target.checked)} />
+                                <label htmlFor="saveToCoBuyers" style={{ fontSize: '13px', color: 'hsl(var(--foreground))' }}>
+                                    Also save for co-buyer{coBuyers.length > 1 ? 's' : ''}: <strong>{coBuyers.map((cb) => `${cb.first_name} ${cb.last_name}`).join(', ')}</strong>
+                                </label>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Section 3: Alert Frequency */}
                     <div className="save-search-dialog__section">
