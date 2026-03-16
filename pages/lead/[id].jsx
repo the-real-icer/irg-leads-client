@@ -176,6 +176,7 @@ const Lead = () => {
     const [editEAlertSingleFamily, setEditEAlertSingleFamily] = useState(false);
     const [editEAlertTownhomes, setEditEAlertTownhomes] = useState(false);
     const [editEAlertCondos, setEditEAlertCondos] = useState(false);
+    const [editEAlertSyncCoBuyers, setEditEAlertSyncCoBuyers] = useState(false);
 
     // Lead Type inline edit state
     const [editingLeadType, setEditingLeadType] = useState(false);
@@ -972,6 +973,7 @@ const Lead = () => {
         setEditEAlertSingleFamily(sf.singleFamily || false);
         setEditEAlertTownhomes(sf.townHomes || false);
         setEditEAlertCondos(sf.condos || false);
+        setEditEAlertSyncCoBuyers(false);
         setEditEAlertVisible(true);
     };
 
@@ -983,6 +985,7 @@ const Lead = () => {
                     userId: lead._id,
                     searchId: editEAlertTarget.searchId || undefined,
                     alertId: editEAlertTarget.searchId ? undefined : editEAlertTarget._id,
+                    coBuyerIds: editEAlertSyncCoBuyers && coBuyers.length > 0 ? coBuyers.map((cb) => cb._id) : [],
                     updates: {
                         searchName: editEAlertName,
                         searchFrequency: editEAlertFrequency,
@@ -3410,6 +3413,16 @@ const Lead = () => {
                             </div>
                         </div>
                     </div>
+
+                    {/* Co-buyer sync option */}
+                    {coBuyers.length > 0 && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0.75rem 1.5rem', borderTop: '1px solid hsl(var(--border))' }}>
+                            <input type="checkbox" id="editEAlertSyncCoBuyers" checked={editEAlertSyncCoBuyers} onChange={(e) => setEditEAlertSyncCoBuyers(e.target.checked)} />
+                            <label htmlFor="editEAlertSyncCoBuyers" style={{ fontSize: '13px', color: 'hsl(var(--foreground))' }}>
+                                Also update co-buyer{coBuyers.length > 1 ? 's' : ''}: <strong>{coBuyers.map((cb) => `${cb.first_name} ${cb.last_name}`).join(', ')}</strong>
+                            </label>
+                        </div>
+                    )}
                 </Dialog>
             </div>
         </MainLayout>
