@@ -1,3 +1,5 @@
+import { sqftFilterValues } from '../Search/SearchFilters/filterValues/sqftFilterValues';
+
 const formatCommas = (val) => {
     const digits = val.replace(/[^0-9]/g, '');
     if (!digits) return '';
@@ -24,6 +26,10 @@ const MobileFilterDrawer = ({ visible, filters, onFilterChange, onSearch, onRese
     const handleReset = () => {
         onReset();
         onClose();
+    };
+
+    const handleSelectChange = (field) => (e) => {
+        onFilterChange(field, Number(e.target.value) || 0);
     };
 
     return (
@@ -97,6 +103,60 @@ const MobileFilterDrawer = ({ visible, filters, onFilterChange, onSearch, onRese
                             value={filters.maxBaths}
                             onChange={handleNumChange('maxBaths')}
                         />
+                    </div>
+                </div>
+
+                <div className="mobile-filter-drawer__group">
+                    <div className="mobile-filter-drawer__label">Property Type</div>
+                    <label className="mobile-filter-drawer__checkbox">
+                        <input
+                            type="checkbox"
+                            checked={filters.singleFamily || false}
+                            onChange={() => onFilterChange('singleFamily', !filters.singleFamily)}
+                        />
+                        Single Family
+                    </label>
+                    <label className="mobile-filter-drawer__checkbox">
+                        <input
+                            type="checkbox"
+                            checked={filters.townHomes || false}
+                            onChange={() => onFilterChange('townHomes', !filters.townHomes)}
+                        />
+                        Townhouse
+                    </label>
+                    <label className="mobile-filter-drawer__checkbox">
+                        <input
+                            type="checkbox"
+                            checked={filters.condos || false}
+                            onChange={() => onFilterChange('condos', !filters.condos)}
+                        />
+                        Condo
+                    </label>
+                </div>
+
+                <div className="mobile-filter-drawer__group">
+                    <div className="mobile-filter-drawer__label">Square Feet</div>
+                    <div className="mobile-filter-drawer__row">
+                        <select
+                            className="mobile-filter-drawer__input"
+                            value={filters.minSqft || ''}
+                            onChange={handleSelectChange('minSqft')}
+                        >
+                            <option value="">No Min</option>
+                            {sqftFilterValues.map((opt) => (
+                                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                            ))}
+                        </select>
+                        <select
+                            className="mobile-filter-drawer__input"
+                            value={filters.maxSqft || ''}
+                            onChange={handleSelectChange('maxSqft')}
+                        >
+                            <option value="">No Max</option>
+                            {sqftFilterValues.map((opt) => (
+                                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                            ))}
+                        </select>
                     </div>
                 </div>
 

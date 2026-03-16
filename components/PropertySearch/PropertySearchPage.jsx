@@ -20,6 +20,8 @@ const EMPTY_FILTERS = {
     maxBeds: '',
     minBaths: '',
     maxBaths: '',
+    minSqft: 0,
+    maxSqft: 0,
     minLotSize: '',
     maxLotSize: '',
     minYearBuilt: '',
@@ -29,6 +31,9 @@ const EMPTY_FILTERS = {
     singleStory: false,
     hasPool: false,
     includeSeniorCommunities: false,
+    singleFamily: false,
+    townHomes: false,
+    condos: false,
 };
 
 const PropertySearchPage = ({ areaParams }) => {
@@ -162,12 +167,14 @@ const PropertySearchPage = ({ areaParams }) => {
     // ── "More Filters" badge count ──
     const moreFiltersCount = useMemo(() => {
         let count = 0;
+        if (appliedFilters.minSqft || appliedFilters.maxSqft) count++;
         if (appliedFilters.minLotSize || appliedFilters.maxLotSize) count++;
         if (appliedFilters.minYearBuilt || appliedFilters.maxYearBuilt) count++;
         if (appliedFilters.minGarageSpaces || appliedFilters.maxGarageSpaces) count++;
         if (appliedFilters.singleStory) count++;
         if (appliedFilters.hasPool) count++;
         if (appliedFilters.includeSeniorCommunities) count++;
+        if (appliedFilters.singleFamily || appliedFilters.townHomes || appliedFilters.condos) count++;
         return count;
     }, [appliedFilters]);
 
@@ -179,7 +186,8 @@ const PropertySearchPage = ({ areaParams }) => {
             f.minPrice || f.maxPrice || f.minBeds || f.maxBeds ||
             f.minBaths || f.maxBaths || f.minLotSize || f.maxLotSize ||
             f.minYearBuilt || f.maxYearBuilt || f.minGarageSpaces || f.maxGarageSpaces ||
-            f.singleStory || f.hasPool || f.includeSeniorCommunities
+            f.singleStory || f.hasPool || f.includeSeniorCommunities ||
+            f.minSqft || f.maxSqft || f.singleFamily || f.townHomes || f.condos
         );
     }, [appliedFilters, activeAreas, drawnPolygonGeoJSON]);
 
@@ -216,6 +224,11 @@ const PropertySearchPage = ({ areaParams }) => {
                 if (appliedFilters.singleStory) params.append('singleStory', 'true');
                 if (appliedFilters.hasPool) params.append('hasPool', 'true');
                 if (appliedFilters.includeSeniorCommunities) params.append('includeSeniorCommunities', 'true');
+                if (appliedFilters.minSqft) params.append('minSqft', appliedFilters.minSqft);
+                if (appliedFilters.maxSqft) params.append('maxSqft', appliedFilters.maxSqft);
+                if (appliedFilters.singleFamily) params.append('singleFamily', 'true');
+                if (appliedFilters.townHomes) params.append('townHomes', 'true');
+                if (appliedFilters.condos) params.append('condos', 'true');
 
                 const res = await IrgApi.get(`/mlsproperties/bounds?${params.toString()}`, {
                     headers: { Authorization: `Bearer ${isLoggedIn}` },
@@ -268,6 +281,11 @@ const PropertySearchPage = ({ areaParams }) => {
                 if (appliedFilters.singleStory) body.singleStory = true;
                 if (appliedFilters.hasPool) body.hasPool = true;
                 if (appliedFilters.includeSeniorCommunities) body.includeSeniorCommunities = true;
+                if (appliedFilters.minSqft) body.minSqft = appliedFilters.minSqft;
+                if (appliedFilters.maxSqft) body.maxSqft = appliedFilters.maxSqft;
+                if (appliedFilters.singleFamily) body.singleFamily = true;
+                if (appliedFilters.townHomes) body.townHomes = true;
+                if (appliedFilters.condos) body.condos = true;
 
                 const res = await IrgApi.post('/mlsproperties/withinpolygon', body, {
                     headers: { Authorization: `Bearer ${isLoggedIn}` },
@@ -316,6 +334,11 @@ const PropertySearchPage = ({ areaParams }) => {
                 if (appliedFilters.singleStory) body.singleStory = true;
                 if (appliedFilters.hasPool) body.hasPool = true;
                 if (appliedFilters.includeSeniorCommunities) body.includeSeniorCommunities = true;
+                if (appliedFilters.minSqft) body.minSqft = appliedFilters.minSqft;
+                if (appliedFilters.maxSqft) body.maxSqft = appliedFilters.maxSqft;
+                if (appliedFilters.singleFamily) body.singleFamily = true;
+                if (appliedFilters.townHomes) body.townHomes = true;
+                if (appliedFilters.condos) body.condos = true;
 
                 const res = await IrgApi.post('/mlsproperties/withinpolygon', body, {
                     headers: { Authorization: `Bearer ${isLoggedIn}` },

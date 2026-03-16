@@ -46,8 +46,8 @@ const buildAutoName = (appliedFilters, activeAreas) => {
 const buildSearchFilter = (f) => ({
     minPriceFilter: Number(f.minPrice.replace(/,/g, '')) || 0,
     maxPriceFilter: Number(f.maxPrice.replace(/,/g, '')) || 999999999,
-    minSqFtFilter: 0,
-    maxSqFtFilter: 999999,
+    minSqFtFilter: Number(f.minSqft) || 0,
+    maxSqFtFilter: Number(f.maxSqft) || 0,
     minBedsFilter: Number(f.minBeds) || 0,
     minBathsFilter: Number(f.minBaths) || 0,
     minYearFilter: Number(f.minYearBuilt) || 0,
@@ -58,9 +58,9 @@ const buildSearchFilter = (f) => ({
     ageRestrictFilter: f.includeSeniorCommunities || false,
     poolFilter: f.hasPool || false,
     singleStoryFilter: f.singleStory ? 'Yes' : undefined,
-    singleFamily: false,
-    townHomes: false,
-    condos: false,
+    singleFamily: f.singleFamily ? 'Single Family Residence' : '',
+    townHomes: f.townHomes ? 'Townhouse' : '',
+    condos: f.condos ? 'Condominium' : '',
 });
 
 const SaveSearchDialog = ({ visible, onClose, appliedFilters, activeAreas = [], drawnPolygonGeoJSON, mapBounds }) => {
@@ -188,6 +188,22 @@ const SaveSearchDialog = ({ visible, onClose, appliedFilters, activeAreas = [], 
         }
         if (f.minGarageSpaces || f.maxGarageSpaces) {
             pills.push({ label: `${f.minGarageSpaces || '0'}+ Garage`, type: 'Garage' });
+        }
+        if (f.minSqft || f.maxSqft) {
+            if (f.minSqft && f.maxSqft) {
+                pills.push({ label: `${Number(f.minSqft).toLocaleString()}\u2013${Number(f.maxSqft).toLocaleString()} SqFt`, type: 'SqFt' });
+            } else if (f.minSqft) {
+                pills.push({ label: `${Number(f.minSqft).toLocaleString()}+ SqFt`, type: 'SqFt' });
+            } else {
+                pills.push({ label: `Up to ${Number(f.maxSqft).toLocaleString()} SqFt`, type: 'SqFt' });
+            }
+        }
+        {
+            const types = [];
+            if (f.singleFamily) types.push('SFR');
+            if (f.townHomes) types.push('TH');
+            if (f.condos) types.push('Condo');
+            if (types.length > 0) pills.push({ label: types.join(', '), type: 'Type' });
         }
         if (f.singleStory) pills.push({ label: 'Single Story', type: 'Feature' });
         if (f.hasPool) pills.push({ label: 'Pool Required', type: 'Feature' });

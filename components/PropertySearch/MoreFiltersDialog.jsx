@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
+import { sqftFilterValues } from '../Search/SearchFilters/filterValues/sqftFilterValues';
 
 const EMPTY_MORE = {
+    minSqft: 0,
+    maxSqft: 0,
     minLotSize: '',
     maxLotSize: '',
     minYearBuilt: '',
@@ -10,6 +13,9 @@ const EMPTY_MORE = {
     singleStory: false,
     hasPool: false,
     includeSeniorCommunities: false,
+    singleFamily: false,
+    townHomes: false,
+    condos: false,
 };
 
 const MoreFiltersDialog = ({ visible, filters, onApply, onClose }) => {
@@ -19,6 +25,8 @@ const MoreFiltersDialog = ({ visible, filters, onApply, onClose }) => {
     useEffect(() => {
         if (visible) {
             setLocal({
+                minSqft: filters.minSqft || 0,
+                maxSqft: filters.maxSqft || 0,
                 minLotSize: filters.minLotSize || '',
                 maxLotSize: filters.maxLotSize || '',
                 minYearBuilt: filters.minYearBuilt || '',
@@ -28,6 +36,9 @@ const MoreFiltersDialog = ({ visible, filters, onApply, onClose }) => {
                 singleStory: filters.singleStory || false,
                 hasPool: filters.hasPool || false,
                 includeSeniorCommunities: filters.includeSeniorCommunities || false,
+                singleFamily: filters.singleFamily || false,
+                townHomes: filters.townHomes || false,
+                condos: filters.condos || false,
             });
         }
     }, [visible, filters]);
@@ -41,6 +52,10 @@ const MoreFiltersDialog = ({ visible, filters, onApply, onClose }) => {
 
     const handleCheckbox = (field) => () => {
         setLocal((prev) => ({ ...prev, [field]: !prev[field] }));
+    };
+
+    const handleSelectChange = (field) => (e) => {
+        setLocal((prev) => ({ ...prev, [field]: Number(e.target.value) || 0 }));
     };
 
     const handleApply = () => {
@@ -73,6 +88,62 @@ const MoreFiltersDialog = ({ visible, filters, onApply, onClose }) => {
                 </div>
 
                 <div className="more-filters-dialog__body">
+                    {/* Property Type */}
+                    <div className="more-filters-dialog__group">
+                        <div className="more-filters-dialog__label">Property Type</div>
+                        <label className="more-filters-dialog__checkbox">
+                            <input
+                                type="checkbox"
+                                checked={local.singleFamily}
+                                onChange={handleCheckbox('singleFamily')}
+                            />
+                            Single Family
+                        </label>
+                        <label className="more-filters-dialog__checkbox">
+                            <input
+                                type="checkbox"
+                                checked={local.townHomes}
+                                onChange={handleCheckbox('townHomes')}
+                            />
+                            Townhouse
+                        </label>
+                        <label className="more-filters-dialog__checkbox">
+                            <input
+                                type="checkbox"
+                                checked={local.condos}
+                                onChange={handleCheckbox('condos')}
+                            />
+                            Condo
+                        </label>
+                    </div>
+
+                    {/* Square Feet */}
+                    <div className="more-filters-dialog__group">
+                        <div className="more-filters-dialog__label">Square Feet</div>
+                        <div className="more-filters-dialog__row">
+                            <select
+                                className="more-filters-dialog__input"
+                                value={local.minSqft || ''}
+                                onChange={handleSelectChange('minSqft')}
+                            >
+                                <option value="">No Min</option>
+                                {sqftFilterValues.map((opt) => (
+                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                ))}
+                            </select>
+                            <select
+                                className="more-filters-dialog__input"
+                                value={local.maxSqft || ''}
+                                onChange={handleSelectChange('maxSqft')}
+                            >
+                                <option value="">No Max</option>
+                                {sqftFilterValues.map((opt) => (
+                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+
                     {/* Lot Size */}
                     <div className="more-filters-dialog__group">
                         <div className="more-filters-dialog__label">Lot Size (acres)</div>
