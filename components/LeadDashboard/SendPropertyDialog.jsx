@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import dynamic from 'next/dynamic';
 
@@ -10,13 +10,16 @@ const InputTextarea = dynamic(() => import('primereact/inputtextarea').then((mod
 import IrgApi from '../../assets/irgApi';
 import showToast from '../../utils/showToast';
 
-const SendPropertyDialog = ({ visible, onHide, leadId, isLoggedIn, onSuccess }) => {
+const SendPropertyDialog = ({ visible, onHide, leadId, isLoggedIn, onSuccess, coBuyers = [] }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [searching, setSearching] = useState(false);
     const [selectedProperty, setSelectedProperty] = useState(null);
     const [message, setMessage] = useState('');
     const [sending, setSending] = useState(false);
+    const [sendToCoBuyers, setSendToCoBuyers] = useState(false);
+
+    useEffect(() => { if (visible) setSendToCoBuyers(false); }, [visible]);
 
     const headers = { Authorization: `Bearer ${isLoggedIn}` };
 
@@ -75,6 +78,17 @@ const SendPropertyDialog = ({ visible, onHide, leadId, isLoggedIn, onSuccess }) 
                 { headers },
             );
             if (response.data.status === 'success') {
+                if (sendToCoBuyers && coBuyers.length > 0) {
+                    Promise.allSettled(
+                        coBuyers.map((cb) =>
+                            IrgApi.post(
+                                `/users/dashboard/${cb._id}/send-property`,
+                                { propertyId: selectedProperty._id, message: message.trim() || undefined },
+                                { headers }
+                            )
+                        )
+                    );
+                }
                 setSelectedProperty(null);
                 setMessage('');
                 onSuccess();
@@ -191,6 +205,16 @@ const SendPropertyDialog = ({ visible, onHide, leadId, isLoggedIn, onSuccess }) 
                     />
                 </div>
 
+                {/* Co-buyer option */}
+                {coBuyers.length > 0 && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 0' }}>
+                        <input type="checkbox" id="sendToCoBuyers" checked={sendToCoBuyers} onChange={(e) => setSendToCoBuyers(e.target.checked)} />
+                        <label htmlFor="sendToCoBuyers" style={{ fontSize: '13px', color: 'hsl(var(--foreground))' }}>
+                            Also send to co-buyer{coBuyers.length > 1 ? 's' : ''}: <strong>{coBuyers.map((cb) => `${cb.first_name} ${cb.last_name}`).join(', ')}</strong>
+                        </label>
+                    </div>
+                )}
+
                 {/* Send */}
                 <div className="send-property__footer">
                     <Button
@@ -213,6 +237,7 @@ SendPropertyDialog.propTypes = {
     leadId: PropTypes.string.isRequired,
     isLoggedIn: PropTypes.string.isRequired,
     onSuccess: PropTypes.func.isRequired,
+    coBuyers: PropTypes.array,
 };
 
 export default SendPropertyDialog;

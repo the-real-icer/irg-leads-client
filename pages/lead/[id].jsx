@@ -68,6 +68,7 @@ import IrgApi from '../../assets/irgApi';
 
 // Utils
 import showToast from '../../utils/showToast';
+import AddCoBuyerDialog from '../../components/lead/AddCoBuyerDialog';
 import getLeadDisplayName, { getLeadInitials } from '../../utils/getLeadDisplayName';
 
 // Filter Value Options (for Edit E-Alert dialog)
@@ -98,6 +99,9 @@ const Lead = () => {
     const [showFavoritedHomesDialog, setShowFavoritedHomesDialog] = useState(false);
     const [showSavedSearchesDialog, setShowSavedSearchesDialog] = useState(false);
     const [showSearchHistoryDialog, setShowSearchHistoryDialog] = useState(false);
+    const [coBuyers, setCoBuyers] = useState([]);
+    const [addCoBuyerOpen, setAddCoBuyerOpen] = useState(false);
+    const [unlinkingId, setUnlinkingId] = useState(null);
     const [emails, setEmails] = useState([]);
     const [loadingEmails, setLoadingEmails] = useState(false);
 
@@ -247,6 +251,26 @@ const Lead = () => {
 
         return () => setLead({});
     }, [router.isReady, leadId]); // eslint-disable-line
+
+    useEffect(() => {
+        if (lead?.co_buyers) setCoBuyers(lead.co_buyers);
+    }, [lead?.co_buyers]);
+
+    const handleUnlinkCoBuyer = async (coBuyerId) => {
+        setUnlinkingId(coBuyerId);
+        try {
+            await IrgApi.delete(
+                `/users/${lead._id}/co-buyers/${coBuyerId}/unlink`,
+                { headers: { Authorization: `Bearer ${isLoggedIn}` } }
+            );
+            setCoBuyers((prev) => prev.filter((cb) => cb._id !== coBuyerId));
+            showToast('success', 'Co-buyer unlinked', 'Success');
+        } catch {
+            showToast('error', 'Failed to unlink co-buyer', 'Error');
+        } finally {
+            setUnlinkingId(null);
+        }
+    };
 
     useEffect(() => {
         if (lead?.backend_profile?.lead_category) {
@@ -1395,6 +1419,47 @@ const Lead = () => {
                             </div>
                         </div>
                     </Card>
+                </div>
+
+                {/* Co-Buyers */}
+                <div className="lead-co-buyers">
+                    <div className="lead-co-buyers__header">
+                        <h3 className="lead-co-buyers__title">Co-Buyers</h3>
+                        <button className="lead-co-buyers__add-btn" onClick={() => setAddCoBuyerOpen(true)} type="button">
+                            <i className="pi pi-plus" /> Add Co-Buyer
+                        </button>
+                    </div>
+                    {coBuyers.length === 0 ? (
+                        <p className="lead-co-buyers__empty">No co-buyers linked. Add a co-buyer to share property searches with this lead.</p>
+                    ) : (
+                        <div className="lead-co-buyers__list">
+                            {coBuyers.map((cb) => (
+                                <div key={cb._id} className="lead-co-buyers__card">
+                                    <div className="lead-co-buyers__avatar">{cb.first_name?.[0]}{cb.last_name?.[0]}</div>
+                                    <div className="lead-co-buyers__info">
+                                        <span className="lead-co-buyers__name">{cb.first_name} {cb.last_name}</span>
+                                        <span className="lead-co-buyers__email">{cb.email}</span>
+                                    </div>
+                                    <div className="lead-co-buyers__actions">
+                                        <button onClick={() => router.push(`/lead/${cb._id}`)} title="View profile" type="button" className="lead-co-buyers__view-btn">
+                                            <i className="pi pi-user" />
+                                        </button>
+                                        <button onClick={() => handleUnlinkCoBuyer(cb._id)} title="Unlink co-buyer" type="button" className="lead-co-buyers__unlink-btn" disabled={unlinkingId === cb._id}>
+                                            <i className={unlinkingId === cb._id ? 'pi pi-spin pi-spinner' : 'pi pi-times'} />
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                    <AddCoBuyerDialog
+                        visible={addCoBuyerOpen}
+                        onHide={() => setAddCoBuyerOpen(false)}
+                        leadId={lead._id}
+                        existingCoBuyers={coBuyers}
+                        isLoggedIn={isLoggedIn}
+                        onLinked={(newCoBuyers) => { setCoBuyers(newCoBuyers); setAddCoBuyerOpen(false); }}
+                    />
                 </div>
 
                 {/* Statistics Cards */}

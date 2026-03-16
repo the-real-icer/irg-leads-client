@@ -17,7 +17,7 @@ const FILTER_LABELS = {
     pending_showings: 'Pending Showings',
 };
 
-const LeadDashboard = ({ leadId, isLoggedIn }) => {
+const LeadDashboard = ({ leadId, isLoggedIn, coBuyers = [] }) => {
     const [deliveries, setDeliveries] = useState([]);
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
@@ -236,6 +236,7 @@ const LeadDashboard = ({ leadId, isLoggedIn }) => {
                 leadId={leadId}
                 isLoggedIn={isLoggedIn}
                 onSuccess={handlePropertySent}
+                coBuyers={coBuyers}
             />
         </div>
     );

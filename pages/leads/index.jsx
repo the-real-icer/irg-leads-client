@@ -471,6 +471,23 @@ const LeadCard = ({ lead, onClick, isMobile, isTablet }) => {
                 </div>
             </div>
 
+            {/* Co-buyer badge */}
+            {lead.co_buyers?.length > 0 && (
+                <div
+                    style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '4px',
+                        padding: '2px 8px', borderRadius: '999px', flexShrink: 0,
+                        background: 'hsl(var(--primary) / 0.1)', color: 'hsl(var(--primary))',
+                        border: '1px solid hsl(var(--primary) / 0.25)',
+                        fontSize: '12px', fontWeight: '600',
+                    }}
+                    title={`Co-buyers: ${lead.co_buyers.map((cb) => `${cb.first_name} ${cb.last_name}`).join(', ')}`}
+                >
+                    <i className="pi pi-users" style={{ fontSize: '11px' }} />
+                    {lead.co_buyers.length}
+                </div>
+            )}
+
             {/* Phone */}
             <div style={{ flex: '1', minWidth: 0 }}>
                 <div style={{

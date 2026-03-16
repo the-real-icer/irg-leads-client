@@ -35,7 +35,7 @@ const LeadDashboardPage = () => {
                         </h2>
                     )}
                 </div>
-                <LeadDashboard leadId={id} isLoggedIn={isLoggedIn} />
+                <LeadDashboard leadId={id} isLoggedIn={isLoggedIn} coBuyers={lead?.co_buyers || []} />
             </div>
         </MainLayout>
     );

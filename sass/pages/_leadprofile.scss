@@ -930,3 +930,131 @@
         max-width: 95vw !important;
     }
 }
+
+// ── Co-Buyers Section ──
+.lead-co-buyers {
+    padding: 20px 24px;
+    margin-bottom: 1.5rem;
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+
+    &__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+    }
+
+    &__title {
+        font-size: 16px;
+        font-weight: 600;
+        color: hsl(var(--foreground));
+        margin: 0;
+    }
+
+    &__add-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        background: hsl(var(--primary));
+        color: hsl(var(--primary-foreground));
+        border: none;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+
+        &:hover {
+            background: hsl(var(--primary-hover));
+        }
+    }
+
+    &__empty {
+        font-size: 13px;
+        color: hsl(var(--muted-foreground));
+        font-style: italic;
+        margin: 0;
+    }
+
+    &__list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    &__card {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 14px;
+        background: hsl(var(--accent));
+        border-radius: 8px;
+        border: 1px solid hsl(var(--border));
+    }
+
+    &__avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: hsl(var(--primary) / 0.15);
+        color: hsl(var(--primary));
+        font-size: 13px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        text-transform: uppercase;
+    }
+
+    &__info {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    &__name {
+        font-size: 14px;
+        font-weight: 600;
+        color: hsl(var(--foreground));
+    }
+
+    &__email {
+        font-size: 12px;
+        color: hsl(var(--muted-foreground));
+    }
+
+    &__actions {
+        display: flex;
+        gap: 6px;
+    }
+
+    &__view-btn,
+    &__unlink-btn {
+        background: transparent;
+        border: 1px solid hsl(var(--border));
+        border-radius: 6px;
+        padding: 5px 8px;
+        cursor: pointer;
+        color: hsl(var(--muted-foreground));
+        transition: all 0.15s ease;
+
+        &:hover {
+            background: hsl(var(--surface));
+            color: hsl(var(--foreground));
+        }
+
+        &:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    }
+
+    &__unlink-btn:hover:not(:disabled) {
+        border-color: hsl(var(--destructive));
+        color: hsl(var(--destructive));
+    }
+}
