@@ -17,7 +17,7 @@ const FILTER_LABELS = {
     pending_showings: 'Pending Showings',
 };
 
-const LeadDashboard = ({ leadId, isLoggedIn, coBuyers = [] }) => {
+const LeadDashboard = ({ leadId, isLoggedIn }) => {
     const [deliveries, setDeliveries] = useState([]);
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
@@ -32,7 +32,20 @@ const LeadDashboard = ({ leadId, isLoggedIn, coBuyers = [] }) => {
     // Send property dialog state
     const [sendVisible, setSendVisible] = useState(false);
 
+    // Co-buyers for "send to co-buyers" checkbox
+    const [coBuyers, setCoBuyers] = useState([]);
+
     const headers = { Authorization: `Bearer ${isLoggedIn}` };
+
+    // Fetch co-buyers directly so we don't depend on stale Redux data
+    useEffect(() => {
+        if (!leadId || !isLoggedIn) return;
+        IrgApi.post('/users/user', { userId: leadId }, { headers })
+            .then((res) => {
+                if (res.data?.data?.co_buyers) setCoBuyers(res.data.data.co_buyers);
+            })
+            .catch(() => {});
+    }, [leadId]); // eslint-disable-line
 
     const fetchDeliveries = useCallback(async (pg = 1, reaction = null) => {
         setLoading(true);
