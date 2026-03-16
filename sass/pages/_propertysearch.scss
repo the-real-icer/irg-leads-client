@@ -316,7 +316,7 @@
 
 .ps-toolbar__save-tooltip {
     position: absolute;
-    bottom: calc(100% + 8px);
+    top: calc(100% + 8px);
     left: 50%;
     transform: translateX(-50%);
     background: #1e293b;
@@ -327,7 +327,7 @@
     padding: 5px 10px;
     border-radius: 4px;
     pointer-events: none;
-    z-index: 200;
+    z-index: 1000;
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.15s ease, visibility 0.15s ease;
@@ -335,11 +335,11 @@
     &::after {
         content: '';
         position: absolute;
-        top: 100%;
+        bottom: 100%;
         left: 50%;
         transform: translateX(-50%);
         border: 5px solid transparent;
-        border-top-color: #1e293b;
+        border-bottom-color: #1e293b;
     }
 }
 
