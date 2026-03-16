@@ -63,7 +63,7 @@ const buildSearchFilter = (f) => ({
     condos: f.condos ? 'Condominium' : '',
 });
 
-const SaveSearchDialog = ({ visible, onClose, appliedFilters, activeAreas = [], drawnPolygonGeoJSON, mapBounds }) => {
+const SaveSearchDialog = ({ visible, onClose, appliedFilters, activeAreas = [], drawnPolygonGeoJSON, mapBounds, isSaveSearchBlocked }) => {
     const allLeads = useSelector((state) => state.allLeadsPage.leads);
     const isLoggedIn = useSelector((state) => state.isLoggedIn);
 
@@ -204,6 +204,10 @@ const SaveSearchDialog = ({ visible, onClose, appliedFilters, activeAreas = [], 
             if (f.townHomes) types.push('TH');
             if (f.condos) types.push('Condo');
             if (types.length > 0) pills.push({ label: types.join(', '), type: 'Type' });
+        }
+        if (appliedFilters?.statuses && !(appliedFilters.statuses.length === 1 && appliedFilters.statuses[0] === 'Active')) {
+            const statusLabels = appliedFilters.statuses.map((s) => s === 'Closed' ? 'Sold' : s);
+            pills.push({ label: statusLabels.join(', '), type: 'Status' });
         }
         if (f.singleStory) pills.push({ label: 'Single Story', type: 'Feature' });
         if (f.hasPool) pills.push({ label: 'Pool Required', type: 'Feature' });
@@ -411,7 +415,8 @@ const SaveSearchDialog = ({ visible, onClose, appliedFilters, activeAreas = [], 
                         className="save-search-dialog__btn save-search-dialog__btn--primary"
                         onClick={handleSave}
                         type="button"
-                        disabled={!selectedLead || saving}
+                        disabled={!selectedLead || saving || isSaveSearchBlocked}
+                        title={isSaveSearchBlocked ? 'Save Search is only available for Active listings. Remove other statuses to save.' : undefined}
                     >
                         {saving ? (
                             <><i className="pi pi-spin pi-spinner" style={{ marginRight: '0.375rem' }} />Saving...</>

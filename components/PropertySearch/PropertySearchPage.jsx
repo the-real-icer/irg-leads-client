@@ -34,6 +34,9 @@ const EMPTY_FILTERS = {
     singleFamily: false,
     townHomes: false,
     condos: false,
+    statuses: ['Active'],
+    minCloseDate: '',
+    maxCloseDate: '',
 };
 
 const PropertySearchPage = ({ areaParams }) => {
@@ -175,6 +178,7 @@ const PropertySearchPage = ({ areaParams }) => {
         if (appliedFilters.hasPool) count++;
         if (appliedFilters.includeSeniorCommunities) count++;
         if (appliedFilters.singleFamily || appliedFilters.townHomes || appliedFilters.condos) count++;
+        if (appliedFilters.minCloseDate || appliedFilters.maxCloseDate) count++;
         return count;
     }, [appliedFilters]);
 
@@ -187,9 +191,39 @@ const PropertySearchPage = ({ areaParams }) => {
             f.minBaths || f.maxBaths || f.minLotSize || f.maxLotSize ||
             f.minYearBuilt || f.maxYearBuilt || f.minGarageSpaces || f.maxGarageSpaces ||
             f.singleStory || f.hasPool || f.includeSeniorCommunities ||
-            f.minSqft || f.maxSqft || f.singleFamily || f.townHomes || f.condos
+            f.minSqft || f.maxSqft || f.singleFamily || f.townHomes || f.condos ||
+            f.minCloseDate || f.maxCloseDate
         );
     }, [appliedFilters, activeAreas, drawnPolygonGeoJSON]);
+
+    // ── Block saving when non-Active statuses selected ──
+    const isSaveSearchBlocked = useMemo(() => {
+        return appliedFilters.statuses.some((s) => s !== 'Active');
+    }, [appliedFilters.statuses]);
+
+    // ── Auto-fill close date when Sold selected ──
+    const soldSelected = filters.statuses.includes('Closed');
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => {
+        if (soldSelected && !filters.minCloseDate && !filters.maxCloseDate) {
+            const end = new Date();
+            const start = new Date();
+            start.setDate(start.getDate() - 90);
+            setFilters((prev) => ({
+                ...prev,
+                minCloseDate: start.toISOString().split('T')[0],
+                maxCloseDate: end.toISOString().split('T')[0],
+            }));
+        }
+        if (!soldSelected) {
+            setFilters((prev) => ({
+                ...prev,
+                minCloseDate: '',
+                maxCloseDate: '',
+            }));
+        }
+    }, [soldSelected]);
 
     // ── Fetch properties when bounds or filters change ──
     useEffect(() => {
@@ -229,6 +263,9 @@ const PropertySearchPage = ({ areaParams }) => {
                 if (appliedFilters.singleFamily) params.append('singleFamily', 'true');
                 if (appliedFilters.townHomes) params.append('townHomes', 'true');
                 if (appliedFilters.condos) params.append('condos', 'true');
+                appliedFilters.statuses.forEach((s) => params.append('statuses', s));
+                if (appliedFilters.minCloseDate) params.append('minCloseDate', appliedFilters.minCloseDate);
+                if (appliedFilters.maxCloseDate) params.append('maxCloseDate', appliedFilters.maxCloseDate);
 
                 const res = await IrgApi.get(`/mlsproperties/bounds?${params.toString()}`, {
                     headers: { Authorization: `Bearer ${isLoggedIn}` },
@@ -286,6 +323,9 @@ const PropertySearchPage = ({ areaParams }) => {
                 if (appliedFilters.singleFamily) body.singleFamily = true;
                 if (appliedFilters.townHomes) body.townHomes = true;
                 if (appliedFilters.condos) body.condos = true;
+                body.statuses = appliedFilters.statuses;
+                if (appliedFilters.minCloseDate) body.minCloseDate = appliedFilters.minCloseDate;
+                if (appliedFilters.maxCloseDate) body.maxCloseDate = appliedFilters.maxCloseDate;
 
                 const res = await IrgApi.post('/mlsproperties/withinpolygon', body, {
                     headers: { Authorization: `Bearer ${isLoggedIn}` },
@@ -339,6 +379,9 @@ const PropertySearchPage = ({ areaParams }) => {
                 if (appliedFilters.singleFamily) body.singleFamily = true;
                 if (appliedFilters.townHomes) body.townHomes = true;
                 if (appliedFilters.condos) body.condos = true;
+                body.statuses = appliedFilters.statuses;
+                if (appliedFilters.minCloseDate) body.minCloseDate = appliedFilters.minCloseDate;
+                if (appliedFilters.maxCloseDate) body.maxCloseDate = appliedFilters.maxCloseDate;
 
                 const res = await IrgApi.post('/mlsproperties/withinpolygon', body, {
                     headers: { Authorization: `Bearer ${isLoggedIn}` },
@@ -530,6 +573,7 @@ const PropertySearchPage = ({ areaParams }) => {
                 onOpenMoreFilters={() => setMoreFiltersOpen(true)}
                 hasActiveFilters={hasActiveFilters}
                 onOpenSaveSearch={() => setSaveSearchOpen(true)}
+                isSaveSearchBlocked={isSaveSearchBlocked}
             />
 
             {/* Area pills */}
@@ -671,6 +715,7 @@ const PropertySearchPage = ({ areaParams }) => {
             <MoreFiltersDialog
                 visible={moreFiltersOpen}
                 filters={appliedFilters}
+                statuses={filters.statuses}
                 onApply={handleApplyMoreFilters}
                 onClose={() => setMoreFiltersOpen(false)}
             />
@@ -683,6 +728,7 @@ const PropertySearchPage = ({ areaParams }) => {
                 activeAreas={activeAreas}
                 drawnPolygonGeoJSON={drawnPolygonGeoJSON}
                 mapBounds={mapBounds}
+                isSaveSearchBlocked={isSaveSearchBlocked}
             />
 
             {/* Map dialog for PrpCard's "Show Map" button */}

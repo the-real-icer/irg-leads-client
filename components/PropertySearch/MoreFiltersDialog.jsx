@@ -15,9 +15,11 @@ const EMPTY_MORE = {
     singleFamily: false,
     townHomes: false,
     condos: false,
+    minCloseDate: '',
+    maxCloseDate: '',
 };
 
-const MoreFiltersDialog = ({ visible, filters, onApply, onClose }) => {
+const MoreFiltersDialog = ({ visible, filters, statuses = ['Active'], onApply, onClose }) => {
     const [local, setLocal] = useState(EMPTY_MORE);
 
     // Sync local state from applied filters when dialog opens
@@ -38,6 +40,8 @@ const MoreFiltersDialog = ({ visible, filters, onApply, onClose }) => {
                 singleFamily: filters.singleFamily || false,
                 townHomes: filters.townHomes || false,
                 condos: filters.condos || false,
+                minCloseDate: filters.minCloseDate || '',
+                maxCloseDate: filters.maxCloseDate || '',
             });
         }
     }, [visible, filters]);
@@ -140,6 +144,28 @@ const MoreFiltersDialog = ({ visible, filters, onApply, onClose }) => {
                             />
                         </div>
                     </div>
+
+                    {/* Close of Escrow Date — only when Sold selected */}
+                    {statuses.includes('Closed') && (
+                        <div className="more-filters-dialog__group">
+                            <div className="more-filters-dialog__label">Close of Escrow Date</div>
+                            <div className="more-filters-dialog__row">
+                                <input
+                                    type="date"
+                                    className="more-filters-dialog__input"
+                                    value={local.minCloseDate || ''}
+                                    onChange={(e) => setLocal((prev) => ({ ...prev, minCloseDate: e.target.value }))}
+                                />
+                                <span style={{ color: 'hsl(var(--foreground-muted))' }}>to</span>
+                                <input
+                                    type="date"
+                                    className="more-filters-dialog__input"
+                                    value={local.maxCloseDate || ''}
+                                    onChange={(e) => setLocal((prev) => ({ ...prev, maxCloseDate: e.target.value }))}
+                                />
+                            </div>
+                        </div>
+                    )}
 
                     {/* Lot Size */}
                     <div className="more-filters-dialog__group">

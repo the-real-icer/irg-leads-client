@@ -1,3 +1,10 @@
+const STATUS_OPTIONS = [
+    { label: 'Active', value: 'Active' },
+    { label: 'Under Contract', value: 'Active Under Contract' },
+    { label: 'Pending', value: 'Pending' },
+    { label: 'Sold', value: 'Closed' },
+];
+
 const formatCommas = (val) => {
     const digits = val.replace(/[^0-9]/g, '');
     if (!digits) return '';
@@ -99,6 +106,50 @@ const MobileFilterDrawer = ({ visible, filters, onFilterChange, onSearch, onRese
                         />
                     </div>
                 </div>
+
+                <div className="mobile-filter-drawer__group">
+                    <div className="mobile-filter-drawer__label">Status</div>
+                    {STATUS_OPTIONS.map((opt) => (
+                        <label key={opt.value} className="mobile-filter-drawer__checkbox">
+                            <input
+                                type="checkbox"
+                                checked={(filters.statuses || ['Active']).includes(opt.value)}
+                                onChange={() => {
+                                    const current = filters.statuses || ['Active'];
+                                    if (current.includes(opt.value)) {
+                                        if (current.length > 1) {
+                                            onFilterChange('statuses', current.filter((s) => s !== opt.value));
+                                        }
+                                    } else {
+                                        onFilterChange('statuses', [...current, opt.value]);
+                                    }
+                                }}
+                            />
+                            {opt.label}
+                        </label>
+                    ))}
+                </div>
+
+                {(filters.statuses || ['Active']).includes('Closed') && (
+                    <div className="mobile-filter-drawer__group">
+                        <div className="mobile-filter-drawer__label">Close of Escrow Date</div>
+                        <div className="mobile-filter-drawer__row">
+                            <input
+                                type="date"
+                                className="mobile-filter-drawer__input"
+                                value={filters.minCloseDate || ''}
+                                onChange={(e) => onFilterChange('minCloseDate', e.target.value)}
+                            />
+                            <span style={{ color: 'hsl(var(--foreground-muted))' }}>to</span>
+                            <input
+                                type="date"
+                                className="mobile-filter-drawer__input"
+                                value={filters.maxCloseDate || ''}
+                                onChange={(e) => onFilterChange('maxCloseDate', e.target.value)}
+                            />
+                        </div>
+                    </div>
+                )}
 
                 <div className="mobile-filter-drawer__group">
                     <div className="mobile-filter-drawer__label">Property Type</div>

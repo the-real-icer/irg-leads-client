@@ -1,4 +1,11 @@
-import { useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+
+const STATUS_OPTIONS = [
+    { label: 'Active', value: 'Active' },
+    { label: 'Under Contract', value: 'Active Under Contract' },
+    { label: 'Pending', value: 'Pending' },
+    { label: 'Sold', value: 'Closed' },
+];
 
 const formatCommas = (val) => {
     const digits = val.replace(/[^0-9]/g, '');
@@ -6,7 +13,22 @@ const formatCommas = (val) => {
     return parseInt(digits, 10).toLocaleString('en-US');
 };
 
-const SearchToolbar = ({ filters, onFilterChange, onSearch, onReset, isDrawing, onToggleDrawing, moreFiltersCount, onOpenMoreFilters, hasActiveFilters, onOpenSaveSearch }) => {
+const SearchToolbar = ({ filters, onFilterChange, onSearch, onReset, isDrawing, onToggleDrawing, moreFiltersCount, onOpenMoreFilters, hasActiveFilters, onOpenSaveSearch, isSaveSearchBlocked }) => {
+    // ── Status dropdown state ──
+    const [statusOpen, setStatusOpen] = useState(false);
+    const statusRef = useRef(null);
+
+    useEffect(() => {
+        if (!statusOpen) return;
+        const handleClick = (e) => {
+            if (statusRef.current && !statusRef.current.contains(e.target)) {
+                setStatusOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClick);
+        return () => document.removeEventListener('mousedown', handleClick);
+    }, [statusOpen]);
+
     const handlePriceChange = useCallback(
         (field) => (e) => {
             onFilterChange(field, formatCommas(e.target.value));
@@ -25,6 +47,34 @@ const SearchToolbar = ({ filters, onFilterChange, onSearch, onReset, isDrawing, 
     const handleKeyDown = (e) => {
         if (e.key === 'Enter') onSearch();
     };
+
+    // ── Status helpers ──
+    const statuses = filters.statuses || ['Active'];
+
+    const getStatusLabel = () => {
+        if (statuses.length === STATUS_OPTIONS.length) return 'All Statuses';
+        const first = STATUS_OPTIONS.find((o) => o.value === statuses[0]);
+        const label = first?.label || statuses[0];
+        return statuses.length > 1 ? `${label} +${statuses.length - 1}` : label;
+    };
+
+    const handleStatusToggle = (value) => {
+        if (statuses.includes(value)) {
+            // Prevent deselecting the last item
+            if (statuses.length > 1) {
+                onFilterChange('statuses', statuses.filter((s) => s !== value));
+            }
+        } else {
+            onFilterChange('statuses', [...statuses, value]);
+        }
+    };
+
+    const saveDisabled = !hasActiveFilters || isSaveSearchBlocked;
+    const saveTitle = isSaveSearchBlocked
+        ? 'Save Search is only available for Active listings'
+        : !hasActiveFilters
+            ? 'Apply at least one filter to save this search'
+            : 'Save this search for a lead';
 
     return (
         <div className="property-search__toolbar">
@@ -94,13 +144,45 @@ const SearchToolbar = ({ filters, onFilterChange, onSearch, onReset, isDrawing, 
 
             <div className="ps-toolbar__divider" />
 
+            {/* Status */}
+            <div className="ps-toolbar__group ps-toolbar__group--status" ref={statusRef}>
+                <span className="ps-toolbar__label">Status</span>
+                <button
+                    className={`ps-toolbar__status-btn${statusOpen ? ' ps-toolbar__status-btn--open' : ''}`}
+                    onClick={() => setStatusOpen(!statusOpen)}
+                    type="button"
+                >
+                    {getStatusLabel()}
+                    <i
+                        className={`pi pi-chevron-${statusOpen ? 'up' : 'down'}`}
+                        style={{ marginLeft: '0.375rem', fontSize: '0.75rem' }}
+                    />
+                </button>
+                {statusOpen && (
+                    <div className="ps-toolbar__status-panel">
+                        {STATUS_OPTIONS.map((opt) => (
+                            <label key={opt.value} className="ps-toolbar__status-option">
+                                <input
+                                    type="checkbox"
+                                    checked={statuses.includes(opt.value)}
+                                    onChange={() => handleStatusToggle(opt.value)}
+                                />
+                                {opt.label}
+                            </label>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            <div className="ps-toolbar__divider" />
+
             {/* Save Search */}
             <button
-                className={`ps-toolbar__btn ps-toolbar__btn--save-search${!hasActiveFilters ? ' ps-toolbar__btn--disabled' : ''}`}
-                onClick={onOpenSaveSearch}
+                className={`ps-toolbar__btn ps-toolbar__btn--save-search${saveDisabled ? ' ps-toolbar__btn--disabled' : ''}`}
+                onClick={saveDisabled ? undefined : onOpenSaveSearch}
                 type="button"
-                disabled={!hasActiveFilters}
-                title={!hasActiveFilters ? 'Apply at least one filter to save this search' : 'Save this search for a lead'}
+                disabled={saveDisabled}
+                title={saveTitle}
             >
                 <i className="pi pi-bookmark" style={{ marginRight: '0.375rem' }} />
                 Save Search
