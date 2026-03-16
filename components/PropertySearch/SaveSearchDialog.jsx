@@ -49,10 +49,13 @@ const buildSearchFilter = (f) => ({
     minSqFtFilter: Number(f.minSqft) || 0,
     maxSqFtFilter: Number(f.maxSqft) || 0,
     minBedsFilter: Number(f.minBeds) || 0,
+    maxBedsFilter: Number(f.maxBeds) || 0,
     minBathsFilter: Number(f.minBaths) || 0,
+    maxBathsFilter: Number(f.maxBaths) || 0,
     minYearFilter: Number(f.minYearBuilt) || 0,
     maxYearFilter: Number(f.maxYearBuilt) || 9999,
     minGarageFilter: Number(f.minGarageSpaces) || 0,
+    maxGarageFilter: Number(f.maxGarageSpaces) || 0,
     minAcresFilter: Number(f.minLotSize) || 0,
     maxAcresFilter: Number(f.maxLotSize) || 10000,
     ageRestrictFilter: f.includeSeniorCommunities || false,
@@ -61,6 +64,9 @@ const buildSearchFilter = (f) => ({
     singleFamily: f.singleFamily ? 'Single Family Residence' : '',
     townHomes: f.townHomes ? 'Townhouse' : '',
     condos: f.condos ? 'Condominium' : '',
+    statuses: Array.isArray(f.statuses) && f.statuses.length > 0 ? f.statuses : ['Active'],
+    minCloseDate: f.minCloseDate || '',
+    maxCloseDate: f.maxCloseDate || '',
 });
 
 const SaveSearchDialog = ({ visible, onClose, appliedFilters, activeAreas = [], drawnPolygonGeoJSON, mapBounds, isSaveSearchBlocked }) => {

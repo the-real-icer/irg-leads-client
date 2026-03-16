@@ -1,6 +1,7 @@
 // React & NextJS
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 
 // Redux
 import { useSelector } from 'react-redux';
@@ -20,6 +21,16 @@ import PropertyFeatures from '../../components/Property/PropertyFeatures/Propert
 
 // IRG API - HOOKS - INFO - UTILS
 import IrgApi from '../../assets/irgApi';
+
+const getSafeReturnTo = (rawReturnTo) => {
+    if (typeof rawReturnTo !== 'string') return null;
+
+    const value = rawReturnTo.trim();
+    if (!value.startsWith('/search')) return null;
+    if (value.startsWith('//')) return null;
+
+    return value;
+};
 
 const Address = () => {
     // __________________Redux State______________________\\
@@ -42,7 +53,8 @@ const Address = () => {
 
     const router = useRouter();
 
-    const { address } = router.query;
+    const { address, returnTo } = router.query;
+    const safeReturnTo = getSafeReturnTo(returnTo);
 
     useEffect(() => {
         if (!address || !isLoggedIn) return;
@@ -69,6 +81,24 @@ const Address = () => {
                     position="top-right"
                     baseZIndex={200000000}
                 />
+                {safeReturnTo && (
+                    <div className="property__page__container" style={{ marginBottom: '1rem' }}>
+                        <Link
+                            href={safeReturnTo}
+                            style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '0.5rem',
+                                fontSize: '1.4rem',
+                                fontWeight: 600,
+                                textDecoration: 'none',
+                            }}
+                        >
+                            <i className="pi pi-arrow-left" />
+                            <span>Back to Search</span>
+                        </Link>
+                    </div>
+                )}
                 {property && <TopBar property={property} />}
                 {property && (
                     <div className="property__action-bar">

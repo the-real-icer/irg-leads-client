@@ -1,6 +1,7 @@
 // React & NextJS
 import { useCallback, memo } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import PropTypes from 'prop-types';
 
 // Redux
@@ -24,6 +25,7 @@ const PrpCard = memo(({ property, handleOpenMapDialog }) => {
 
     // _____________________Hooks_____________________\\
     const dispatch = useDispatch();
+    const router = useRouter();
     const fallbackImage = usePropertyFallbackImage();
 
     const goodImage = property?.listing_pics
@@ -65,11 +67,23 @@ const PrpCard = memo(({ property, handleOpenMapDialog }) => {
         }
     }, [property, isLoggedIn, dispatch]);
 
-    const linkAddress = property?.property_url ? `/property/${property.property_url}` : '';
+    const linkAddress = useCallback(() => {
+        if (!property?.property_url) return '';
+
+        if (router.pathname !== '/search') {
+            return `/property/${property.property_url}`;
+        }
+
+        const params = new URLSearchParams({
+            returnTo: router.asPath,
+        });
+
+        return `/property/${property.property_url}?${params.toString()}`;
+    }, [property?.property_url, router.pathname, router.asPath]);
 
     return (
         <div className="PrpCard">
-            <Link href={linkAddress} passHref>
+            <Link href={linkAddress()} passHref>
                 <div className="PrpCard__ImgContainer">
                     {!isSelected ? (
                         <MdAdd className="PrpCard__Icon PrpCard__Icon__not" onClick={addHome} />
@@ -89,7 +103,7 @@ const PrpCard = memo(({ property, handleOpenMapDialog }) => {
                     />
                 </div>
             </Link>
-            <Link href={linkAddress} passHref>
+            <Link href={linkAddress()} passHref>
                 <div className="PrpCard__Vitals">
                     <div className="PrpCard__Price">{property?.price}</div>
                     <div className="PrpCard__Details">

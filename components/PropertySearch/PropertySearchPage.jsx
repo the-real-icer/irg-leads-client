@@ -39,12 +39,63 @@ const EMPTY_FILTERS = {
     maxCloseDate: '',
 };
 
-const FILTER_KEYS = [
-    'minPrice', 'maxPrice', 'minBeds', 'maxBeds', 'minBaths', 'maxBaths',
-    'minSqft', 'maxSqft', 'minLotSize', 'maxLotSize', 'minYearBuilt', 'maxYearBuilt',
-    'minGarageSpaces', 'maxGarageSpaces', 'singleStory', 'hasPool', 'seniors',
-    'singleFamily', 'townHomes', 'condos', 'statuses', 'minCloseDate', 'maxCloseDate',
-];
+const normalizeStatuses = (rawStatuses) => {
+    if (Array.isArray(rawStatuses)) {
+        const normalized = rawStatuses
+            .flatMap((status) => (typeof status === 'string' ? status.split(',') : []))
+            .map((status) => status.trim())
+            .filter(Boolean);
+
+        return normalized.length > 0 ? normalized : ['Active'];
+    }
+
+    if (typeof rawStatuses === 'string') {
+        const normalized = rawStatuses
+            .split(',')
+            .map((status) => status.trim())
+            .filter(Boolean);
+
+        return normalized.length > 0 ? normalized : ['Active'];
+    }
+
+    return ['Active'];
+};
+
+const getDefaultSoldDateRange = () => {
+    const end = new Date();
+    const start = new Date();
+    start.setDate(start.getDate() - 90);
+
+    return {
+        minCloseDate: start.toISOString().split('T')[0],
+        maxCloseDate: end.toISOString().split('T')[0],
+    };
+};
+
+const normalizeFiltersForApply = (rawFilters) => {
+    const normalized = {
+        ...EMPTY_FILTERS,
+        ...rawFilters,
+        statuses: normalizeStatuses(rawFilters?.statuses),
+    };
+
+    if (!normalized.statuses.includes('Closed')) {
+        normalized.minCloseDate = '';
+        normalized.maxCloseDate = '';
+        return normalized;
+    }
+
+    if (!normalized.minCloseDate && !normalized.maxCloseDate) {
+        const defaultRange = getDefaultSoldDateRange();
+        normalized.minCloseDate = defaultRange.minCloseDate;
+        normalized.maxCloseDate = defaultRange.maxCloseDate;
+    }
+
+    return normalized;
+};
+
+const areAreaNameListsEqual = (left = [], right = []) =>
+    left.length === right.length && left.every((value, index) => value === right[index]);
 
 const serializeFiltersToParams = (f) => {
     const params = {};
@@ -93,14 +144,46 @@ const deserializeFiltersFromParams = (query) => ({
     maxGarageSpaces: query.maxGarageSpaces || '',
     singleStory: query.singleStory === 'true',
     hasPool: query.hasPool === 'true',
-    includeSeniorCommunities: query.seniors === 'true',
+    includeSeniorCommunities: query.seniors === 'true' || query.includeSeniorCommunities === 'true',
     singleFamily: query.singleFamily === 'true',
     townHomes: query.townHomes === 'true',
     condos: query.condos === 'true',
-    statuses: query.statuses ? query.statuses.split(',') : ['Active'],
+    statuses: normalizeStatuses(query.statuses),
     minCloseDate: query.minCloseDate || '',
     maxCloseDate: query.maxCloseDate || '',
 });
+
+const buildSearchQuery = (filters, areaNames = []) => {
+    const query = serializeFiltersToParams(filters);
+
+    if (areaNames.length === 1) {
+        query.area = areaNames[0];
+    } else if (areaNames.length > 1) {
+        query.area = areaNames;
+    }
+
+    return query;
+};
+
+const getAreaNamesFromQuery = (query) => {
+    if (!query?.area) return [];
+    return Array.isArray(query.area) ? query.area : [query.area];
+};
+
+const areSearchQueriesEqual = (leftQuery, rightQuery) => {
+    const normalizeQuery = (query) => ({
+        filters: serializeFiltersToParams(deserializeFiltersFromParams(query)),
+        areas: getAreaNamesFromQuery(query),
+    });
+
+    const left = normalizeQuery(leftQuery);
+    const right = normalizeQuery(rightQuery);
+
+    return (
+        JSON.stringify(left.filters) === JSON.stringify(right.filters)
+        && JSON.stringify(left.areas) === JSON.stringify(right.areas)
+    );
+};
 
 const PropertySearchPage = ({ areaParams }) => {
     const router = useRouter();
@@ -159,7 +242,8 @@ const PropertySearchPage = ({ areaParams }) => {
     // ── Initialize filters from URL params ──
     useEffect(() => {
         if (!router.isReady || filtersInitialized) return;
-        const hasFilterParams = Object.keys(router.query).some((k) => FILTER_KEYS.includes(k));
+
+        const hasFilterParams = Object.keys(router.query).some((key) => key !== 'area');
         if (hasFilterParams) {
             const parsed = deserializeFiltersFromParams(router.query);
             setFilters(parsed);
@@ -169,20 +253,10 @@ const PropertySearchPage = ({ areaParams }) => {
     }, [router.isReady, router.query, filtersInitialized]);
 
     // ── Sync applied filters to URL ──
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => {
-        if (!router.isReady || !filtersInitialized) return;
-        const filterParams = serializeFiltersToParams(appliedFilters);
-        const currentQuery = { ...router.query };
-        FILTER_KEYS.forEach((k) => delete currentQuery[k]);
-        const newQuery = { ...currentQuery, ...filterParams };
-        router.replace({ pathname: router.pathname, query: newQuery }, undefined, { shallow: true });
-    }, [appliedFilters, filtersInitialized]);
-
     // ── Look up IrgAreas from URL params ──
     useEffect(() => {
         if (!areaParams || areaParams.length === 0) {
-            setActiveAreas([]);
+            setActiveAreas((prev) => (prev.length === 0 ? prev : []));
             return;
         }
         if (!irgAreas) return;
@@ -200,11 +274,20 @@ const PropertySearchPage = ({ areaParams }) => {
             )
             .filter(Boolean);
         if (found.length > 0) {
-            setActiveAreas(found);
+            setActiveAreas((prev) => (
+                areAreaNameListsEqual(
+                    prev.map((area) => area.search_name),
+                    found.map((area) => area.search_name)
+                )
+                    ? prev
+                    : found
+            ));
             // Mutual exclusivity: clear polygon
             setDrawnPolygon(null);
             setDrawnPolygonGeoJSON(null);
             setIsDrawing(false);
+        } else {
+            setActiveAreas((prev) => (prev.length === 0 ? prev : []));
         }
     }, [areaParams, irgAreas]);
 
@@ -285,33 +368,10 @@ const PropertySearchPage = ({ areaParams }) => {
 
     // ── Block saving when non-Active statuses selected ──
     const isSaveSearchBlocked = useMemo(() => {
-        return filters.statuses.some((s) => s !== 'Active');
-    }, [filters.statuses]);
+        return appliedFilters.statuses.some((s) => s !== 'Active');
+    }, [appliedFilters.statuses]);
 
     // ── Auto-fill close date when Sold selected ──
-    const soldSelected = filters.statuses.includes('Closed');
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => {
-        if (soldSelected && !filters.minCloseDate && !filters.maxCloseDate) {
-            const end = new Date();
-            const start = new Date();
-            start.setDate(start.getDate() - 90);
-            setFilters((prev) => ({
-                ...prev,
-                minCloseDate: start.toISOString().split('T')[0],
-                maxCloseDate: end.toISOString().split('T')[0],
-            }));
-        }
-        if (!soldSelected) {
-            setFilters((prev) => ({
-                ...prev,
-                minCloseDate: '',
-                maxCloseDate: '',
-            }));
-        }
-    }, [soldSelected]);
-
     // ── Fetch properties when bounds or filters change ──
     useEffect(() => {
         if (!mapBounds || !isLoggedIn || drawnPolygonGeoJSON || isDrawing || activeAreas.length > 0) return;
@@ -495,9 +555,27 @@ const PropertySearchPage = ({ areaParams }) => {
         setFilters((prev) => ({ ...prev, [field]: value }));
     }, []);
 
+    const syncCommittedSearchToUrl = useCallback((nextFilters, nextAreas = activeAreas) => {
+        const nextQuery = buildSearchQuery(
+            nextFilters,
+            nextAreas.map((area) => area.search_name)
+        );
+
+        if (areSearchQueriesEqual(router.query, nextQuery)) return;
+
+        router.replace(
+            { pathname: router.pathname, query: nextQuery },
+            undefined,
+            { shallow: true }
+        );
+    }, [router, activeAreas]);
+
     const handleSearch = useCallback(() => {
-        setAppliedFilters({ ...filters });
-    }, [filters]);
+        const normalized = normalizeFiltersForApply(filters);
+        setFilters(normalized);
+        setAppliedFilters(normalized);
+        syncCommittedSearchToUrl(normalized);
+    }, [filters, syncCommittedSearchToUrl]);
 
     const handleReset = useCallback(() => {
         setFilters(EMPTY_FILTERS);
@@ -510,11 +588,12 @@ const PropertySearchPage = ({ areaParams }) => {
     }, [router]);
 
     const handleApplyMoreFilters = useCallback((moreFilters) => {
-        const merged = { ...filters, ...moreFilters };
+        const merged = normalizeFiltersForApply({ ...filters, ...moreFilters });
         setFilters(merged);
         setAppliedFilters(merged);
         setMoreFiltersOpen(false);
-    }, [filters]);
+        syncCommittedSearchToUrl(merged);
+    }, [filters, syncCommittedSearchToUrl]);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const handleBoundsChange = useCallback(
@@ -565,15 +644,20 @@ const PropertySearchPage = ({ areaParams }) => {
     const handleRemoveArea = useCallback((searchName) => {
         setActiveAreas((prev) => {
             const next = prev.filter((a) => a.search_name !== searchName);
-            if (next.length === 0) {
-                router.replace('/search', undefined, { shallow: true });
-            } else {
-                const params = next.map((a) => `area=${encodeURIComponent(a.search_name)}`).join('&');
-                router.replace(`/search?${params}`, undefined, { shallow: true });
-            }
+            router.replace(
+                {
+                    pathname: router.pathname,
+                    query: buildSearchQuery(
+                        appliedFilters,
+                        next.map((area) => area.search_name)
+                    ),
+                },
+                undefined,
+                { shallow: true }
+            );
             return next;
         });
-    }, [router]);
+    }, [router, appliedFilters]);
 
     const handleToggleDrawing = useCallback(() => {
         if (isDrawing) {
@@ -584,10 +668,17 @@ const PropertySearchPage = ({ areaParams }) => {
             setIsDrawing(true);
             if (activeAreas.length > 0) {
                 setActiveAreas([]);
-                router.replace('/search', undefined, { shallow: true });
+                router.replace(
+                    {
+                        pathname: router.pathname,
+                        query: buildSearchQuery(appliedFilters, []),
+                    },
+                    undefined,
+                    { shallow: true }
+                );
             }
         }
-    }, [isDrawing, activeAreas, router]);
+    }, [isDrawing, activeAreas, router, appliedFilters]);
 
     const handlePolygonComplete = useCallback((gmPolygon) => {
         const path = extractPathFromGMPolygon(gmPolygon);
@@ -598,9 +689,16 @@ const PropertySearchPage = ({ areaParams }) => {
         setIsDrawing(false);
         if (activeAreas.length > 0) {
             setActiveAreas([]);
-            router.replace('/search', undefined, { shallow: true });
+            router.replace(
+                {
+                    pathname: router.pathname,
+                    query: buildSearchQuery(appliedFilters, []),
+                },
+                undefined,
+                { shallow: true }
+            );
         }
-    }, [activeAreas, router]);
+    }, [activeAreas, router, appliedFilters]);
 
     const handleClearPolygon = useCallback(() => {
         setDrawnPolygon(null);
