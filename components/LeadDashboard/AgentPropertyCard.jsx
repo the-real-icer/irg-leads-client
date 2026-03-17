@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import NoteIconWithPreview from './NoteIconWithPreview';
 import { usePropertyFallbackImage } from '../../utils/propertyImageFallback';
@@ -54,6 +55,7 @@ const AgentPropertyCard = ({ delivery, onOpenNotes, onShowingAction, leadId, isL
     const imageUrl = ikUrl(getCleanImageUrl(property)) || fallbackImage;
     const unitSuffix = property.unit_number ? ` #${property.unit_number}` : '';
     const address = `${property.address}${unitSuffix}, ${property.city}, CA ${property.zip_code}`;
+    const propertyUrl = property.property_url ? `/property/${property.property_url}` : null;
     const reaction = delivery.reaction;
     const reactionInfo = reaction ? reactionConfig[reaction] : null;
     const showing = delivery.showing_request;
@@ -62,17 +64,33 @@ const AgentPropertyCard = ({ delivery, onOpenNotes, onShowingAction, leadId, isL
         <div className={`agent-card ${reaction === 'discard' ? 'agent-card--discarded' : ''}`}>
             {/* Image */}
             <div className="agent-card__image-wrapper">
-                <img
-                    src={imageUrl}
-                    alt={address}
-                    className="agent-card__image"
-                    loading="lazy"
-                    onError={(e) => {
-                        if (e.currentTarget.src !== fallbackImage) {
-                            e.currentTarget.src = fallbackImage;
-                        }
-                    }}
-                />
+                {propertyUrl ? (
+                    <Link href={propertyUrl} style={{ display: 'block' }}>
+                        <img
+                            src={imageUrl}
+                            alt={address}
+                            className="agent-card__image"
+                            loading="lazy"
+                            onError={(e) => {
+                                if (e.currentTarget.src !== fallbackImage) {
+                                    e.currentTarget.src = fallbackImage;
+                                }
+                            }}
+                        />
+                    </Link>
+                ) : (
+                    <img
+                        src={imageUrl}
+                        alt={address}
+                        className="agent-card__image"
+                        loading="lazy"
+                        onError={(e) => {
+                            if (e.currentTarget.src !== fallbackImage) {
+                                e.currentTarget.src = fallbackImage;
+                            }
+                        }}
+                    />
+                )}
                 {/* Channel badge */}
                 <span className="agent-card__channel">
                     {channelLabels[delivery.channel] || delivery.channel}
@@ -89,7 +107,11 @@ const AgentPropertyCard = ({ delivery, onOpenNotes, onShowingAction, leadId, isL
 
             {/* Info */}
             <div className="agent-card__info">
-                <div className="agent-card__address">{address}</div>
+                {propertyUrl ? (
+                    <Link href={propertyUrl} className="agent-card__address" style={{ textDecoration: 'none', color: 'inherit' }}>{address}</Link>
+                ) : (
+                    <div className="agent-card__address">{address}</div>
+                )}
                 <div className="agent-card__price">{property.price}</div>
                 <div className="agent-card__details">
                     {property.bedrooms} Bed, {property.bathrooms} Bath, {property.sqft} SqFt
