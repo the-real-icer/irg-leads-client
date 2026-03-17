@@ -39,6 +39,7 @@ const Address = () => {
 
     // ________________Component State_________________\\
     const [property, setProperty] = useState(null);
+    const [refetchTrigger, setRefetchTrigger] = useState(0);
 
     const toastProperty = useRef(null);
 
@@ -70,7 +71,18 @@ const Address = () => {
             }
         };
         getProperty();
-    }, [address, isLoggedIn]);
+    }, [address, isLoggedIn, refetchTrigger]);
+
+    // Re-fetch when a background tab becomes visible (Chrome throttles background tabs)
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible' && !property) {
+                setRefetchTrigger((prev) => prev + 1);
+            }
+        };
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    }, [property]);
 
     return (
         <MainLayout>
