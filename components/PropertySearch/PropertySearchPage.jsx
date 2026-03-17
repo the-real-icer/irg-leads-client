@@ -191,6 +191,8 @@ const PropertySearchPage = ({ areaParams }) => {
     // ── Redux ──
     const isLoggedIn = useSelector((state) => state.isLoggedIn);
     const irgAreas = useSelector((state) => state.irgAreas);
+    const agent = useSelector((state) => state.agent);
+    const isAdmin = agent?.role === 'admin';
 
     // ── Google Maps loader ──
     const { isLoaded } = useGoogleMaps();
@@ -220,6 +222,9 @@ const PropertySearchPage = ({ areaParams }) => {
     const [moreFiltersOpen, setMoreFiltersOpen] = useState(false);
     const [saveSearchOpen, setSaveSearchOpen] = useState(false);
     const [filtersInitialized, setFiltersInitialized] = useState(false);
+
+    // Sort state (admin only)
+    const [sortOrder, setSortOrder] = useState('desc');
 
     // Drawing state
     const [isDrawing, setIsDrawing] = useState(false);
@@ -372,6 +377,17 @@ const PropertySearchPage = ({ areaParams }) => {
     }, [appliedFilters.statuses]);
 
     // ── Auto-fill close date when Sold selected ──
+    // ── Sorted properties (admin only, client-side) ──
+    const sortedProperties = useMemo(() => {
+        if (!properties?.length) return [];
+        if (!isAdmin) return properties;
+        return [...properties].sort((a, b) => {
+            const dateA = new Date(a.date_created || 0);
+            const dateB = new Date(b.date_created || 0);
+            return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
+        });
+    }, [properties, sortOrder, isAdmin]);
+
     // ── Fetch properties when bounds or filters change ──
     useEffect(() => {
         if (!mapBounds || !isLoggedIn || drawnPolygonGeoJSON || isDrawing || activeAreas.length > 0) return;
@@ -821,7 +837,19 @@ const PropertySearchPage = ({ areaParams }) => {
                 {/* List panel */}
                 <div className="property-search__list-panel">
                     <div className="property-search__list-header">
-                        {loading ? 'Searching...' : `${properties.length} Properties Found`}
+                        <span>{loading ? 'Searching...' : `${sortedProperties.length} Properties Found`}</span>
+                        {isAdmin && sortedProperties.length > 0 && (
+                            <button
+                                type="button"
+                                className="ps-toolbar__btn ps-toolbar__btn--secondary"
+                                style={{ marginLeft: 'auto', padding: '4px 10px', fontSize: '12px' }}
+                                onClick={() => setSortOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'))}
+                                title={sortOrder === 'desc' ? 'Newest First' : 'Oldest First'}
+                            >
+                                <i className={sortOrder === 'desc' ? 'pi pi-sort-amount-down' : 'pi pi-sort-amount-up'} style={{ marginRight: '4px' }} />
+                                {sortOrder === 'desc' ? 'Newest' : 'Oldest'}
+                            </button>
+                        )}
                     </div>
                     <div className="property-search__list-scroll" ref={listScrollRef}>
                         {loading ? (
@@ -829,7 +857,7 @@ const PropertySearchPage = ({ areaParams }) => {
                             Array.from({ length: 6 }).map((_, i) => (
                                 <div key={i} className="ps-skeleton ps-skeleton__card" />
                             ))
-                        ) : properties.length === 0 ? (
+                        ) : sortedProperties.length === 0 ? (
                             <div className="property-search__empty">
                                 <i className="pi pi-search" />
                                 <p>No properties found in this area.</p>
@@ -837,7 +865,7 @@ const PropertySearchPage = ({ areaParams }) => {
                             </div>
                         ) : (
                             <>
-                                {properties.slice(0, visibleCount).map((p) => (
+                                {sortedProperties.slice(0, visibleCount).map((p) => (
                                     <div
                                         key={p._id}
                                         ref={(el) => { cardRefs.current[p._id] = el; }}
@@ -857,7 +885,7 @@ const PropertySearchPage = ({ areaParams }) => {
                                         )}
                                     </div>
                                 ))}
-                                {visibleCount < properties.length && (
+                                {visibleCount < sortedProperties.length && (
                                     <div ref={sentinelRef} style={{ height: 1 }} />
                                 )}
                             </>
