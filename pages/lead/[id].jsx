@@ -252,7 +252,7 @@ const Lead = () => {
         fetchLead();
 
         return () => setLead({});
-    }, [router.isReady, leadId]); // eslint-disable-line
+    }, [router.isReady, leadId, isLoggedIn]); // eslint-disable-line
 
     useEffect(() => {
         if (lead?.co_buyers) setCoBuyers(lead.co_buyers);
