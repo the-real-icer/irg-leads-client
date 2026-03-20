@@ -155,6 +155,7 @@ const TrafficDashboard = () => {
                                             <th style={thStyle}>Pages Viewed</th>
                                             <th style={thStyle}>Source</th>
                                             <th style={thStyle}>Device</th>
+                                            <th style={thStyle}>Location</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -236,6 +237,13 @@ const TrafficDashboard = () => {
                                                         style={{ fontSize: '0.875rem', color: 'hsl(var(--foreground-muted))' }}
                                                         title={session.device_type}
                                                     ></i>
+                                                </td>
+                                                <td style={tdStyle}>
+                                                    <span style={{ fontSize: '0.8125rem', color: 'hsl(var(--foreground))' }}>
+                                                        {session.visitor_location?.city
+                                                            ? `${session.visitor_location.city}, ${session.visitor_location.region}`
+                                                            : '—'}
+                                                    </span>
                                                 </td>
                                             </tr>
                                         ))}
@@ -355,6 +363,36 @@ const TrafficDashboard = () => {
                                         </div>
                                     ) : (
                                         <p style={emptyTextStyle}>No device data yet</p>
+                                    )}
+                                </div>
+
+                                {/* Top Locations */}
+                                <div>
+                                    <div style={sectionHeaderStyle}>Top Locations</div>
+                                    {(internalStats.topLocations || []).length > 0 ? (
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                                            {internalStats.topLocations.map((loc, i) => (
+                                                <div
+                                                    key={`${loc._id?.city}-${loc._id?.region}-${i}`}
+                                                    style={{
+                                                        display: 'flex',
+                                                        justifyContent: 'space-between',
+                                                        padding: '0.375rem 0.5rem',
+                                                        borderRadius: '4px',
+                                                        background: i % 2 === 0 ? 'hsl(var(--muted))' : 'transparent',
+                                                    }}
+                                                >
+                                                    <span style={{ fontSize: '0.8125rem', color: 'hsl(var(--foreground))' }}>
+                                                        {loc._id?.city}{loc._id?.region ? `, ${loc._id.region}` : ''}
+                                                    </span>
+                                                    <span style={{ fontSize: '0.8125rem', fontWeight: '600', color: 'hsl(var(--foreground))' }}>
+                                                        {loc.count}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <p style={emptyTextStyle}>No location data yet</p>
                                     )}
                                 </div>
                             </div>
