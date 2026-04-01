@@ -345,12 +345,12 @@ const TransactionsDashboard = () => {
                         <h1 style={{
                             fontSize: '2rem',
                             fontWeight: '700',
-                            color: '#2c3e50',
+                            color: 'hsl(var(--foreground))',
                             marginBottom: '0.5rem',
                         }}>
                             Transactions Dashboard
                         </h1>
-                        <p style={{ color: '#6c757d', fontSize: '0.95rem' }}>
+                        <p style={{ color: 'hsl(var(--muted-foreground))', fontSize: '0.95rem' }}>
                             Track your transactions, sales volume, and commissions
                         </p>
                     </div>
@@ -414,7 +414,7 @@ const TransactionsDashboard = () => {
                 {activeTab === 'my' && (
                     <>
                         {loading ? (
-                            <div style={{ textAlign: 'center', padding: '3rem', color: '#6c757d' }}>
+                            <div style={{ textAlign: 'center', padding: '3rem', color: 'hsl(var(--muted-foreground))' }}>
                                 <i className="pi pi-spin pi-spinner" style={{ fontSize: '2rem' }}></i>
                                 <p style={{ marginTop: '1rem' }}>Loading dashboard...</p>
                             </div>
@@ -427,7 +427,7 @@ const TransactionsDashboard = () => {
                             borderRadius: '12px',
                         }}>
                             {transactions.length === 0 ? (
-                                <div style={{ textAlign: 'center', padding: '3rem', color: '#6c757d' }}>
+                                <div style={{ textAlign: 'center', padding: '3rem', color: 'hsl(var(--muted-foreground))' }}>
                                     <i className="pi pi-inbox" style={{ fontSize: '3rem', marginBottom: '1rem', display: 'block' }}></i>
                                     <p style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>No transactions yet</p>
                                     <p style={{ fontSize: '0.9rem' }}>Click &quot;Add New Transaction&quot; to create your first one</p>
@@ -445,8 +445,8 @@ const TransactionsDashboard = () => {
                                                 key={transaction._id}
                                                 style={{
                                                     padding: '1.25rem',
-                                                    background: 'white',
-                                                    border: '1px solid #dee2e6',
+                                                    background: 'hsl(var(--card))',
+                                                    border: '1px solid hsl(var(--border))',
                                                     borderRadius: '8px',
                                                     cursor: 'pointer',
                                                     transition: 'all 0.2s ease',
@@ -470,10 +470,10 @@ const TransactionsDashboard = () => {
                                                     </div>
                                                 )}
 
-                                                <div style={{ fontWeight: '700', fontSize: '1.1rem', color: '#2c3e50', marginBottom: '0.5rem' }}>
+                                                <div style={{ fontWeight: '700', fontSize: '1.1rem', color: 'hsl(var(--foreground))', marginBottom: '0.5rem' }}>
                                                     {transaction.address}
                                                 </div>
-                                                <div style={{ color: '#6c757d', fontSize: '0.9rem', marginBottom: '1rem' }}>
+                                                <div style={{ color: 'hsl(var(--muted-foreground))', fontSize: '0.9rem', marginBottom: '1rem' }}>
                                                     {transaction.city}, {transaction.state} {transaction.zipCode}
                                                 </div>
 
@@ -492,35 +492,35 @@ const TransactionsDashboard = () => {
 
                                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.9rem' }}>
                                                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                                        <span style={{ color: '#6c757d' }}>Sales Price:</span>
-                                                        <span style={{ fontWeight: '600', color: '#2c3e50' }}>
+                                                        <span style={{ color: 'hsl(var(--muted-foreground))' }}>Sales Price:</span>
+                                                        <span style={{ fontWeight: '600', color: 'hsl(var(--foreground))' }}>
                                                             {formatCurrency(transaction.salesPrice)}
                                                         </span>
                                                     </div>
                                                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                                        <span style={{ color: '#6c757d' }}>Est. Commission:</span>
-                                                        <span style={{ fontWeight: '600', color: '#4CAF50' }}>
+                                                        <span style={{ color: 'hsl(var(--muted-foreground))' }}>Est. Commission:</span>
+                                                        <span style={{ fontWeight: '600', color: 'hsl(var(--success))' }}>
                                                             {formatCurrency(transaction.estimatedAgentCommission)}
                                                         </span>
                                                     </div>
                                                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                                        <span style={{ color: '#6c757d' }}>Acceptance Date:</span>
-                                                        <span style={{ color: '#2c3e50' }}>
+                                                        <span style={{ color: 'hsl(var(--muted-foreground))' }}>Acceptance Date:</span>
+                                                        <span style={{ color: 'hsl(var(--foreground))' }}>
                                                             {formatDate(transaction.acceptanceDate)}
                                                         </span>
                                                     </div>
                                                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                                        <span style={{ color: '#6c757d' }}>
+                                                        <span style={{ color: 'hsl(var(--muted-foreground))' }}>
                                                             {transaction.actualClosingDate ? 'Closed:' : 'Expected Close:'}
                                                         </span>
-                                                        <span style={{ color: '#2c3e50' }}>
+                                                        <span style={{ color: 'hsl(var(--foreground))' }}>
                                                             {formatDate(transaction.actualClosingDate || transaction.anticipatedClosingDate)}
                                                         </span>
                                                     </div>
                                                     {transaction.property && (
-                                                        <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '0.5rem', borderTop: '1px solid #dee2e6', marginTop: '0.5rem' }}>
-                                                            <span style={{ color: '#6c757d' }}>MLS#:</span>
-                                                            <span style={{ color: '#2c3e50', fontFamily: 'monospace' }}>
+                                                        <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '0.5rem', borderTop: '1px solid hsl(var(--border))', marginTop: '0.5rem' }}>
+                                                            <span style={{ color: 'hsl(var(--muted-foreground))' }}>MLS#:</span>
+                                                            <span style={{ color: 'hsl(var(--foreground))', fontFamily: 'monospace' }}>
                                                                 {transaction.property.mls_number}
                                                             </span>
                                                         </div>
