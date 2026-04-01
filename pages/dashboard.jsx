@@ -1,5 +1,5 @@
 // React & NextJS
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/router';
 import { useSelector } from 'react-redux';
 import dynamic from 'next/dynamic';
@@ -69,6 +69,13 @@ const Dashboard = () => {
     const [upcomingDatesLoading, setUpcomingDatesLoading] = useState(true);
     const [recentAgentLogins, setRecentAgentLogins] = useState([]);
     const [recentAgentLoginsLoading, setRecentAgentLoginsLoading] = useState(true);
+
+    // ── Admin tab state ──────────────────────────────────────────
+    const [activeTab, setActiveTab] = useState('my');
+    const [brokerageStats, setBrokerageStats] = useState(null);
+    const [brokerageUpcomingDates, setBrokerageUpcomingDates] = useState([]);
+    const [brokerageLoading, setBrokerageLoading] = useState(false);
+    const brokerageFetched = useRef(false);
 
     // Sort leads by last visit date (most recent first)
     const sortedLeads = [...allLeads].sort((a, b) => {
@@ -162,9 +169,84 @@ const Dashboard = () => {
         return () => clearInterval(interval);
     }, [fetchActiveLeads, fetchTxMetrics, fetchUpcomingDates, fetchRecentAgentLogins]);
 
+    // ── Fetch brokerage data on first tab switch only ────────────
+    useEffect(() => {
+        if (activeTab !== 'brokerage' || !isAdmin || !isLoggedIn || brokerageFetched.current) return;
+        brokerageFetched.current = true;
+
+        const fetchBrokerageData = async () => {
+            setBrokerageLoading(true);
+            try {
+                const headers = { Authorization: `Bearer ${isLoggedIn}` };
+                const [statsRes, datesRes] = await Promise.all([
+                    IrgApi.get('/transactions/brokerage-dashboard-stats', { headers }),
+                    IrgApi.get('/transactions/brokerage-upcoming-dates', { headers }),
+                ]);
+                if (statsRes.data.status === 'success') setBrokerageStats(statsRes.data.data);
+                if (datesRes.data.status === 'success') setBrokerageUpcomingDates(datesRes.data.data);
+            } catch {
+                // silent fail
+            } finally {
+                setBrokerageLoading(false);
+            }
+        };
+        fetchBrokerageData();
+    }, [activeTab, isAdmin, isLoggedIn]);
+
     return (
         <MainLayout>
             <div className="dashboard-page" style={{ padding: '1.5rem' }}>
+                {/* ── Tab Bar (admin only) ──────────────────────────── */}
+                {isAdmin && (
+                    <div style={{
+                        display: 'flex',
+                        gap: '0',
+                        marginBottom: '1.5rem',
+                        borderBottom: '2px solid hsl(var(--border))',
+                    }}>
+                        <button
+                            type="button"
+                            onClick={() => setActiveTab('my')}
+                            style={{
+                                padding: '0.75rem 1.5rem',
+                                fontSize: '0.95rem',
+                                fontWeight: activeTab === 'my' ? '600' : '400',
+                                color: activeTab === 'my' ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
+                                background: 'none',
+                                border: 'none',
+                                borderBottom: activeTab === 'my' ? '2px solid hsl(var(--primary))' : '2px solid transparent',
+                                marginBottom: '-2px',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease',
+                            }}
+                        >
+                            My Production
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setActiveTab('brokerage')}
+                            style={{
+                                padding: '0.75rem 1.5rem',
+                                fontSize: '0.95rem',
+                                fontWeight: activeTab === 'brokerage' ? '600' : '400',
+                                color: activeTab === 'brokerage' ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
+                                background: 'none',
+                                border: 'none',
+                                borderBottom: activeTab === 'brokerage' ? '2px solid hsl(var(--primary))' : '2px solid transparent',
+                                marginBottom: '-2px',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease',
+                            }}
+                        >
+                            Brokerage
+                        </button>
+                    </div>
+                )}
+
+                {/* ══════════════════════════════════════════════════
+                    TAB 1 — MY PRODUCTION
+                    ══════════════════════════════════════════════════ */}
+                {activeTab === 'my' && (<>
                 {/* Top Section - Two Boxes Side by Side */}
                 <div className="grid-cols-1 md:grid-cols-2" style={{ display: 'grid', gap: '1.5rem', marginBottom: '1.5rem' }}>
                     {/* Top Left - My Production */}
@@ -580,6 +662,112 @@ const Dashboard = () => {
 
                 {/* Bottom Section - Hotsheet */}
                 <DashboardHotsheet />
+                </>)}
+
+                {/* ══════════════════════════════════════════════════
+                    TAB 2 — BROKERAGE (admin only)
+                    ══════════════════════════════════════════════════ */}
+                {activeTab === 'brokerage' && isAdmin && (
+                    <>
+                        {brokerageLoading ? (
+                            <div style={{ textAlign: 'center', padding: '3rem', color: 'hsl(var(--muted-foreground))' }}>
+                                <i className="pi pi-spin pi-spinner" style={{ fontSize: '2rem' }}></i>
+                                <p style={{ marginTop: '1rem' }}>Loading brokerage data...</p>
+                            </div>
+                        ) : (
+                            <>
+                                {/* Brokerage Production Stats */}
+                                <Card title="Brokerage Production" style={{ marginBottom: '1.5rem' }}>
+                                    {brokerageStats ? (
+                                        <div>
+                                            <div className="production-grid">
+                                                <ProductionCard icon="🏠" value={brokerageStats.closedCountYTD ?? 0} label="YTD Closed Transactions" format="number" />
+                                                <ProductionCard icon="💰" value={brokerageStats.closedVolumeYTD} label="YTD Closed Volume" format="currency" />
+                                                <ProductionCard icon="📋" value={brokerageStats.currentTransactions ?? 0} label="Transactions In Escrow" format="number" />
+                                                <ProductionCard icon="📊" value={brokerageStats.escrowVolume} label="Volume In Escrow" format="currency" />
+                                                <ProductionCard icon="✅" value={brokerageStats.earnedCommissionsYTD} label="Commissions Earned YTD" format="currency" />
+                                                <ProductionCard icon="⏳" value={brokerageStats.pendingCommissions} label="Commissions In Escrow" format="currency" />
+                                            </div>
+
+                                            {/* Brokerage Upcoming Dates */}
+                                            <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid hsl(var(--border))' }}>
+                                                <div style={{
+                                                    fontSize: '0.875rem',
+                                                    fontWeight: '600',
+                                                    color: 'hsl(var(--foreground))',
+                                                    marginBottom: '0.5rem',
+                                                }}>
+                                                    Upcoming Important Dates — All Agents
+                                                </div>
+                                                {brokerageUpcomingDates.length === 0 ? (
+                                                    <div style={{ padding: '1.25rem', textAlign: 'center', color: 'hsl(var(--muted-foreground))' }}>
+                                                        <i className="pi pi-calendar" style={{ fontSize: '1.5rem', display: 'block', marginBottom: '0.5rem', opacity: 0.4 }} />
+                                                        <span style={{ fontSize: '0.85rem' }}>No upcoming dates</span>
+                                                    </div>
+                                                ) : (
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                                        {brokerageUpcomingDates.map((entry, idx) => {
+                                                            const urgency = getDateUrgency(entry.date);
+                                                            return (
+                                                                <div
+                                                                    key={`${entry.transactionId}-${entry.dateType}-${idx}`}
+                                                                    style={{
+                                                                        padding: '0.625rem 0.75rem',
+                                                                        background: urgency.bg,
+                                                                        borderRadius: '6px',
+                                                                        border: `1px solid ${urgency.border}`,
+                                                                    }}
+                                                                >
+                                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem' }}>
+                                                                        <div style={{ fontSize: '0.85rem', fontWeight: '600', color: urgency.textColor }}>
+                                                                            {entry.dateType}
+                                                                            {urgency.badge && (
+                                                                                <span style={{
+                                                                                    marginLeft: '0.5rem',
+                                                                                    padding: '0.1rem 0.4rem',
+                                                                                    borderRadius: '4px',
+                                                                                    fontSize: '0.7rem',
+                                                                                    fontWeight: '700',
+                                                                                    background: urgency.badgeBg,
+                                                                                    color: urgency.badgeColor,
+                                                                                }}>
+                                                                                    {urgency.badge}
+                                                                                </span>
+                                                                            )}
+                                                                        </div>
+                                                                        <span style={{ fontSize: '0.8rem', fontWeight: '500', color: urgency.dateColor, whiteSpace: 'nowrap' }}>
+                                                                            {urgency.label}
+                                                                        </span>
+                                                                    </div>
+                                                                    <button
+                                                                        type="button"
+                                                                        style={{ fontSize: '0.8rem', color: 'hsl(var(--muted-foreground))', marginTop: '0.2rem', cursor: 'pointer', background: 'none', border: 'none', padding: 0, textAlign: 'left' }}
+                                                                        onClick={() => router.push(`/transactions/edit/${entry.transactionId}`)}
+                                                                        onMouseEnter={(e) => { e.currentTarget.style.textDecoration = 'underline'; }}
+                                                                        onMouseLeave={(e) => { e.currentTarget.style.textDecoration = 'none'; }}
+                                                                    >
+                                                                        {entry.address}
+                                                                    </button>
+                                                                    <div style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))', marginTop: '0.1rem' }}>
+                                                                        {entry.agentName}
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div style={{ padding: '2rem', textAlign: 'center', color: 'hsl(var(--muted-foreground))' }}>
+                                            No brokerage data available
+                                        </div>
+                                    )}
+                                </Card>
+                            </>
+                        )}
+                    </>
+                )}
             </div>
         </MainLayout>
     );

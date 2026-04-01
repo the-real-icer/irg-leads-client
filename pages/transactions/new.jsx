@@ -190,6 +190,10 @@ const Transactions = () => {
     // ── Referral fee percentage (separate from transactionInfo) ──
     const [referralFeePercentage, setReferralFeePercentage] = useState('');
 
+    // ── Agent assignment (admin only) ───────────────────────────
+    const [selectedAgentId, setSelectedAgentId] = useState(null);
+    const [agentsList, setAgentsList] = useState([]);
+
     // ── Inline validation errors ───────────────────────────────
     const [escrowLengthError, setEscrowLengthError] = useState('');
 
@@ -229,6 +233,25 @@ const Transactions = () => {
             })
             .slice(0, 5);
     }, [allLeads]);
+
+    // ── Fetch agents list (admin only) ──────────────────────────
+    useEffect(() => {
+        if (!isLoggedIn || !agent || agent.role !== 'admin') return;
+        const fetchAgents = async () => {
+            try {
+                const response = await IrgApi.get('/agents/all-agents', {
+                    headers: { Authorization: `Bearer ${isLoggedIn}` },
+                });
+                if (response.data.status === 'success') {
+                    setAgentsList(response.data.data);
+                    setSelectedAgentId(agent._id); // default to current agent
+                }
+            } catch (err) {
+                // silent fail — form still works with current agent
+            }
+        };
+        fetchAgents();
+    }, [isLoggedIn, agent]);
 
     // ══════════════════════════════════════════════════════════════
     // HANDLERS — Property Search
@@ -448,6 +471,11 @@ const Transactions = () => {
 
     const handleSubmit = async () => {
         // Validation
+        if (agent?.role === 'admin' && !selectedAgentId) {
+            showToast('error', 'Please select an agent for this transaction', 'Validation Error');
+            return;
+        }
+
         if (!selectedProperty) {
             showToast('error', 'Please select a property', 'Validation Error');
             return;
@@ -533,7 +561,7 @@ const Transactions = () => {
             })),
             sellerLead: sellerLeadId,
             doubleEnded: isDoubleEnded,
-            agent: agent._id,
+            agent: selectedAgentId || agent._id,
             status: 'Pending',
             inspectionContingencyDate: contingencies.inspection ? contingencyDates.inspectionDue : undefined,
             appraisalContingencyDate: contingencies.appraisal ? contingencyDates.appraisalDue : undefined,
@@ -820,6 +848,21 @@ const Transactions = () => {
                     ════════════════════════════════════════════════════ */}
                 <div className="txn-new__card">
                     <h2 className="txn-new__card-title">Transaction Information</h2>
+
+                    {/* Agent Assignment (admin only) */}
+                    {agent?.role === 'admin' && agentsList.length > 0 && (
+                        <div className="txn-new__field" style={{ marginBottom: '1.5rem' }}>
+                            <label className="txn-new__label" htmlFor="agent-select">Assign to Agent *</label>
+                            <Dropdown
+                                id="agent-select"
+                                value={selectedAgentId}
+                                options={agentsList.map((a) => ({ label: a.name, value: a._id }))}
+                                onChange={(e) => setSelectedAgentId(e.value)}
+                                placeholder="Select an agent"
+                                style={{ width: '100%' }}
+                            />
+                        </div>
+                    )}
 
                     {/* Representation Selector */}
                     <div className="txn-new__field" style={{ marginBottom: '1.5rem' }}>
