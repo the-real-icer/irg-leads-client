@@ -263,7 +263,8 @@ const TransactionsDashboard = () => {
         if (!brokerageTransactions.length) return [];
         const sorted = [...brokerageTransactions];
         sorted.sort((a, b) => {
-            let aVal, bVal;
+            let aVal;
+            let bVal;
             switch (sortConfig.key) {
                 case 'agent':
                     aVal = a.agent?.name || '';
