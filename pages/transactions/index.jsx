@@ -369,7 +369,7 @@ const TransactionsDashboard = () => {
                         display: 'flex',
                         gap: '0',
                         marginBottom: '2rem',
-                        borderBottom: '2px solid #dee2e6',
+                        borderBottom: '2px solid hsl(var(--border))',
                     }}>
                         <button
                             onClick={() => setActiveTab('my')}
@@ -377,10 +377,10 @@ const TransactionsDashboard = () => {
                                 padding: '0.75rem 1.5rem',
                                 fontSize: '0.95rem',
                                 fontWeight: activeTab === 'my' ? '600' : '400',
-                                color: activeTab === 'my' ? '#667eea' : '#6c757d',
+                                color: activeTab === 'my' ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
                                 background: 'none',
                                 border: 'none',
-                                borderBottom: activeTab === 'my' ? '2px solid #667eea' : '2px solid transparent',
+                                borderBottom: activeTab === 'my' ? '2px solid hsl(var(--primary))' : '2px solid transparent',
                                 marginBottom: '-2px',
                                 cursor: 'pointer',
                                 transition: 'all 0.2s ease',
@@ -394,10 +394,10 @@ const TransactionsDashboard = () => {
                                 padding: '0.75rem 1.5rem',
                                 fontSize: '0.95rem',
                                 fontWeight: activeTab === 'brokerage' ? '600' : '400',
-                                color: activeTab === 'brokerage' ? '#667eea' : '#6c757d',
+                                color: activeTab === 'brokerage' ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
                                 background: 'none',
                                 border: 'none',
-                                borderBottom: activeTab === 'brokerage' ? '2px solid #667eea' : '2px solid transparent',
+                                borderBottom: activeTab === 'brokerage' ? '2px solid hsl(var(--primary))' : '2px solid transparent',
                                 marginBottom: '-2px',
                                 cursor: 'pointer',
                                 transition: 'all 0.2s ease',
@@ -556,7 +556,7 @@ const TransactionsDashboard = () => {
                 {activeTab === 'brokerage' && isAdmin && (
                     <>
                         {brokerageLoading ? (
-                            <div style={{ textAlign: 'center', padding: '3rem', color: '#6c757d' }}>
+                            <div style={{ textAlign: 'center', padding: '3rem', color: 'hsl(var(--muted-foreground))' }}>
                                 <i className="pi pi-spin pi-spinner" style={{ fontSize: '2rem' }}></i>
                                 <p style={{ marginTop: '1rem' }}>Loading brokerage data...</p>
                             </div>
@@ -573,11 +573,11 @@ const TransactionsDashboard = () => {
                                     gap: '0.5rem',
                                     marginBottom: '1.5rem',
                                     padding: '1rem',
-                                    background: '#f8f9fa',
+                                    background: 'hsl(var(--card))',
                                     borderRadius: '8px',
-                                    border: '1px solid #dee2e6',
+                                    border: '1px solid hsl(var(--border))',
                                 }}>
-                                    <span style={{ fontSize: '0.875rem', fontWeight: '600', color: '#2c3e50', marginRight: '0.5rem' }}>
+                                    <span style={{ fontSize: '0.875rem', fontWeight: '600', color: 'hsl(var(--foreground))', marginRight: '0.5rem' }}>
                                         Date Range:
                                     </span>
                                     {[
@@ -593,9 +593,9 @@ const TransactionsDashboard = () => {
                                                 padding: '0.4rem 0.9rem',
                                                 fontSize: '0.85rem',
                                                 fontWeight: datePreset === preset.key ? '600' : '400',
-                                                color: datePreset === preset.key ? 'white' : '#2c3e50',
-                                                backgroundColor: datePreset === preset.key ? '#667eea' : 'white',
-                                                border: '1px solid ' + (datePreset === preset.key ? '#667eea' : '#dee2e6'),
+                                                color: datePreset === preset.key ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))',
+                                                backgroundColor: datePreset === preset.key ? 'hsl(var(--primary))' : 'hsl(var(--background))',
+                                                border: '1px solid ' + (datePreset === preset.key ? 'hsl(var(--primary))' : 'hsl(var(--border))'),
                                                 borderRadius: '6px',
                                                 cursor: 'pointer',
                                                 transition: 'all 0.15s ease',
@@ -614,12 +614,13 @@ const TransactionsDashboard = () => {
                                                 style={{
                                                     padding: '0.4rem 0.6rem',
                                                     fontSize: '0.85rem',
-                                                    border: '1px solid #dee2e6',
+                                                    border: '1px solid hsl(var(--border))',
                                                     borderRadius: '6px',
-                                                    color: '#2c3e50',
+                                                    color: 'hsl(var(--foreground))',
+                                                    background: 'hsl(var(--background))',
                                                 }}
                                             />
-                                            <span style={{ color: '#6c757d', fontSize: '0.85rem' }}>to</span>
+                                            <span style={{ color: 'hsl(var(--muted-foreground))', fontSize: '0.85rem' }}>to</span>
                                             <input
                                                 type="date"
                                                 value={customEndDate}
@@ -627,9 +628,10 @@ const TransactionsDashboard = () => {
                                                 style={{
                                                     padding: '0.4rem 0.6rem',
                                                     fontSize: '0.85rem',
-                                                    border: '1px solid #dee2e6',
+                                                    border: '1px solid hsl(var(--border))',
                                                     borderRadius: '6px',
-                                                    color: '#2c3e50',
+                                                    color: 'hsl(var(--foreground))',
+                                                    background: 'hsl(var(--background))',
                                                 }}
                                             />
                                         </>
@@ -649,10 +651,10 @@ const TransactionsDashboard = () => {
                                             style={{
                                                 padding: '0.5rem 0.75rem',
                                                 fontSize: '0.9rem',
-                                                border: '1px solid #dee2e6',
+                                                border: '1px solid hsl(var(--border))',
                                                 borderRadius: '6px',
-                                                color: '#2c3e50',
-                                                background: 'white',
+                                                color: 'hsl(var(--foreground))',
+                                                background: 'hsl(var(--background))',
                                                 minWidth: '220px',
                                             }}
                                         >
@@ -665,7 +667,7 @@ const TransactionsDashboard = () => {
 
                                     {/* Transactions Table */}
                                     {sortedBrokerageTransactions.length === 0 ? (
-                                        <div style={{ textAlign: 'center', padding: '3rem', color: '#6c757d' }}>
+                                        <div style={{ textAlign: 'center', padding: '3rem', color: 'hsl(var(--muted-foreground))' }}>
                                             <i className="pi pi-inbox" style={{ fontSize: '3rem', marginBottom: '1rem', display: 'block' }}></i>
                                             <p style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>No transactions found</p>
                                             <p style={{ fontSize: '0.9rem' }}>Adjust your filters to see results</p>
@@ -678,7 +680,7 @@ const TransactionsDashboard = () => {
                                                 fontSize: '0.9rem',
                                             }}>
                                                 <thead>
-                                                    <tr style={{ borderBottom: '2px solid #dee2e6' }}>
+                                                    <tr style={{ borderBottom: '2px solid hsl(var(--border))' }}>
                                                         {[
                                                             { key: 'agent', label: 'Agent' },
                                                             { key: 'address', label: 'Property Address' },
@@ -695,7 +697,7 @@ const TransactionsDashboard = () => {
                                                                 style={{
                                                                     padding: '0.75rem',
                                                                     textAlign: 'left',
-                                                                    color: '#2c3e50',
+                                                                    color: 'hsl(var(--foreground))',
                                                                     fontWeight: '600',
                                                                     cursor: 'pointer',
                                                                     userSelect: 'none',
@@ -705,7 +707,7 @@ const TransactionsDashboard = () => {
                                                                 {col.label}{getSortIndicator(col.key)}
                                                             </th>
                                                         ))}
-                                                        <th style={{ padding: '0.75rem', textAlign: 'left', color: '#2c3e50', fontWeight: '600' }}>
+                                                        <th style={{ padding: '0.75rem', textAlign: 'left', color: 'hsl(var(--foreground))', fontWeight: '600' }}>
                                                             Actions
                                                         </th>
                                                     </tr>
@@ -714,18 +716,18 @@ const TransactionsDashboard = () => {
                                                     {sortedBrokerageTransactions.map((txn) => (
                                                         <tr
                                                             key={txn._id}
-                                                            style={{ borderBottom: '1px solid #dee2e6' }}
+                                                            style={{ borderBottom: '1px solid hsl(var(--border))' }}
                                                             onMouseEnter={(e) => {
-                                                                e.currentTarget.style.backgroundColor = '#f8f9fa';
+                                                                e.currentTarget.style.backgroundColor = 'hsl(var(--accent))';
                                                             }}
                                                             onMouseLeave={(e) => {
                                                                 e.currentTarget.style.backgroundColor = 'transparent';
                                                             }}
                                                         >
-                                                            <td style={{ padding: '0.75rem', color: '#2c3e50' }}>
+                                                            <td style={{ padding: '0.75rem', color: 'hsl(var(--foreground))' }}>
                                                                 {txn.agent?.name || 'N/A'}
                                                             </td>
-                                                            <td style={{ padding: '0.75rem', color: '#2c3e50', fontWeight: '500' }}>
+                                                            <td style={{ padding: '0.75rem', color: 'hsl(var(--foreground))', fontWeight: '500' }}>
                                                                 {txn.address || 'N/A'}
                                                             </td>
                                                             <td style={{ padding: '0.75rem' }}>
@@ -741,19 +743,19 @@ const TransactionsDashboard = () => {
                                                                     {txn.status}
                                                                 </span>
                                                             </td>
-                                                            <td style={{ padding: '0.75rem', color: '#2c3e50', fontWeight: '600' }}>
+                                                            <td style={{ padding: '0.75rem', color: 'hsl(var(--foreground))', fontWeight: '600' }}>
                                                                 {formatCurrency(txn.salesPrice)}
                                                             </td>
-                                                            <td style={{ padding: '0.75rem', color: '#4CAF50', fontWeight: '600' }}>
+                                                            <td style={{ padding: '0.75rem', color: 'hsl(var(--success))', fontWeight: '600' }}>
                                                                 {formatCurrency(txn.agent_net_commission)}
                                                             </td>
-                                                            <td style={{ padding: '0.75rem', color: '#2c3e50', fontWeight: '600' }}>
+                                                            <td style={{ padding: '0.75rem', color: 'hsl(var(--foreground))', fontWeight: '600' }}>
                                                                 {formatCurrency(getBrokerageCommission(txn))}
                                                             </td>
-                                                            <td style={{ padding: '0.75rem', color: '#2c3e50' }}>
+                                                            <td style={{ padding: '0.75rem', color: 'hsl(var(--foreground))' }}>
                                                                 {formatDate(txn.acceptanceDate)}
                                                             </td>
-                                                            <td style={{ padding: '0.75rem', color: '#2c3e50' }}>
+                                                            <td style={{ padding: '0.75rem', color: 'hsl(var(--foreground))' }}>
                                                                 {formatDate(txn.actualClosingDate || txn.anticipatedClosingDate)}
                                                             </td>
                                                             <td style={{ padding: '0.75rem' }}>
@@ -769,21 +771,21 @@ const TransactionsDashboard = () => {
                                                     ))}
                                                     {/* Totals Row */}
                                                     <tr style={{
-                                                        borderTop: '2px solid #dee2e6',
+                                                        borderTop: '2px solid hsl(var(--border))',
                                                         background: 'hsl(var(--muted))',
                                                     }}>
-                                                        <td style={{ padding: '0.75rem', fontWeight: '700', color: '#2c3e50' }}>
+                                                        <td style={{ padding: '0.75rem', fontWeight: '700', color: 'hsl(var(--foreground))' }}>
                                                             Totals
                                                         </td>
                                                         <td style={{ padding: '0.75rem' }} />
                                                         <td style={{ padding: '0.75rem' }} />
-                                                        <td style={{ padding: '0.75rem', fontWeight: '700', color: '#2c3e50' }}>
+                                                        <td style={{ padding: '0.75rem', fontWeight: '700', color: 'hsl(var(--foreground))' }}>
                                                             {formatCurrency(brokerageTransactions.reduce((sum, t) => sum + (t.salesPrice || 0), 0))}
                                                         </td>
-                                                        <td style={{ padding: '0.75rem', fontWeight: '700', color: '#4CAF50' }}>
+                                                        <td style={{ padding: '0.75rem', fontWeight: '700', color: 'hsl(var(--success))' }}>
                                                             {formatCurrency(brokerageTransactions.reduce((sum, t) => sum + (t.agent_net_commission || 0), 0))}
                                                         </td>
-                                                        <td style={{ padding: '0.75rem', fontWeight: '700', color: '#2c3e50' }}>
+                                                        <td style={{ padding: '0.75rem', fontWeight: '700', color: 'hsl(var(--foreground))' }}>
                                                             {formatCurrency(brokerageTransactions.reduce((sum, t) => sum + getBrokerageCommission(t), 0))}
                                                         </td>
                                                         <td style={{ padding: '0.75rem' }} />
