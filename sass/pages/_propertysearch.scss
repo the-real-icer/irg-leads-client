@@ -308,6 +308,26 @@
     }
 }
 
+// Hidden by default — shown only in portrait tablet via media query
+.ps-toolbar__filter-toggle {
+    display: none;
+    align-items: center;
+    padding: 0.375rem 0.875rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    background: hsl(var(--surface));
+    color: hsl(var(--foreground));
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+
+    &:hover {
+        background: hsl(var(--accent));
+        border-color: hsl(var(--primary) / 0.3);
+    }
+}
+
 .ps-toolbar__save-wrap {
     position: relative;
     display: inline-flex;
@@ -1295,15 +1315,46 @@
     }
 }
 
-// Tablet (768px — 1024px): stacked layout, single column cards
-@media (max-width: 1024px) {
+// Tablet (768px — 1279px): side-by-side, map ~60%, cards ~40% single column
+// Portrait orientation overrides this below with stacked layout
+@media (min-width: 768px) and (max-width: 1279px) {
+    .property-search__list-panel {
+        width: 340px;
+        flex-shrink: 0;
+    }
+
+    .property-search__map-panel {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .property-search__list-scroll {
+        grid-template-columns: 1fr;
+    }
+}
+
+// Under 1200px: condensed toolbar (Filters button replaces individual inputs)
+// Covers tablet portrait, tablet landscape, and narrow desktop
+@media (max-width: 1199px) {
+    // Hide desktop filter inputs + dividers + More Filters, keep action buttons
+    .ps-toolbar__group,
+    .property-search__toolbar > .ps-toolbar__divider,
+    .ps-toolbar__btn--more-filters {
+        display: none;
+    }
+
+    // Show the portrait "Filters" button
+    .ps-toolbar__filter-toggle {
+        display: inline-flex;
+    }
+
     .property-search__body {
         flex-direction: column;
     }
 
     .property-search__map-panel {
         flex: none;
-        height: 300px;
+        height: 45vh;
     }
 
     .property-search__list-panel {
@@ -1314,7 +1365,7 @@
     }
 
     .property-search__list-scroll {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 

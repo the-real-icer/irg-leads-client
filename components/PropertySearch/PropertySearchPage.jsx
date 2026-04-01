@@ -775,6 +775,7 @@ const PropertySearchPage = ({ areaParams }) => {
                 hasActiveFilters={hasActiveFilters}
                 onOpenSaveSearch={() => setSaveSearchOpen(true)}
                 isSaveSearchBlocked={isSaveSearchBlocked}
+                onOpenFilterDrawer={() => setMobileFilterOpen(true)}
             />
 
             {/* Area pills */}

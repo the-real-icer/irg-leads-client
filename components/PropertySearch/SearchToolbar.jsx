@@ -13,7 +13,7 @@ const formatCommas = (val) => {
     return parseInt(digits, 10).toLocaleString('en-US');
 };
 
-const SearchToolbar = ({ filters, onFilterChange, onSearch, onReset, isDrawing, onToggleDrawing, moreFiltersCount, onOpenMoreFilters, hasActiveFilters, onOpenSaveSearch, isSaveSearchBlocked }) => {
+const SearchToolbar = ({ filters, onFilterChange, onSearch, onReset, isDrawing, onToggleDrawing, moreFiltersCount, onOpenMoreFilters, hasActiveFilters, onOpenSaveSearch, isSaveSearchBlocked, onOpenFilterDrawer }) => {
     // ── Status dropdown state ──
     const [statusOpen, setStatusOpen] = useState(false);
     const statusRef = useRef(null);
@@ -73,6 +73,16 @@ const SearchToolbar = ({ filters, onFilterChange, onSearch, onReset, isDrawing, 
 
     return (
         <div className="property-search__toolbar">
+            {/* Portrait tablet: condensed Filters button (hidden on desktop/landscape) */}
+            <button
+                className="ps-toolbar__filter-toggle"
+                onClick={onOpenFilterDrawer}
+                type="button"
+            >
+                <i className="pi pi-sliders-h" style={{ marginRight: '0.375rem' }} />
+                Filters
+            </button>
+
             {/* Price */}
             <div className="ps-toolbar__group">
                 <span className="ps-toolbar__label">Price</span>
@@ -171,26 +181,6 @@ const SearchToolbar = ({ filters, onFilterChange, onSearch, onReset, isDrawing, 
 
             <div className="ps-toolbar__divider" />
 
-            {/* Save Search */}
-            <div className="ps-toolbar__save-wrap">
-                <button
-                    className={`ps-toolbar__btn ps-toolbar__btn--save-search${saveDisabled ? ' ps-toolbar__btn--disabled' : ''}`}
-                    onClick={saveDisabled ? undefined : onOpenSaveSearch}
-                    type="button"
-                    disabled={saveDisabled}
-                >
-                    <i className="pi pi-bookmark" style={{ marginRight: '0.375rem' }} />
-                    Save Search
-                </button>
-                {isSaveSearchBlocked && (
-                    <div className="ps-toolbar__save-tooltip">
-                        Only Active listings can be saved
-                    </div>
-                )}
-            </div>
-
-            <div className="ps-toolbar__divider" />
-
             {/* More Filters */}
             <button
                 className={`ps-toolbar__btn ps-toolbar__btn--more-filters${moreFiltersCount > 0 ? ' ps-toolbar__btn--more-filters-active' : ''}`}
@@ -201,17 +191,19 @@ const SearchToolbar = ({ filters, onFilterChange, onSearch, onReset, isDrawing, 
                 More Filters{moreFiltersCount > 0 ? ` (${moreFiltersCount})` : ''}
             </button>
 
+            {/* Draw Area */}
+            <button
+                className={`ps-toolbar__btn ps-toolbar__btn--draw${isDrawing ? ' ps-toolbar__btn--draw-active' : ''}`}
+                onClick={onToggleDrawing}
+                type="button"
+                title={isDrawing ? 'Cancel drawing' : 'Draw a custom search area'}
+            >
+                <i className="pi pi-pencil" style={{ marginRight: '0.375rem' }} />
+                {isDrawing ? 'Cancel' : 'Draw Area'}
+            </button>
+
             {/* Actions */}
             <div className="ps-toolbar__actions">
-                <button
-                    className={`ps-toolbar__btn ps-toolbar__btn--draw${isDrawing ? ' ps-toolbar__btn--draw-active' : ''}`}
-                    onClick={onToggleDrawing}
-                    type="button"
-                    title={isDrawing ? 'Cancel drawing' : 'Draw a custom search area'}
-                >
-                    <i className="pi pi-pencil" style={{ marginRight: '0.375rem' }} />
-                    {isDrawing ? 'Cancel' : 'Draw Area'}
-                </button>
                 <button
                     className="ps-toolbar__btn ps-toolbar__btn--primary"
                     onClick={onSearch}
@@ -226,6 +218,26 @@ const SearchToolbar = ({ filters, onFilterChange, onSearch, onReset, isDrawing, 
                 >
                     Reset
                 </button>
+
+                <div className="ps-toolbar__divider" />
+
+                {/* Save Search */}
+                <div className="ps-toolbar__save-wrap">
+                    <button
+                        className={`ps-toolbar__btn ps-toolbar__btn--save-search${saveDisabled ? ' ps-toolbar__btn--disabled' : ''}`}
+                        onClick={saveDisabled ? undefined : onOpenSaveSearch}
+                        type="button"
+                        disabled={saveDisabled}
+                    >
+                        <i className="pi pi-bookmark" style={{ marginRight: '0.375rem' }} />
+                        Save Search
+                    </button>
+                    {isSaveSearchBlocked && (
+                        <div className="ps-toolbar__save-tooltip">
+                            Only Active listings can be saved
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );
