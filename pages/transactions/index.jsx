@@ -156,6 +156,17 @@ const TransactionsDashboard = () => {
     const [transactions, setTransactions] = useState([]);
     const [loading, setLoading] = useState(true);
 
+    // ── Brokerage commission display logic ─────────────────────────
+    // Show agent_net_commission for the logged-in agent's own transactions,
+    // brokerage_net_commission for other agents' transactions
+    const getBrokerageCommission = (transaction) => {
+        if (transaction.agent?._id === agent?._id ||
+            transaction.agent === agent?._id) {
+            return transaction.agent_net_commission || 0;
+        }
+        return transaction.brokerage_net_commission || 0;
+    };
+
     // ── Brokerage tab state ──────────────────────────────────────
     const [brokerageStats, setBrokerageStats] = useState(null);
     const [brokerageTransactions, setBrokerageTransactions] = useState([]);
@@ -282,9 +293,13 @@ const TransactionsDashboard = () => {
                     aVal = a.salesPrice || 0;
                     bVal = b.salesPrice || 0;
                     break;
-                case 'estimatedAgentCommission':
-                    aVal = a.estimatedAgentCommission || 0;
-                    bVal = b.estimatedAgentCommission || 0;
+                case 'agent_net_commission':
+                    aVal = a.agent_net_commission || 0;
+                    bVal = b.agent_net_commission || 0;
+                    break;
+                case 'brokerage_net_commission':
+                    aVal = a.brokerage_net_commission || 0;
+                    bVal = b.brokerage_net_commission || 0;
                     break;
                 case 'acceptanceDate':
                     aVal = a.acceptanceDate ? new Date(a.acceptanceDate) : new Date(0);
@@ -669,7 +684,8 @@ const TransactionsDashboard = () => {
                                                             { key: 'address', label: 'Property Address' },
                                                             { key: 'status', label: 'Status' },
                                                             { key: 'salesPrice', label: 'Sales Price' },
-                                                            { key: 'estimatedAgentCommission', label: 'Est. Agent Commission' },
+                                                            { key: 'agent_net_commission', label: 'Est. Agent Commission' },
+                                                            { key: 'brokerage_net_commission', label: 'Est. Brokerage Commission' },
                                                             { key: 'acceptanceDate', label: 'Acceptance Date' },
                                                             { key: 'expectedClose', label: 'Expected Close' },
                                                         ].map((col) => (
@@ -729,7 +745,10 @@ const TransactionsDashboard = () => {
                                                                 {formatCurrency(txn.salesPrice)}
                                                             </td>
                                                             <td style={{ padding: '0.75rem', color: '#4CAF50', fontWeight: '600' }}>
-                                                                {formatCurrency(txn.estimatedAgentCommission)}
+                                                                {formatCurrency(txn.agent_net_commission)}
+                                                            </td>
+                                                            <td style={{ padding: '0.75rem', color: '#2c3e50', fontWeight: '600' }}>
+                                                                {formatCurrency(getBrokerageCommission(txn))}
                                                             </td>
                                                             <td style={{ padding: '0.75rem', color: '#2c3e50' }}>
                                                                 {formatDate(txn.acceptanceDate)}
@@ -748,6 +767,29 @@ const TransactionsDashboard = () => {
                                                             </td>
                                                         </tr>
                                                     ))}
+                                                    {/* Totals Row */}
+                                                    <tr style={{
+                                                        borderTop: '2px solid #dee2e6',
+                                                        background: 'hsl(var(--muted))',
+                                                    }}>
+                                                        <td style={{ padding: '0.75rem', fontWeight: '700', color: '#2c3e50' }}>
+                                                            Totals
+                                                        </td>
+                                                        <td style={{ padding: '0.75rem' }} />
+                                                        <td style={{ padding: '0.75rem' }} />
+                                                        <td style={{ padding: '0.75rem', fontWeight: '700', color: '#2c3e50' }}>
+                                                            {formatCurrency(brokerageTransactions.reduce((sum, t) => sum + (t.salesPrice || 0), 0))}
+                                                        </td>
+                                                        <td style={{ padding: '0.75rem', fontWeight: '700', color: '#4CAF50' }}>
+                                                            {formatCurrency(brokerageTransactions.reduce((sum, t) => sum + (t.agent_net_commission || 0), 0))}
+                                                        </td>
+                                                        <td style={{ padding: '0.75rem', fontWeight: '700', color: '#2c3e50' }}>
+                                                            {formatCurrency(brokerageTransactions.reduce((sum, t) => sum + getBrokerageCommission(t), 0))}
+                                                        </td>
+                                                        <td style={{ padding: '0.75rem' }} />
+                                                        <td style={{ padding: '0.75rem' }} />
+                                                        <td style={{ padding: '0.75rem' }} />
+                                                    </tr>
                                                 </tbody>
                                             </table>
                                         </div>
