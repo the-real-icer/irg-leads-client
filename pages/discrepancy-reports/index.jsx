@@ -40,7 +40,11 @@ const COLUMNS = [
     { key: 'on_market_date', label: 'On Market' },
     { key: 'modification_timestamp', label: 'Last Modified' },
     { key: 'reason', label: 'Reason' },
+    { key: 'copy', label: '' },
 ];
+
+const DATE_KEYS = new Set(['on_market_date', 'modification_timestamp']);
+const NON_SORT_KEYS = new Set(['image_url', 'copy']);
 
 const REASON_FILTERS = [
     { key: 'all', label: 'All' },
@@ -71,6 +75,7 @@ const DiscrepancyReports = () => {
         direction: 'desc',
     });
     const [reasonFilter, setReasonFilter] = useState('all');
+    const [copiedId, setCopiedId] = useState(null);
 
     // ── Redirect non-admin ──────────────────────────────────────
     useEffect(() => {
@@ -156,18 +161,30 @@ const DiscrepancyReports = () => {
             );
         }
 
+        const { key: sortKey, direction } = sortConfig;
         items.sort((a, b) => {
-            const aVal = a[sortConfig.key];
-            const bVal = b[sortConfig.key];
+            let aVal;
+            let bVal;
+
+            if (DATE_KEYS.has(sortKey)) {
+                aVal = a[sortKey] ? new Date(a[sortKey]).getTime() : 0;
+                bVal = b[sortKey] ? new Date(b[sortKey]).getTime() : 0;
+            } else if (typeof a[sortKey] === 'number' || typeof b[sortKey] === 'number') {
+                aVal = a[sortKey] ?? 0;
+                bVal = b[sortKey] ?? 0;
+            } else {
+                aVal = a[sortKey];
+                bVal = b[sortKey];
+            }
+
             if (aVal == null && bVal == null) return 0;
             if (aVal == null) return 1;
             if (bVal == null) return -1;
             if (typeof aVal === 'number' && typeof bVal === 'number') {
-                return sortConfig.direction === 'asc'
-                    ? aVal - bVal : bVal - aVal;
+                return direction === 'asc' ? aVal - bVal : bVal - aVal;
             }
             const cmp = String(aVal).localeCompare(String(bVal));
-            return sortConfig.direction === 'asc' ? cmp : -cmp;
+            return direction === 'asc' ? cmp : -cmp;
         });
 
         return items;
@@ -315,30 +332,50 @@ const DiscrepancyReports = () => {
                             <table className="w-full border-collapse text-[14px]">
                                 <thead>
                                     <tr className="border-b-2 border-border bg-surface">
-                                        {COLUMNS.map((col) => (
-                                            <th
-                                                key={col.key}
-                                                onClick={col.key !== 'image_url'
-                                                    ? () => handleSort(col.key) : undefined}
-                                                className={[
-                                                    'px-[12px] py-[10px] text-left text-foreground',
-                                                    'font-semibold select-none whitespace-nowrap',
-                                                    col.key !== 'image_url'
-                                                        ? 'cursor-pointer hover:text-primary' : '',
-                                                ].join(' ')}
-                                            >
-                                                {col.label}
-                                                {col.key !== 'image_url' && getSortIndicator(col.key)}
-                                            </th>
-                                        ))}
+                                        {COLUMNS.map((col) => {
+                                            const sortable = !NON_SORT_KEYS.has(col.key);
+                                            return (
+                                                <th
+                                                    key={col.key}
+                                                    onClick={sortable
+                                                        ? () => handleSort(col.key) : undefined}
+                                                    className={[
+                                                        'px-[12px] py-[10px] text-left',
+                                                        'text-foreground font-semibold',
+                                                        'select-none whitespace-nowrap',
+                                                        sortable
+                                                            ? 'cursor-pointer hover:text-primary' : '',
+                                                    ].join(' ')}
+                                                >
+                                                    {col.label}
+                                                    {sortable && getSortIndicator(col.key)}
+                                                </th>
+                                            );
+                                        })}
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {filteredDiscrepancies.map((d, i) => (
                                         <tr
                                             key={d.mls_number || i}
-                                            onClick={() => d.property_url
-                                                && router.push(`/property/${d.property_url}`)}
+                                            onClick={() => {
+                                                if (d.property_url) {
+                                                    window.open(
+                                                        `/property/${d.property_url}`,
+                                                        '_blank',
+                                                        'noopener,noreferrer',
+                                                    );
+                                                }
+                                            }}
+                                            onAuxClick={(e) => {
+                                                if (e.button === 1 && d.property_url) {
+                                                    window.open(
+                                                        `/property/${d.property_url}`,
+                                                        '_blank',
+                                                        'noopener,noreferrer',
+                                                    );
+                                                }
+                                            }}
                                             className={[
                                                 'border-b border-border',
                                                 'hover:bg-accent transition-colors',
@@ -408,6 +445,30 @@ const DiscrepancyReports = () => {
                                                     ? 'text-danger' : 'text-warning',
                                             ].join(' ')}>
                                                 {d.reason}
+                                            </td>
+                                            <td className="px-[8px] py-[10px]">
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        navigator.clipboard.writeText(d.mls_number);
+                                                        setCopiedId(d.mls_number);
+                                                        setTimeout(() => setCopiedId(null), 1500);
+                                                    }}
+                                                    className={[
+                                                        'border rounded-md px-[8px] py-[4px]',
+                                                        'text-[11px] font-medium transition-colors',
+                                                        'cursor-pointer whitespace-nowrap',
+                                                        copiedId === d.mls_number
+                                                            ? 'border-success text-success'
+                                                            : [
+                                                                'border-border text-foreground-muted',
+                                                                'hover:text-foreground hover:bg-accent',
+                                                            ].join(' '),
+                                                    ].join(' ')}
+                                                >
+                                                    {copiedId === d.mls_number
+                                                        ? '\u2713 Copied' : 'Copy'}
+                                                </button>
                                             </td>
                                         </tr>
                                     ))}
