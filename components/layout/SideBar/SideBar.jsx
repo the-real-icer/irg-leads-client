@@ -71,6 +71,11 @@ const SideBar = ({ mobileOpen }) => {
                                 icon="pi pi-database mr-2"
                             />
                             <SideBarLink
+                                name="Discrepancy Reports"
+                                url="/discrepancy-reports"
+                                icon="pi pi-exclamation-triangle mr-2"
+                            />
+                            <SideBarLink
                                 name="Agent Production"
                                 url="/agent-production"
                                 icon="pi pi-id-card mr-2"
