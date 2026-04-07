@@ -178,6 +178,8 @@ const Lead = () => {
     const [editEAlertCondos, setEditEAlertCondos] = useState(false);
     const [editEAlertSyncCoBuyers, setEditEAlertSyncCoBuyers] = useState(false);
     const [showCoBuyerSyncConfirm, setShowCoBuyerSyncConfirm] = useState(false);
+    const [deleteEAlertTarget, setDeleteEAlertTarget] = useState(null);
+    const [showDeleteCoBuyerConfirm, setShowDeleteCoBuyerConfirm] = useState(false);
 
     // Lead Type inline edit state
     const [editingLeadType, setEditingLeadType] = useState(false);
@@ -978,6 +980,8 @@ const Lead = () => {
         setEditEAlertVisible(true);
     };
 
+    const canSyncEAlertHousehold = (alert) => Boolean(alert?.searchId && coBuyers.length > 0);
+
     const executeEAlertSave = async (includeCoBuyers) => {
         try {
             const response = await IrgApi.put(
@@ -1032,20 +1036,23 @@ const Lead = () => {
     };
 
     const handleSaveEAlert = () => {
-        if (coBuyers.length > 0 && !editEAlertSyncCoBuyers) {
+        if (canSyncEAlertHousehold(editEAlertTarget) && !editEAlertSyncCoBuyers) {
             setShowCoBuyerSyncConfirm(true);
             return;
         }
         executeEAlertSave(editEAlertSyncCoBuyers);
     };
 
-    const handleDeleteEAlert = async (alert) => {
+    const executeDeleteEAlert = async (alert, includeCoBuyers) => {
+        if (!alert) return;
+
         try {
             const response = await IrgApi.delete('/users/delete-e-alert', {
                 data: {
                     userId: lead._id,
                     searchId: alert.searchId || undefined,
                     alertId: alert.searchId ? undefined : alert._id,
+                    coBuyerIds: includeCoBuyers && alert.searchId ? coBuyers.map((cb) => cb._id) : [],
                 },
                 headers: { Authorization: `Bearer ${isLoggedIn}` },
             });
@@ -1054,10 +1061,22 @@ const Lead = () => {
                 setLead(updatedLead);
                 dispatch({ type: UPDATE_SINGLE_LEAD, payload: updatedLead });
                 showToast('success', 'E-alert has been deleted', 'E-Alert Deleted');
+                setShowDeleteCoBuyerConfirm(false);
+                setDeleteEAlertTarget(null);
             }
         } catch (error) {
             showToast('error', 'Failed to delete e-alert. Please try again.', 'Error');
         }
+    };
+
+    const handleDeleteEAlert = async (alert) => {
+        if (canSyncEAlertHousehold(alert)) {
+            setDeleteEAlertTarget(alert);
+            setShowDeleteCoBuyerConfirm(true);
+            return;
+        }
+
+        executeDeleteEAlert(alert, false);
     };
 
     const getDripCampaignProgress = (enrollment) => {
@@ -3425,11 +3444,11 @@ const Lead = () => {
                     </div>
 
                     {/* Co-buyer sync option */}
-                    {coBuyers.length > 0 && (
+                    {canSyncEAlertHousehold(editEAlertTarget) && (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0.75rem 1.5rem', borderTop: '1px solid hsl(var(--border))' }}>
                             <input type="checkbox" id="editEAlertSyncCoBuyers" checked={editEAlertSyncCoBuyers} onChange={(e) => setEditEAlertSyncCoBuyers(e.target.checked)} />
                             <label htmlFor="editEAlertSyncCoBuyers" style={{ fontSize: '13px', color: 'hsl(var(--foreground))' }}>
-                                Also update co-buyer{coBuyers.length > 1 ? 's' : ''}: <strong>{coBuyers.map((cb) => `${cb.first_name} ${cb.last_name}`).join(', ')}</strong>
+                                Also update linked co-buyer {coBuyers.length > 1 ? 'copies' : 'copy'} by shared search ID: <strong>{coBuyers.map((cb) => `${cb.first_name} ${cb.last_name}`).join(', ')}</strong>
                             </label>
                         </div>
                     )}
@@ -3445,8 +3464,8 @@ const Lead = () => {
                     draggable={false}
                 >
                     <p style={{ fontSize: '14px', color: 'hsl(var(--foreground))', lineHeight: 1.5, margin: '0 0 1.25rem' }}>
-                        This search is shared with <strong>{coBuyers.map((cb) => `${cb.first_name} ${cb.last_name}`).join(', ')}</strong>.
-                        Would you like to update their saved search too?
+                        This alert can also update linked co-buyer copies that already use the same shared search ID.
+                        Apply this edit to <strong>{coBuyers.map((cb) => `${cb.first_name} ${cb.last_name}`).join(', ')}</strong> too?
                     </p>
                     <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
                         <Button
@@ -3464,6 +3483,44 @@ const Lead = () => {
                             className="p-button-primary"
                             icon="pi pi-users"
                             onClick={() => executeEAlertSave(true)}
+                        />
+                    </div>
+                </Dialog>
+
+                <Dialog
+                    header="Delete Co-Buyers Too?"
+                    visible={showDeleteCoBuyerConfirm}
+                    onHide={() => {
+                        setShowDeleteCoBuyerConfirm(false);
+                        setDeleteEAlertTarget(null);
+                    }}
+                    style={{ width: '420px', maxWidth: '95vw' }}
+                    modal
+                    draggable={false}
+                >
+                    <p style={{ fontSize: '14px', color: 'hsl(var(--foreground))', lineHeight: 1.5, margin: '0 0 1.25rem' }}>
+                        This alert can also be removed from linked co-buyer copies that currently use the same shared search ID.
+                        Delete matching copies for <strong>{coBuyers.map((cb) => `${cb.first_name} ${cb.last_name}`).join(', ')}</strong> too?
+                    </p>
+                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                        <Button
+                            label="Cancel"
+                            className="p-button-text p-button-secondary"
+                            onClick={() => {
+                                setShowDeleteCoBuyerConfirm(false);
+                                setDeleteEAlertTarget(null);
+                            }}
+                        />
+                        <Button
+                            label="Delete Primary Only"
+                            className="p-button-outlined"
+                            onClick={() => executeDeleteEAlert(deleteEAlertTarget, false)}
+                        />
+                        <Button
+                            label="Delete All"
+                            className="p-button-danger"
+                            icon="pi pi-users"
+                            onClick={() => executeDeleteEAlert(deleteEAlertTarget, true)}
                         />
                     </div>
                 </Dialog>

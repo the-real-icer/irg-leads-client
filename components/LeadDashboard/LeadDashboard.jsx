@@ -115,7 +115,6 @@ const LeadDashboard = ({ leadId, isLoggedIn }) => {
         setSendVisible(false);
         fetchDeliveries(1, activeFilter);
         fetchSummary();
-        showToast('success', 'Property sent to lead', 'Success');
     };
 
     const statCards = [
