@@ -31,6 +31,7 @@ const formatNumber = (n) => {
 
 // ── Column config for property table ─────────────────────────────
 const COLUMNS = [
+    { key: 'image_url', label: '' },
     { key: 'mls_number', label: 'MLS #' },
     { key: 'address', label: 'Address' },
     { key: 'city', label: 'City' },
@@ -317,14 +318,17 @@ const DiscrepancyReports = () => {
                                         {COLUMNS.map((col) => (
                                             <th
                                                 key={col.key}
-                                                onClick={() => handleSort(col.key)}
+                                                onClick={col.key !== 'image_url'
+                                                    ? () => handleSort(col.key) : undefined}
                                                 className={[
                                                     'px-[12px] py-[10px] text-left text-foreground',
-                                                    'font-semibold cursor-pointer select-none',
-                                                    'whitespace-nowrap hover:text-primary',
+                                                    'font-semibold select-none whitespace-nowrap',
+                                                    col.key !== 'image_url'
+                                                        ? 'cursor-pointer hover:text-primary' : '',
                                                 ].join(' ')}
                                             >
-                                                {col.label}{getSortIndicator(col.key)}
+                                                {col.label}
+                                                {col.key !== 'image_url' && getSortIndicator(col.key)}
                                             </th>
                                         ))}
                                     </tr>
@@ -333,8 +337,31 @@ const DiscrepancyReports = () => {
                                     {filteredDiscrepancies.map((d, i) => (
                                         <tr
                                             key={d.mls_number || i}
-                                            className="border-b border-border hover:bg-accent transition-colors"
+                                            onClick={() => d.property_url
+                                                && router.push(`/property/${d.property_url}`)}
+                                            className={[
+                                                'border-b border-border',
+                                                'hover:bg-accent transition-colors',
+                                                d.property_url ? 'cursor-pointer' : '',
+                                            ].join(' ')}
                                         >
+                                            <td className="px-[12px] py-[8px]">
+                                                {d.image_url ? (
+                                                    <img
+                                                        src={d.image_url}
+                                                        alt={d.address}
+                                                        className={[
+                                                            'w-[80px] h-[55px]',
+                                                            'object-cover rounded-[4px]',
+                                                        ].join(' ')}
+                                                    />
+                                                ) : (
+                                                    <div className={[
+                                                        'w-[80px] h-[55px]',
+                                                        'bg-muted rounded-[4px]',
+                                                    ].join(' ')} />
+                                                )}
+                                            </td>
                                             <td className={[
                                                 'px-[12px] py-[10px] font-medium',
                                                 'text-foreground whitespace-nowrap',
@@ -344,23 +371,39 @@ const DiscrepancyReports = () => {
                                             <td className="px-[12px] py-[10px] text-foreground">
                                                 {d.address}
                                             </td>
-                                            <td className="px-[12px] py-[10px] text-foreground whitespace-nowrap">
+                                            <td className={[
+                                                'px-[12px] py-[10px]',
+                                                'text-foreground whitespace-nowrap',
+                                            ].join(' ')}>
                                                 {d.city}
                                             </td>
-                                            <td className="px-[12px] py-[10px] text-foreground whitespace-nowrap">
+                                            <td className={[
+                                                'px-[12px] py-[10px]',
+                                                'text-foreground whitespace-nowrap',
+                                            ].join(' ')}>
                                                 {d.price}
                                             </td>
-                                            <td className="px-[12px] py-[10px] text-foreground text-center">
+                                            <td className={[
+                                                'px-[12px] py-[10px]',
+                                                'text-foreground text-center',
+                                            ].join(' ')}>
                                                 {d.days_on_market ?? 'N/A'}
                                             </td>
-                                            <td className="px-[12px] py-[10px] text-foreground whitespace-nowrap">
+                                            <td className={[
+                                                'px-[12px] py-[10px]',
+                                                'text-foreground whitespace-nowrap',
+                                            ].join(' ')}>
                                                 {formatDate(d.on_market_date)}
                                             </td>
-                                            <td className="px-[12px] py-[10px] text-foreground whitespace-nowrap">
+                                            <td className={[
+                                                'px-[12px] py-[10px]',
+                                                'text-foreground whitespace-nowrap',
+                                            ].join(' ')}>
                                                 {formatDate(d.modification_timestamp)}
                                             </td>
                                             <td className={[
-                                                'px-[12px] py-[10px] font-medium whitespace-nowrap',
+                                                'px-[12px] py-[10px]',
+                                                'font-medium whitespace-nowrap',
                                                 d.reason === 'Update failed during sync'
                                                     ? 'text-danger' : 'text-warning',
                                             ].join(' ')}>
