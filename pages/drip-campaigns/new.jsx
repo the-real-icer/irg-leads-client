@@ -203,7 +203,7 @@ const NewDripCampaign = () => {
         campaignInfo.name.trim() && campaignInfo.type && campaignInfo.timeframe;
 
     return (
-        <MainLayout>
+        <MainLayout title="New Campaign">
             <div style={{ padding: '2rem', maxWidth: '900px', margin: '0 auto' }}>
                 {/* Header */}
                 <div style={{ marginBottom: '2rem' }}>

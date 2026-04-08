@@ -309,7 +309,7 @@ const IrgAreas = () => {
     };
 
     return (
-        <MainLayout>
+        <MainLayout title="IRG Areas">
             {/* Add Area Dialog */}
             <Dialog
                 header="Add New IRG Area"

@@ -1227,9 +1227,13 @@ const Lead = () => {
         }
     };
 
+    const pageTitle = lead?.first_name
+        ? `${lead.first_name} ${lead.last_name || ''}`.trim()
+        : 'Lead';
+
     if (leadLoading && !lead?.first_name) {
         return (
-            <MainLayout>
+            <MainLayout title="Lead">
                 <div className="lead-profile-page" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
                     <i className="pi pi-spin pi-spinner" style={{ fontSize: '2rem' }} />
                 </div>
@@ -1239,7 +1243,7 @@ const Lead = () => {
 
     if (leadNotFound) {
         return (
-            <MainLayout>
+            <MainLayout title="Lead Not Found">
                 <div className="lead-profile-page" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '50vh', gap: '1rem' }}>
                     <i className="pi pi-user-minus" style={{ fontSize: '3rem', color: 'hsl(var(--foreground-muted))' }} />
                     <h2 style={{ margin: 0, color: 'hsl(var(--foreground))' }}>Lead Not Found</h2>
@@ -1261,7 +1265,7 @@ const Lead = () => {
     }
 
     return (
-        <MainLayout>
+        <MainLayout title={pageTitle}>
             <div className="lead-profile-page">
                 {/* Back Navigation */}
                 <button

@@ -760,7 +760,7 @@ const Transactions = () => {
     // ══════════════════════════════════════════════════════════════
 
     return (
-        <MainLayout>
+        <MainLayout title="New Transaction">
             <div className="txn-new">
                 {/* ── Page Header ─────────────────────────────────── */}
                 <div className="txn-new__header">

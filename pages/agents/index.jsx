@@ -224,7 +224,7 @@ const Agents = () => {
     };
 
     return (
-        <MainLayout>
+        <MainLayout title="Agents">
             {/* Add Agent Dialog */}
             <Dialog
                 header="Add New Agent"

@@ -11,7 +11,7 @@ const Search = () => {
         : undefined;
 
     return (
-        <MainLayout>
+        <MainLayout title="Property Search">
             <PropertySearchPage areaParams={areaParams} />
         </MainLayout>
     );

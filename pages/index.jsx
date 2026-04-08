@@ -126,7 +126,7 @@ const Index = () => {
 
     return (
         <>
-            <MainHead />
+            <MainHead title="Login" />
             <div className="login__page">
                 <div className="login__page__form">
                     <img

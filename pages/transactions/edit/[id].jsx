@@ -933,7 +933,7 @@ const EditTransaction = () => {
 
     if (loading) {
         return (
-            <MainLayout>
+            <MainLayout title="Edit Transaction">
                 <div className="txn-new">
                     <div className="txn-new__header">
                         <h1 className="txn-new__title">Edit Transaction</h1>
@@ -949,7 +949,7 @@ const EditTransaction = () => {
     }
 
     return (
-        <MainLayout>
+        <MainLayout title="Edit Transaction">
             <div className="txn-new">
                 {/* ── Page Header ─────────────────────────────────── */}
                 <div className="txn-new__header">

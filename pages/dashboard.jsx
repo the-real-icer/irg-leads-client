@@ -194,7 +194,7 @@ const Dashboard = () => {
     }, [activeTab, isAdmin, isLoggedIn]);
 
     return (
-        <MainLayout>
+        <MainLayout title="Dashboard">
             <div className="dashboard-page" style={{ padding: '1.5rem' }}>
                 {/* ── Tab Bar (admin only) ──────────────────────────── */}
                 {isAdmin && (

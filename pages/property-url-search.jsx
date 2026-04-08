@@ -112,7 +112,7 @@ const PropertyUrlSearch = () => {
             : fallbackImage;
 
     return (
-        <MainLayout>
+        <MainLayout title="Property URL Search">
             <ConfirmOffMarketDialog
                 showConfirmDialog={showConfirmDialog}
                 setShowConfirmDialog={setShowConfirmDialog}

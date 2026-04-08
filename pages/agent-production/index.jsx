@@ -125,7 +125,7 @@ const AgentProduction = () => {
     );
 
     return (
-        <MainLayout>
+        <MainLayout title="Agent Production">
             <MapDialog
                 showMapDialog={showMapDialog}
                 handleCloseMapDialog={handleCloseMapDialog}

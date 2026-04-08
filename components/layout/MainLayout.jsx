@@ -20,7 +20,7 @@ import {
 } from '../../store/actions';
 
 const MainLayout = (props) => {
-    const { children } = props; // eslint-disable-line
+    const { title, children } = props; // eslint-disable-line
 
     // __________________Redux State______________________\\
     const isLoggedIn = useSelector((state) => state.isLoggedIn);
@@ -98,7 +98,7 @@ const MainLayout = (props) => {
 
     return (
         <>
-            <MainHead />
+            <MainHead title={title} />
             <div className="min-h-screen flex relative bg-background">
                 {/* Mobile overlay */}
                 {mobileMenuOpen && (

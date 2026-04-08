@@ -1116,7 +1116,7 @@ const Leads = () => {
     const header = renderHeader();
 
     return (
-        <MainLayout>
+        <MainLayout title="Leads">
             <div className="card">
                 {header}
 

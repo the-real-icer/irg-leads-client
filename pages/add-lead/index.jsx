@@ -208,7 +208,7 @@ const AddLead = () => {
     );
 
     return (
-        <MainLayout>
+        <MainLayout title="Add Lead">
             <div className="add-lead-page">
                 <Card className="add-lead-card">
                     <div className="add-lead-header">

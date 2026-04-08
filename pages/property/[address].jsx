@@ -85,7 +85,7 @@ const Address = () => {
     }, [property]);
 
     return (
-        <MainLayout>
+        <MainLayout title={address ? decodeURIComponent(address) : 'Property'}>
             <div className="property__page">
                 <Toast
                     ref={toastProperty}

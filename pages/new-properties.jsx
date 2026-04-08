@@ -351,7 +351,7 @@ const NewProperties = () => {
     );
 
     return (
-        <MainLayout>
+        <MainLayout title="New Properties">
             <MapDialog 
                 showMapDialog={showMapDialog}
                 handleCloseMapDialog={handleCloseMapDialog}

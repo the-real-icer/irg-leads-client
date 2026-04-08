@@ -479,7 +479,7 @@ const SavePropertySearch = () => {
     const currentPairGrid = isMobile ? pairGridMobileStyle : pairGridStyle;
 
     return (
-        <MainLayout>
+        <MainLayout title="Save Search">
             <div style={{ padding: '1.5rem', maxWidth: '1200px', margin: '0 auto' }}>
                 {/* Page Header */}
                 <div style={{ marginBottom: '2rem' }}>

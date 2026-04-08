@@ -20,7 +20,7 @@ const LeadDashboardPage = () => {
     if (!id || !isLoggedIn) return null;
 
     return (
-        <MainLayout>
+        <MainLayout title={leadName ? `${leadName} Dashboard` : 'Lead Dashboard'}>
             <div style={{ padding: '1.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
                     <Button

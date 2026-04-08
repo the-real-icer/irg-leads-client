@@ -337,7 +337,7 @@ const TransactionsDashboard = () => {
     // ══════════════════════════════════════════════════════════════
 
     return (
-        <MainLayout>
+        <MainLayout title="Transactions">
             <div style={{ padding: '1.5rem', maxWidth: '1400px', margin: '0 auto' }}>
                 {/* Header */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>

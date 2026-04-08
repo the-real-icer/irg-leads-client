@@ -1,7 +1,7 @@
 import MainLayout from '../../components/layout/MainLayout';
 
 const Marketing = () => (
-    <MainLayout>
+    <MainLayout title="Marketing">
         <div>Marketing</div>
     </MainLayout>
 );

@@ -192,7 +192,7 @@ const Hotsheet = () => {
     }, [initialHomes, daysBack, selectedFilters]);
 
     return (
-        <MainLayout>
+        <MainLayout title="Hotsheet">
             <MapDialog
                 showMapDialog={showMapDialog}
                 handleCloseMapDialog={handleCloseMapDialog}

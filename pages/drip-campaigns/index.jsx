@@ -211,7 +211,7 @@ const DripCampaigns = () => {
     }, [assignDialogOpen, closeAssignDialog]);
 
     return (
-        <MainLayout>
+        <MainLayout title="Drip Campaigns">
             <div style={{ padding: '2rem' }}>
                 {/* Header */}
                 <div

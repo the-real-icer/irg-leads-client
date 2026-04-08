@@ -461,7 +461,7 @@ const Calendar = () => {
     };
 
     return (
-        <MainLayout>
+        <MainLayout title="Calendar">
             <div style={{ padding: '1.5rem', maxWidth: '1400px', margin: '0 auto' }}>
                 {/* Header */}
                 <div style={{

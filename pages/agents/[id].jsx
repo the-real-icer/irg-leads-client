@@ -223,7 +223,7 @@ const AgentProfile = () => {
     };
 
     return (
-        <MainLayout>
+        <MainLayout title={agent?.name || 'Agent'}>
             <div style={{ padding: '1.5rem', maxWidth: '900px', margin: '0 auto' }}>
                 {/* Header */}
                 <div style={{ marginBottom: '2rem' }}>

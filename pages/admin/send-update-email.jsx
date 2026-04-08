@@ -114,7 +114,7 @@ const SendUpdateEmail = () => {
     if (agent && agent.role !== 'admin') return null;
 
     return (
-        <MainLayout>
+        <MainLayout title="Send Update Email">
             <div style={{ padding: '1.5rem', maxWidth: '1000px', margin: '0 auto' }}>
                 {/* Header */}
                 <div style={{ marginBottom: '2rem' }}>

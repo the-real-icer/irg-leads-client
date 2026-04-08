@@ -206,7 +206,7 @@ const DiscrepancyReports = () => {
     // ── Guard: don't render until auth resolved ─────────────────
     if (!isLoggedIn || !agent || !isAdmin) {
         return (
-            <MainLayout>
+            <MainLayout title="Discrepancy Reports">
                 <div className="flex items-center justify-center h-[400px]">
                     <i className="pi pi-spin pi-spinner text-[24px] text-foreground-muted" />
                 </div>
@@ -217,7 +217,7 @@ const DiscrepancyReports = () => {
     // ── Detail view ─────────────────────────────────────────────
     if (selectedReport) {
         return (
-            <MainLayout>
+            <MainLayout title="Discrepancy Reports">
                 <div className="p-[24px] md:p-[32px] max-w-[1400px] mx-auto">
                     <button
                         onClick={() => {
@@ -487,7 +487,7 @@ const DiscrepancyReports = () => {
 
     // ── List view ───────────────────────────────────────────────
     return (
-        <MainLayout>
+        <MainLayout title="Discrepancy Reports">
             <div className="p-[24px] md:p-[32px] max-w-[1200px] mx-auto">
                 <h1 className="text-[24px] md:text-[28px] font-bold text-foreground mb-[4px]">
                     MLS Discrepancy Reports

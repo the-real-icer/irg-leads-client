@@ -94,7 +94,7 @@ const TrafficDashboard = () => {
     const anonymousCount = liveSessions.length - identifiedCount;
 
     return (
-        <MainLayout>
+        <MainLayout title="Traffic Dashboard">
             <div style={{ padding: '1.5rem' }}>
                 <div style={{ marginBottom: '1.5rem' }}>
                     <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: '700', color: 'hsl(var(--foreground))' }}>

@@ -1,13 +1,11 @@
 // Redux
 import { useSelector } from 'react-redux';
 
-import useTheme from '../../../hooks/useTheme';
 import SideBarLink from './SideBarLink';
 
 const SideBar = ({ mobileOpen }) => {
     // __________________Redux State______________________\\
     const agent = useSelector((state) => state.agent);
-    const { theme, toggleTheme, mounted } = useTheme();
 
     return (
         <div
@@ -97,19 +95,6 @@ const SideBar = ({ mobileOpen }) => {
                             />
                         </ul>
                     )}
-                </div>
-
-                {/* Theme toggle — pinned to bottom */}
-                <div className="mt-auto flex-shrink-0 border-t border-sidebar-border px-4 py-3">
-                    <button
-                        onClick={toggleTheme}
-                        className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors duration-150 text-sm font-medium"
-                    >
-                        {mounted && (
-                            <i className={`pi ${theme === 'dark' ? 'pi-sun' : 'pi-moon'} text-base`} />
-                        )}
-                        {mounted && (theme === 'dark' ? 'Light Mode' : 'Dark Mode')}
-                    </button>
                 </div>
             </div>
         </div>

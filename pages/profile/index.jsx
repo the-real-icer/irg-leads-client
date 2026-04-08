@@ -103,7 +103,7 @@ const Profile = () => {
     };
 
     return (
-        <MainLayout>
+        <MainLayout title="Profile">
             <div style={{ padding: '1.5rem', maxWidth: '1200px', margin: '0 auto' }}>
                 {/* Header */}
                 <div style={{ marginBottom: '2rem' }}>
