@@ -87,32 +87,37 @@ const SendPropertyDialog = ({ visible, onHide, leadId, isLoggedIn, onSuccess, co
 
         setSending(true);
         try {
+            const requestedRecipients = [
+                { id: leadId, label: 'lead' },
+                ...(sendToCoBuyers && coBuyers.length > 0
+                    ? coBuyers.map((cb) => ({
+                        id: cb._id,
+                        label: `${cb.first_name} ${cb.last_name}`.trim() || 'co-buyer',
+                    }))
+                    : []),
+            ];
             const payload = {
                 propertyId: selectedProperty._id,
                 message: message.trim() || undefined,
                 subject: subject.trim() || undefined,
+                coBuyerIds: requestedRecipients
+                    .filter((recipient) => recipient.id !== leadId)
+                    .map((recipient) => recipient.id),
             };
-            const recipients = [
-                { id: leadId, label: 'lead' },
-                ...(sendToCoBuyers && coBuyers.length > 0
-                    ? coBuyers.map((cb) => ({ id: cb._id, label: `${cb.first_name} ${cb.last_name}`.trim() || 'co-buyer' }))
-                    : []),
-            ];
-            const results = await Promise.allSettled(
-                recipients.map((recipient) =>
-                    IrgApi.post(
-                        `/users/dashboard/${recipient.id}/send-property`,
-                        payload,
-                        { headers },
-                    )
-                ),
+            const response = await IrgApi.post(
+                `/users/dashboard/${leadId}/send-property`,
+                payload,
+                { headers },
             );
-            const failedRecipients = results
-                .map((result, index) => ({ result, recipient: recipients[index] }))
-                .filter(({ result }) => result.status === 'rejected'
-                    || result.value?.data?.status !== 'success');
-            const succeededCount = results.length - failedRecipients.length;
-            const failedRecipientLabels = failedRecipients.map(({ recipient }) => recipient.label);
+            const resultRows = response.data?.data?.results || [];
+            const recipientLabelMap = new Map(requestedRecipients.map((recipient) => [recipient.id, recipient.label]));
+            const failedRecipients = resultRows.filter((result) => result.status !== 'success');
+            const succeededCount = resultRows.filter((result) => result.status === 'success').length;
+            const failedRecipientLabels = failedRecipients.map((result) => recipientLabelMap.get(result.recipientId) || 'recipient');
+
+            if (resultRows.length === 0) {
+                throw new Error('Failed to send property');
+            }
 
             if (failedRecipients.length === 0) {
                 if (mountedRef.current) {
@@ -121,8 +126,8 @@ const SendPropertyDialog = ({ visible, onHide, leadId, isLoggedIn, onSuccess, co
                     onSuccess();
                     showToast(
                         'success',
-                        recipients.length > 1
-                            ? `Property sent to lead and ${recipients.length - 1} co-buyer${recipients.length - 1 > 1 ? 's' : ''}`
+                        requestedRecipients.length > 1
+                            ? `Property sent to lead and ${requestedRecipients.length - 1} co-buyer${requestedRecipients.length - 1 > 1 ? 's' : ''}`
                             : 'Property sent to lead',
                         'Success',
                     );
@@ -137,16 +142,16 @@ const SendPropertyDialog = ({ visible, onHide, leadId, isLoggedIn, onSuccess, co
                     onSuccess();
                     showToast(
                         'warn',
-                        `Property sent to ${succeededCount} of ${results.length} recipients. Failed: ${failedRecipientLabels.join(', ')}.`,
+                        `Property sent to ${succeededCount} of ${resultRows.length} recipients. Failed: ${failedRecipientLabels.join(', ')}.`,
                         'Partial Success',
                     );
                 }
                 return;
             }
 
-            throw failedRecipients[0].result.reason || new Error(`Failed to send property to ${failedRecipientLabels.join(', ')}`);
+            throw new Error(`Failed to send property to ${failedRecipientLabels.join(', ')}`);
         } catch (error) {
-            showToast('error', error.response?.data?.message || 'Failed to send property', 'Error');
+            showToast('error', error.response?.data?.message || error.message || 'Failed to send property', 'Error');
         } finally {
             if (mountedRef.current) {
                 setSending(false);

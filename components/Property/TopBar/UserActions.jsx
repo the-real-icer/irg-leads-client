@@ -159,16 +159,21 @@ const UserActions = ({ property }) => {
                 },
             );
 
-            if (res.data.status === 'success') {
+            const resultRows = res.data?.data?.results || [];
+            const leadResult = resultRows[0];
+
+            if (res.data.status === 'success' && leadResult?.status === 'success') {
                 showToast('success', 'Email sent successfully!', 'Email Sent');
                 setSelectedLead(null);
                 setLeadInput('');
                 setMessage('');
                 setSubject('');
                 setShowDialog(false);
+            } else {
+                throw new Error(leadResult?.message || 'Failed to send email. Please try again.');
             }
         } catch (error) {
-            const msg = error.response?.data?.message || 'Failed to send email. Please try again.';
+            const msg = error.response?.data?.message || error.message || 'Failed to send email. Please try again.';
             showToast('error', msg, 'Error');
         } finally {
             setSending(false);

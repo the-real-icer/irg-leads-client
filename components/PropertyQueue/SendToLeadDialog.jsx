@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import dynamic from 'next/dynamic';
 
@@ -29,7 +29,7 @@ const SendToLeadDialog = ({ visible, onHide }) => {
     const [sending, setSending] = useState(false);
     const [sendToCoBuyers, setSendToCoBuyers] = useState(false);
 
-    const coBuyers = lead?.co_buyers || [];
+    const coBuyers = useMemo(() => lead?.co_buyers || [], [lead?.co_buyers]);
 
     const getImage = (property) => {
         if (!property?.listing_pics) return fallbackImage;
@@ -72,7 +72,14 @@ const SendToLeadDialog = ({ visible, onHide }) => {
         try {
             const res = await IrgApi.post(
                 '/users/send-many-properties',
-                { homes: selectedHomes, user: lead, agent, subject, message, coBuyerIds: sendToCoBuyers && coBuyers.length > 0 ? coBuyers.map((cb) => cb._id) : [] },
+                {
+                    homes: selectedHomes,
+                    user: lead,
+                    agent,
+                    subject,
+                    message,
+                    coBuyerIds: sendToCoBuyers && coBuyers.length > 0 ? coBuyers.map((cb) => cb._id) : [],
+                },
                 {
                     headers: {
                         Authorization: `Bearer ${isLoggedIn}`,
@@ -81,18 +88,26 @@ const SendToLeadDialog = ({ visible, onHide }) => {
                 },
             );
 
-            if (res.data.status === 'success') {
+            const resultRows = res.data?.data?.results || [];
+            const succeededCount = resultRows.filter((result) => result.status === 'success').length;
+            const failedCount = resultRows.length - succeededCount;
+
+            if (res.data.status === 'success' && resultRows.length > 0 && failedCount === 0) {
                 dispatch(clearSelectedHomes());
                 resetForm();
                 onHide();
                 showToast('success', `${selectedHomes.length} properties sent to ${getLeadDisplayName(lead)}`, 'Email Sent!');
+            } else if (res.data.status === 'success' && succeededCount > 0) {
+                showToast('warn', `Properties sent to ${succeededCount} of ${resultRows.length} recipients.`, 'Partial Success');
+            } else {
+                throw new Error('Failed to send properties. Please try again.');
             }
         } catch (err) {
-            showToast('error', 'Failed to send email. Please try again.', 'Error');
+            showToast('error', err.response?.data?.message || err.message || 'Failed to send email. Please try again.', 'Error');
         } finally {
             setSending(false);
         }
-    }, [lead, subject, message, selectedHomes, agent, isLoggedIn, dispatch, resetForm, onHide]);
+    }, [lead, subject, message, selectedHomes, agent, isLoggedIn, dispatch, resetForm, onHide, coBuyers, sendToCoBuyers]);
 
     const leadOptionTemplate = (option) => (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
