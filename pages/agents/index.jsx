@@ -218,6 +218,26 @@ const Agents = () => {
         }
     };
 
+    // Handle lead rotation toggle on agent card
+    const handleLeadRotationToggle = async (agentId, newValue) => {
+        const previousAgents = agents;
+        setAgents((prev) => prev.map((a) => (
+            a._id === agentId ? { ...a, in_lead_rotation: newValue } : a
+        )));
+        try {
+            await IrgApi.patch(
+                `/agents/${agentId}/lead-rotation`,
+                { in_lead_rotation: newValue },
+                { headers: { Authorization: `Bearer ${isLoggedIn}` } },
+            );
+            showToast('success', `Lead rotation ${newValue ? 'enabled' : 'disabled'}`, 'Success');
+        } catch (error) {
+            setAgents(previousAgents);
+            const msg = error.response?.data?.message || 'Failed to update lead rotation';
+            showToast('error', msg, 'Error');
+        }
+    };
+
     // Handle card click - navigate to agent edit page
     const handleAgentClick = (agentId) => {
         router.push(`/agents/${agentId}`);
@@ -630,6 +650,65 @@ const Agents = () => {
                                             {agent.commissionSplit != null
                                                 ? `${agent.commissionSplit}% / ${agent.brokerageCommissionSplit ?? (100 - agent.commissionSplit)}% (Agent / Brokerage)`
                                                 : 'Split not set'}
+                                        </span>
+                                    </div>
+
+                                    {/* Lead Rotation Toggle */}
+                                    <div
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.5rem',
+                                            marginBottom: '1rem',
+                                        }}
+                                        onClick={(e) => e.stopPropagation()}
+                                        onKeyDown={(e) => { if (e.key === 'Enter') e.stopPropagation(); }}
+                                        role="presentation"
+                                    >
+                                        <label
+                                            style={{
+                                                position: 'relative',
+                                                display: 'inline-block',
+                                                width: '34px',
+                                                height: '18px',
+                                                flexShrink: 0,
+                                                cursor: 'pointer',
+                                            }}
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                checked={agent.in_lead_rotation !== false}
+                                                onChange={(e) => handleLeadRotationToggle(agent._id, e.target.checked)}
+                                                style={{ opacity: 0, width: 0, height: 0, position: 'absolute' }}
+                                            />
+                                            <span style={{
+                                                position: 'absolute',
+                                                inset: 0,
+                                                borderRadius: '9px',
+                                                backgroundColor: agent.in_lead_rotation !== false ? '#22c55e' : '#d1d5db',
+                                                transition: 'background-color 0.2s',
+                                            }}>
+                                                <span style={{
+                                                    position: 'absolute',
+                                                    left: agent.in_lead_rotation !== false ? '17px' : '2px',
+                                                    top: '2px',
+                                                    width: '14px',
+                                                    height: '14px',
+                                                    borderRadius: '50%',
+                                                    backgroundColor: '#fff',
+                                                    transition: 'left 0.2s',
+                                                    boxShadow: '0 1px 2px rgba(0,0,0,0.2)',
+                                                }} />
+                                            </span>
+                                        </label>
+                                        <span style={{
+                                            fontSize: '0.75rem',
+                                            fontWeight: '600',
+                                            color: agent.in_lead_rotation !== false
+                                                ? 'hsl(var(--success))'
+                                                : 'hsl(var(--foreground-muted))',
+                                        }}>
+                                            {agent.in_lead_rotation !== false ? 'Leads On' : 'Leads Off'}
                                         </span>
                                     </div>
 

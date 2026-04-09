@@ -35,6 +35,8 @@ const AgentProfile = () => {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
+    const [inLeadRotation, setInLeadRotation] = useState(true);
+
     // Form state
     const [formData, setFormData] = useState({
         name: '',
@@ -73,6 +75,7 @@ const AgentProfile = () => {
                 if (response.data.status === 'success') {
                     const agentData = response.data.data;
                     setAgent(agentData);
+                    setInLeadRotation(agentData.in_lead_rotation !== false);
 
                     // Populate form with agent data
                     setFormData({
@@ -214,6 +217,24 @@ const AgentProfile = () => {
             showToast('error', errorMessage, 'Error');
         } finally {
             setSaving(false);
+        }
+    };
+
+    // Handle lead rotation toggle (standalone PATCH, not part of main form)
+    const handleLeadRotationToggle = async (newValue) => {
+        const previousValue = inLeadRotation;
+        setInLeadRotation(newValue);
+        try {
+            await IrgApi.patch(
+                `/agents/${id}/lead-rotation`,
+                { in_lead_rotation: newValue },
+                { headers: { Authorization: `Bearer ${isLoggedIn}` } },
+            );
+            showToast('success', `Lead rotation ${newValue ? 'enabled' : 'disabled'}`, 'Success');
+        } catch (error) {
+            setInLeadRotation(previousValue);
+            const msg = error.response?.data?.message || 'Failed to update lead rotation';
+            showToast('error', msg, 'Error');
         }
     };
 
@@ -519,6 +540,70 @@ const AgentProfile = () => {
                                                 {commissionSplitError}
                                             </small>
                                         )}
+                                    </div>
+                                )}
+
+                                {/* Lead Rotation Toggle (Admin Only) */}
+                                {isAdmin && (
+                                    <div style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-between',
+                                        padding: '1rem',
+                                        borderRadius: '8px',
+                                        background: '#f8f9fa',
+                                        border: '1px solid #dee2e6',
+                                    }}>
+                                        <div>
+                                            <div style={{ fontWeight: '600', color: '#495057' }}>
+                                                Receive New Leads
+                                            </div>
+                                            <div style={{ fontSize: '0.8rem', color: '#6c757d', marginTop: '0.25rem' }}>
+                                                When off, this agent will be excluded from new lead assignments
+                                            </div>
+                                        </div>
+                                        <label
+                                            style={{
+                                                position: 'relative',
+                                                display: 'inline-block',
+                                                width: '44px',
+                                                height: '24px',
+                                                flexShrink: 0,
+                                                marginLeft: '1rem',
+                                                cursor: 'pointer',
+                                            }}
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                checked={inLeadRotation}
+                                                onChange={(e) => handleLeadRotationToggle(e.target.checked)}
+                                                style={{
+                                                    opacity: 0,
+                                                    width: 0,
+                                                    height: 0,
+                                                    position: 'absolute',
+                                                }}
+                                            />
+                                            <span style={{
+                                                position: 'absolute',
+                                                inset: 0,
+                                                borderRadius: '12px',
+                                                backgroundColor: inLeadRotation ? '#22c55e' : '#d1d5db',
+                                                transition: 'background-color 0.2s',
+                                            }}>
+                                                <span style={{
+                                                    position: 'absolute',
+                                                    left: inLeadRotation ? '22px' : '2px',
+                                                    top: '2px',
+                                                    width: '20px',
+                                                    height: '20px',
+                                                    borderRadius: '50%',
+                                                    backgroundColor: '#fff',
+                                                    transition: 'left 0.2s',
+                                                    boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                                                }} />
+                                            </span>
+                                        </label>
                                     </div>
                                 )}
 

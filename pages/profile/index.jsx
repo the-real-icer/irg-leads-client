@@ -34,6 +34,7 @@ const Profile = () => {
 
     const [emailSignature, setEmailSignature] = useState('');
     const [savingSignature, setSavingSignature] = useState(false);
+    const [inLeadRotation, setInLeadRotation] = useState(true);
 
     // Custom image handler — opens file picker and embeds as base64
     // instead of Quill's default URL prompt (which leads to broken images when URLs expire).
@@ -82,6 +83,29 @@ const Profile = () => {
             setEmailSignature(agent.email_signature);
         }
     }, [agent?.email_signature]);
+
+    useEffect(() => {
+        if (agent) {
+            setInLeadRotation(agent.in_lead_rotation !== false);
+        }
+    }, [agent]);
+
+    const handleLeadRotationToggle = async (newValue) => {
+        const previousValue = inLeadRotation;
+        setInLeadRotation(newValue);
+        try {
+            await IrgApi.patch(
+                `/agents/${agent._id}/lead-rotation`,
+                { in_lead_rotation: newValue },
+                { headers: { Authorization: `Bearer ${isLoggedIn}` } },
+            );
+            showToast('success', `Lead rotation ${newValue ? 'enabled' : 'disabled'}`, 'Success');
+        } catch (error) {
+            setInLeadRotation(previousValue);
+            const msg = error.response?.data?.message || 'Failed to update lead rotation';
+            showToast('error', msg, 'Error');
+        }
+    };
 
     const handleSaveSignature = async () => {
         setSavingSignature(true);
@@ -147,6 +171,88 @@ const Profile = () => {
                         <div>
                             <div style={{ fontSize: '0.85rem', color: '#6c757d', marginBottom: '0.25rem' }}>DRE License</div>
                             <div style={{ fontSize: '1rem', color: '#2c3e50', fontWeight: '600' }}>{agent?.dre_license || 'N/A'}</div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Lead Settings */}
+                <div style={{
+                    padding: '1.5rem',
+                    background: 'white',
+                    borderRadius: '8px',
+                    boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
+                    marginBottom: '1.5rem'
+                }}>
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#2c3e50', marginBottom: '0.25rem' }}>
+                        Lead Settings
+                    </h3>
+                    <p style={{ fontSize: '0.85rem', color: '#6c757d', margin: 0 }}>
+                        Control whether you receive new leads from the website.
+                    </p>
+
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        marginTop: '1.25rem',
+                        padding: '1rem',
+                        borderRadius: '8px',
+                        background: '#f8f9fa',
+                        border: '1px solid #dee2e6',
+                    }}>
+                        <div>
+                            <div style={{ fontSize: '0.85rem', color: '#6c757d', marginBottom: '0.25rem' }}>
+                                Receive New Leads
+                            </div>
+                            <div style={{ fontSize: '0.8rem', color: '#6c757d' }}>
+                                Turn off to pause lead assignments while you&apos;re away.
+                                Turn back on when you return.
+                            </div>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginLeft: '1rem' }}>
+                            <span style={{
+                                fontSize: '13px',
+                                fontWeight: '500',
+                                color: inLeadRotation ? '#16a34a' : '#6c757d',
+                            }}>
+                                {inLeadRotation ? 'On' : 'Off'}
+                            </span>
+                            <label
+                                style={{
+                                    position: 'relative',
+                                    display: 'inline-block',
+                                    width: '44px',
+                                    height: '24px',
+                                    flexShrink: 0,
+                                    cursor: 'pointer',
+                                }}
+                            >
+                                <input
+                                    type="checkbox"
+                                    checked={inLeadRotation}
+                                    onChange={(e) => handleLeadRotationToggle(e.target.checked)}
+                                    style={{ opacity: 0, width: 0, height: 0, position: 'absolute' }}
+                                />
+                                <span style={{
+                                    position: 'absolute',
+                                    inset: 0,
+                                    borderRadius: '12px',
+                                    backgroundColor: inLeadRotation ? '#22c55e' : '#d1d5db',
+                                    transition: 'background-color 0.2s',
+                                }}>
+                                    <span style={{
+                                        position: 'absolute',
+                                        left: inLeadRotation ? '22px' : '2px',
+                                        top: '2px',
+                                        width: '20px',
+                                        height: '20px',
+                                        borderRadius: '50%',
+                                        backgroundColor: '#fff',
+                                        transition: 'left 0.2s',
+                                        boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                                    }} />
+                                </span>
+                            </label>
                         </div>
                     </div>
                 </div>
