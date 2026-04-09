@@ -1495,6 +1495,52 @@ const Lead = () => {
                     />
                 </div>
 
+                {/* Unsubscribed Banner */}
+                {lead?.email_preferences?.unsubscribed_all === true && (
+                    <div
+                        style={{
+                            marginBottom: '16px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            padding: '12px 16px',
+                            backgroundColor: 'hsl(var(--danger) / 0.08)',
+                            border: '1px solid hsl(var(--danger) / 0.25)',
+                            borderRadius: '10px',
+                        }}
+                    >
+                        <span style={{ color: 'hsl(var(--danger))', fontSize: '18px' }}>
+                            &#9888;
+                        </span>
+                        <div>
+                            <p style={{
+                                fontSize: '13px',
+                                fontWeight: '600',
+                                color: 'hsl(var(--danger))',
+                                margin: 0,
+                            }}>
+                                Unsubscribed from all emails
+                            </p>
+                            <p style={{
+                                fontSize: '12px',
+                                color: 'hsl(var(--danger) / 0.8)',
+                                margin: 0,
+                            }}>
+                                This lead opted out on{' '}
+                                {lead.email_preferences.unsubscribed_at
+                                    ? new Date(lead.email_preferences.unsubscribed_at)
+                                        .toLocaleDateString('en-US', {
+                                            month: 'long',
+                                            day: 'numeric',
+                                            year: 'numeric',
+                                        })
+                                    : 'an unknown date'}
+                                . Do not send marketing emails.
+                            </p>
+                        </div>
+                    </div>
+                )}
+
                 {/* Statistics Cards */}
                 <div className="lead-profile-stats">
                     <div className="grid">
@@ -1778,6 +1824,22 @@ const Lead = () => {
                                 margin: 0
                             }}>
                                 Drip Campaigns
+                                {lead?.email_preferences?.drip_campaigns === false && (
+                                    <span style={{
+                                        fontSize: '10px',
+                                        fontWeight: '600',
+                                        textTransform: 'uppercase',
+                                        letterSpacing: '0.05em',
+                                        padding: '2px 8px',
+                                        borderRadius: '9999px',
+                                        backgroundColor: 'hsl(var(--danger) / 0.1)',
+                                        color: 'hsl(var(--danger))',
+                                        marginLeft: '8px',
+                                        verticalAlign: 'middle',
+                                    }}>
+                                        Opted Out
+                                    </span>
+                                )}
                             </h3>
                             <Button
                                 label="Enroll In Campaign"
@@ -1918,6 +1980,22 @@ const Lead = () => {
                                 margin: 0
                             }}>
                                 Agent Saved Searches
+                                {lead?.email_preferences?.e_alerts === false && (
+                                    <span style={{
+                                        fontSize: '10px',
+                                        fontWeight: '600',
+                                        textTransform: 'uppercase',
+                                        letterSpacing: '0.05em',
+                                        padding: '2px 8px',
+                                        borderRadius: '9999px',
+                                        backgroundColor: 'hsl(var(--danger) / 0.1)',
+                                        color: 'hsl(var(--danger))',
+                                        marginLeft: '8px',
+                                        verticalAlign: 'middle',
+                                    }}>
+                                        Opted Out
+                                    </span>
+                                )}
                             </h3>
                             <Button
                                 label="Go to Property Search"
@@ -2378,6 +2456,22 @@ const Lead = () => {
                                 </ScrollPanel>
                             </TabPanel>
                             <TabPanel header="Saved Searches" leftIcon="pi pi-bookmark mr-2">
+                                {lead?.email_preferences?.saved_searches === false && (
+                                    <div style={{
+                                        marginBottom: '12px',
+                                        display: 'inline-block',
+                                        fontSize: '10px',
+                                        fontWeight: '600',
+                                        textTransform: 'uppercase',
+                                        letterSpacing: '0.05em',
+                                        padding: '2px 8px',
+                                        borderRadius: '9999px',
+                                        backgroundColor: 'hsl(var(--danger) / 0.1)',
+                                        color: 'hsl(var(--danger))',
+                                    }}>
+                                        Opted Out of Property Alerts
+                                    </div>
+                                )}
                                 <div className="saved-searches-list">
                                     {(() => {
                                         const allSearches = [
