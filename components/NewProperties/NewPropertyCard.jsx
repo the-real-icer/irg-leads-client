@@ -2,9 +2,20 @@
 import Link from 'next/link';
 import PropTypes from 'prop-types';
 
-import { Button } from 'primereact/button';
 import { usePropertyFallbackImage } from '../../utils/propertyImageFallback';
 import ikUrl from '../../utils/imageKit';
+
+const BTN_BASE =
+    'inline-flex items-center justify-center gap-2 px-4 h-[36px] rounded text-sm font-semibold'
+    + ' border-none cursor-pointer transition-colors duration-150 flex-1 min-w-0 whitespace-nowrap';
+
+const BTN_PRIMARY = `${BTN_BASE} bg-[#2196F3] text-white hover:bg-[#1e88e5]`;
+const BTN_SECONDARY = `${BTN_BASE} bg-[#607D8B] text-white hover:bg-[#56717d]`;
+const BTN_INFO = `${BTN_BASE} bg-[#0288D1] text-white hover:bg-[#027ab8]`;
+const BTN_HELP = `${BTN_BASE} bg-[#9C27B0] text-white hover:bg-[#8c239e]`;
+const BTN_SUCCESS = `${BTN_BASE} bg-[#689F38] text-white hover:bg-[#5d8f32]`;
+const BTN_WARNING = `${BTN_BASE} bg-[#FBC02D] text-[#212529] hover:bg-[#f9b825]`;
+const BTN_DANGER = `${BTN_BASE} bg-[#D32F2F] text-white hover:bg-[#c62828]`;
 
 const NewPropertyCard = ({
     property,
@@ -74,7 +85,11 @@ const NewPropertyCard = ({
                     <Link href={`/property/${property.property_url}`} passHref>
                         <div className="new_property_card_status">
                             <span>Status</span>
-                            <span className={`status-value status-value--${property.status?.toLowerCase().replace(/\s+/g, '-')}`}>
+                            <span
+                                className={
+                                    `status-value status-value--${property.status?.toLowerCase().replace(/\s+/g, '-')}`
+                                }
+                            >
                                 {property.status}
                             </span>
                             <span>{property.price}</span>
@@ -103,55 +118,72 @@ const NewPropertyCard = ({
                 {/* Action Buttons */}
                 <div className="new_property_card_actions">
                     <div className="new_property_card_btns">
-                        <Button
-                            label="Show Map"
-                            className="p-button-secondary"
+                        <button
+                            type="button"
+                            className={BTN_SECONDARY}
                             onClick={() => handleOpenMapDialog(property)}
-                        />
-                        <Button
-                            label="Copy Address"
-                            className="p-button-info"
+                        >
+                            Show Map
+                        </button>
+                        <button
+                            type="button"
+                            className={BTN_INFO}
                             onClick={() => handleCopyAddress(property)}
-                        />
+                        >
+                            Copy Address
+                        </button>
                     </div>
 
                     <div className="new_property_card_btns">
-                        <Button
-                            label="Copy MLS #"
+                        <button
+                            type="button"
+                            className={BTN_HELP}
                             onClick={() => handleCopyMLS(property.mls_number)}
-                            className="p-button-help"
-                        />
-                        <Button
-                            label="Off Market"
-                            className="p-button-danger"
+                        >
+                            Copy MLS #
+                        </button>
+                        <button
+                            type="button"
+                            className={BTN_DANGER}
                             onClick={() => handleOffMarketSubmit(properUrl)}
-                        />
+                        >
+                            Off Market
+                        </button>
                     </div>
 
                     <div className="new_property_card_btns">
-                        <Button
-                            label="Check Status"
+                        <button
+                            type="button"
+                            className={BTN_WARNING}
                             onClick={() => handleSearch(properUrl)}
-                            className="p-button-warning"
-                        />
-                        <Button
-                            label="Un-Duplicate"
-                            className="p-button-success"
+                        >
+                            Check Status
+                        </button>
+                        <button
+                            type="button"
+                            className={BTN_SUCCESS}
                             onClick={() => handleUnDuplicate({ property, newAddress: properUrl })}
-                        />
+                        >
+                            Un-Duplicate
+                        </button>
                     </div>
 
                     <div className="new_property_card_btns">
-                        <Button
-                            label="Approve"
-                            icon="pi pi-check"
+                        <button
+                            type="button"
+                            className={BTN_PRIMARY}
                             onClick={() => handleApproveClick(property.mls_number, property.address)}
-                        />
-                        <Button
-                            label="Edit"
+                        >
+                            <i className="pi pi-check" />
+                            Approve
+                        </button>
+                        <button
+                            type="button"
+                            className={BTN_SECONDARY}
                             onClick={() => handleEditClick(property)}
-                            className="p-button-secondary"
-                        />
+                        >
+                            Edit
+                        </button>
                     </div>
                 </div>
             </div>
