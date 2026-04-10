@@ -100,7 +100,7 @@ app.prepare()
         server.use((req, res) => nextHandler(req, res));
 
         // Error handling middleware
-        server.use((err, req, res) => {
+        server.use((err, req, res, _next) => { // eslint-disable-line no-unused-vars
             req.logger.error(err.stack);
             res.status(500).json({ status: 'error', message: 'Internal server error' });
         });
