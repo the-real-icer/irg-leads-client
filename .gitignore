@@ -24,6 +24,9 @@
 .DS_Store
 *.pem
 
+# lock files (yarn only — reject npm)
+package-lock.json
+
 # debug
 npm-debug.log*
 yarn-debug.log*

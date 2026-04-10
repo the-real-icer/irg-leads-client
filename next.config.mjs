@@ -5,7 +5,12 @@ const nextConfig = {
     // second Content-Security-Policy header here. Browsers enforce ALL CSP
     // headers (most restrictive wins), so having two sources is error-prone.
     images: {
-        domains: ['media.crmls.org'],
+        remotePatterns: [
+            {
+                protocol: 'https',
+                hostname: 'media.crmls.org',
+            },
+        ],
     },
     eslint: {
         ignoreDuringBuilds: false,

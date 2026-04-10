@@ -35,7 +35,7 @@
         "lodash.find": "4.6.0",
         "match-sorter": "6.3.1",
         "next": "15.5.3",
-        "next-auth": "^4.24.13",
+        "next-auth": "5.0.0-beta.30",
         "next-redux-wrapper": "8.1.0",
         "pino-http": "10.5.0",
         "primeflex": "3.1.3",
