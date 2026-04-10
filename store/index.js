@@ -55,8 +55,12 @@ const createStorage = () => {
     };
 };
 
+// Changing the persist key intentionally invalidates old persisted client
+// storage. Users get a one-time reset of their local agent cache on next
+// load and will need to sign in again. This is acceptable for a version
+// cleanup — the old 'nextjs2' key was a leftover generic name.
 const persistConfig = {
-    key: 'nextjs2',
+    key: 'irg-leads-v2',
     whitelist: ['agent'],
     storage: createStorage(),
 };

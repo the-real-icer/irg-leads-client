@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  lint-and-build:
+    runs-on: ubuntu-latest
+
+    env:
+      # NEXT_PUBLIC_* vars are inlined at build time. Provide safe
+      # placeholders so `next build` compiles without .env.local.
+      NEXT_PUBLIC_IRG_API_URL: http://localhost:4000/api/v1
+      NEXT_PUBLIC_ALLOWED_ORIGIN: http://localhost:4000
+      NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: placeholder
+      NEXT_PUBLIC_GOOGLE_CLIENT_ID: placeholder
+      # next-auth v5 requires AUTH_SECRET in production-like builds
+      NEXTAUTH_SECRET: ci-placeholder-secret-value-not-real
+      NEXTAUTH_URL: http://localhost:2000
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: yarn
+
+      - run: yarn install --frozen-lockfile
+      - run: yarn lint
+      - run: yarn build
