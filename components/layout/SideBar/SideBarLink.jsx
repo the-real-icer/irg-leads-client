@@ -1,15 +1,15 @@
 // React & NextJS
 import Link from 'next/link';
 
-// Third Party Components
-import { Ripple } from 'primereact/ripple';
-
 const SideBarLink = ({ url, name, icon }) => (
     <Link href={url} passHref>
-        <li className="p-ripple flex align-items-center cursor-pointer p-3 border-round hover:bg-gray-800 text-gray-300 hover:text-white transition-duration-150 transition-colors w-full">
+        <li
+            className="flex items-center cursor-pointer p-[14px] rounded w-full
+                text-sidebar-foreground hover:text-sidebar-accent-foreground
+                hover:bg-sidebar-accent transition-colors duration-150"
+        >
             <i className={icon}></i>
-            <span className="font-large">{name}</span>
-            <Ripple />
+            <span className="text-sm">{name}</span>
         </li>
     </Link>
 );
