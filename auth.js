@@ -15,6 +15,7 @@ import Google from 'next-auth/providers/google';
  * Session TTL is 5 minutes — just long enough to complete the handoff.
  */
 export const { handlers, auth } = NextAuth({
+    trustHost: true,
     providers: [
         Google({
             clientId: process.env.GOOGLE_CLIENT_ID,
