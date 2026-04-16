@@ -1,6 +1,25 @@
+import { useCallback, useState } from 'react';
+
 import MainLayout from '../../components/layout/MainLayout';
+import PropertySearch from '../../components/ScheduleShowings/PropertySearch';
+import TourList from '../../components/ScheduleShowings/TourList';
+import TourMap from '../../components/ScheduleShowings/TourMap';
+import { isAlreadyInTour } from '../../components/ScheduleShowings/tourHelpers';
 
 const ScheduleShowings = () => {
+    const [stops, setStops] = useState([]);
+
+    const handleAdd = useCallback((stop) => {
+        setStops((prev) => {
+            if (isAlreadyInTour(prev, stop.mls_number)) return prev;
+            return [...prev, stop];
+        });
+    }, []);
+
+    const handleRemove = useCallback((mlsNumber) => {
+        setStops((prev) => prev.filter((s) => s.mls_number !== mlsNumber));
+    }, []);
+
     return (
         <MainLayout title="Schedule Showings">
             <div className="p-[24px] flex flex-col gap-[24px]">
@@ -17,6 +36,7 @@ const ScheduleShowings = () => {
                     <button
                         type="button"
                         disabled
+                        title="Persistence coming in next phase"
                         className={
                             'bg-primary text-white rounded-[8px] '
                             + 'px-[20px] py-[10px] text-[14px] font-semibold '
@@ -28,44 +48,19 @@ const ScheduleShowings = () => {
                     </button>
                 </div>
 
-                {/* Two-column split: stacks on mobile, side-by-side at 900px+ */}
+                {/* Two-column split:
+                      - < 900px: search + list on top, map below
+                      - >= 900px: search + list on left, map on right */}
                 <div className="flex flex-col min-[900px]:flex-row gap-[24px]">
                     {/* Left column — search + tour list */}
                     <div className="w-full min-[900px]:w-[420px] flex flex-col gap-[16px]">
-                        <input
-                            type="text"
-                            disabled
-                            placeholder="Search by address or MLS number"
-                            className={
-                                'w-full rounded-[12px] border border-border '
-                                + 'bg-surface text-foreground placeholder:text-foreground/50 '
-                                + 'text-[14px] px-[16px] py-[12px] '
-                                + 'opacity-60 cursor-not-allowed'
-                            }
-                        />
-                        <div
-                            className={
-                                'bg-surface rounded-[16px] border border-border '
-                                + 'shadow-sm p-[24px] md:p-[32px]'
-                            }
-                        >
-                            <p className="m-0 text-[14px] text-foreground/70 text-center">
-                                No properties added yet
-                            </p>
-                        </div>
+                        <PropertySearch stops={stops} onAdd={handleAdd} />
+                        <TourList stops={stops} onRemove={handleRemove} />
                     </div>
 
-                    {/* Right column — map placeholder */}
-                    <div
-                        className={
-                            'flex-1 bg-surface rounded-[16px] border border-border '
-                            + 'shadow-sm p-[24px] md:p-[32px] '
-                            + 'min-h-[400px] flex items-center justify-center'
-                        }
-                    >
-                        <p className="m-0 text-[14px] text-foreground/70">
-                            Map will load here
-                        </p>
+                    {/* Right column — map */}
+                    <div className="flex-1 min-w-0">
+                        <TourMap stops={stops} />
                     </div>
                 </div>
             </div>
