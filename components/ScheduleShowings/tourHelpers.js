@@ -1,5 +1,6 @@
-// Pure helpers for the Schedule Showings feature.
-// No React, no axios — safe to unit-test in isolation.
+// Helpers for the Schedule Showings feature.
+
+import ikUrl from '../../utils/imageKit';
 
 export const formatBedsBaths = (stop) => {
     if (!stop) return '';
@@ -26,21 +27,19 @@ export const isAlreadyInTour = (stops, mlsNumber) => {
 };
 
 // Normalize a raw /suggest result into the local `stop` shape the
-// page state holds. Prefers pre-generated thumb_* variants, then falls
-// back to full-size URLs only if no thumb exists (thumb fields are
-// sparse in production data).
+// page state holds. Uses the canonical CRM pattern: prefer `media_url`
+// (always populated at ingestion), fall back to `thumb_webp` (the one
+// other field ingestion reliably writes), proxy through ImageKit via
+// ikUrl(). ?preset=Small gives us a thumbnail-sized optimized image.
+// Matches components/Property/PropertyGallery/PropertyGallery.jsx:11.
 export const stopFromSuggestResult = (result) => {
     const pic = Array.isArray(result?.listing_pictures)
         && result.listing_pictures.length > 0
         ? result.listing_pictures[0]
         : null;
-    const thumbnail = pic
-        ? (pic.thumb_jpg
-            || pic.thumb_webp
-            || pic.thumb_png
-            || pic.imgix_url_regular_jpg
-            || pic.media_url
-            || undefined)
+    const sourceUrl = pic?.media_url || pic?.thumb_webp || null;
+    const thumbnail = sourceUrl
+        ? ikUrl(sourceUrl.replace(/http:/, 'https:').concat('?preset=Small'))
         : undefined;
 
     return {
