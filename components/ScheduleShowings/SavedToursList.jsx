@@ -1,12 +1,18 @@
 import PropTypes from 'prop-types';
 
-import { formatRelativeTime } from './tourHelpers';
+import { formatRelativeTime, formatScheduledDate } from './tourHelpers';
 
-const formatScheduledDate = (input) => {
-    if (!input) return null;
-    const d = input instanceof Date ? input : new Date(input);
-    if (Number.isNaN(d.getTime())) return null;
-    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+// Build the secondary metadata line for a saved-tour card.
+// Composes up to three segments joined by " · ": stop count, scheduled
+// date (omitted if not set), and last-updated relative time (omitted
+// if we somehow don't have an updatedAt).
+const buildMetaLine = (tour) => {
+    const stopCount = Array.isArray(tour.stops) ? tour.stops.length : 0;
+    const parts = [`${stopCount} ${stopCount === 1 ? 'stop' : 'stops'}`];
+    const scheduled = formatScheduledDate(tour.scheduled_date);
+    if (scheduled) parts.push(scheduled);
+    if (tour.updatedAt) parts.push(`updated ${formatRelativeTime(tour.updatedAt)}`);
+    return parts.join(' · ');
 };
 
 const SavedToursList = ({ tours, activeTourId, loading, onLoad, onDelete }) => {
@@ -58,8 +64,6 @@ const SavedToursList = ({ tours, activeTourId, loading, onLoad, onDelete }) => {
                 >
                     {tours.map((tour) => {
                         const isActive = tour._id === activeTourId;
-                        const stopCount = Array.isArray(tour.stops) ? tour.stops.length : 0;
-                        const scheduledLabel = formatScheduledDate(tour.scheduled_date);
                         return (
                             <li key={tour._id} className="relative">
                                 <button
@@ -76,30 +80,16 @@ const SavedToursList = ({ tours, activeTourId, loading, onLoad, onDelete }) => {
                                         )
                                     }
                                 >
-                                    <div className="flex items-start justify-between gap-[8px]">
-                                        <div className="min-w-0 flex-1">
-                                            <div className="text-[14px] font-semibold text-foreground truncate">
-                                                {tour.name || 'Untitled tour'}
-                                            </div>
-                                            <div className="text-[12px] text-foreground/70 truncate">
-                                                {stopCount} {stopCount === 1 ? 'stop' : 'stops'}
-                                                {tour.updatedAt
-                                                    ? ` · updated ${formatRelativeTime(tour.updatedAt)}`
-                                                    : ''}
-                                            </div>
+                                    {/* pr-[28px] reserves space for the absolutely-positioned
+                                        delete button so long names/metadata truncate before
+                                        they reach the X icon. */}
+                                    <div className="min-w-0 pr-[28px]">
+                                        <div className="text-[14px] font-semibold text-foreground truncate">
+                                            {tour.name || 'Untitled tour'}
                                         </div>
-                                        {scheduledLabel && (
-                                            <span
-                                                className={
-                                                    'text-[11px] font-semibold '
-                                                    + 'px-[6px] py-[2px] rounded-[4px] '
-                                                    + 'bg-background text-foreground/70 '
-                                                    + 'whitespace-nowrap'
-                                                }
-                                            >
-                                                {scheduledLabel}
-                                            </span>
-                                        )}
+                                        <div className="text-[12px] text-foreground/70 truncate">
+                                            {buildMetaLine(tour)}
+                                        </div>
                                     </div>
                                 </button>
 

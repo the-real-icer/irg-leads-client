@@ -26,6 +26,20 @@ export const isAlreadyInTour = (stops, mlsNumber) => {
     return stops.some((s) => s.mls_number === mlsNumber);
 };
 
+// Format a scheduled date for inline display in metadata lines.
+// Returns short month + day, e.g. "Apr 18". Current year omitted
+// when the date is in the current year.
+export const formatScheduledDate = (date) => {
+    if (!date) return '';
+    const d = date instanceof Date ? date : new Date(date);
+    if (Number.isNaN(d.getTime())) return '';
+    const now = new Date();
+    const opts = d.getFullYear() === now.getFullYear()
+        ? { month: 'short', day: 'numeric' }
+        : { month: 'short', day: 'numeric', year: 'numeric' };
+    return d.toLocaleDateString(undefined, opts);
+};
+
 // Short relative-time formatter. Deliberately tiny — we don't pull in
 // date-fns just for this. Inputs: Date | ISO string | null/undefined.
 export const formatRelativeTime = (input) => {
