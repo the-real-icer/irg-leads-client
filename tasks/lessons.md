@@ -31,3 +31,8 @@ Rule: For new CRM components, AVOID raw Tailwind `grid`, `flex-1`, `flex`, `flex
 4. **Check getComputedStyle** when a Tailwind class isn't taking effect — PrimeFlex is the usual culprit.
 
 Long-term remediation: strip PrimeFlex from the global chain once all PrimeReact components are migrated off it. That's a separate large project.
+
+## Lesson addendum: Tailwind `group` / `group-hover:` also unreliable in the CRM
+Date: 2026-04-16
+Context: SavedToursList delete X button used `group` + `group-hover:opacity-100` to show on hover. Console diagnostic confirmed opacity stayed at 0 even while hovering — the group-hover chain doesn't trigger. Likely another class-name collision (PrimeReact or PrimeFlex defines `.group`).
+Rule: In the CRM client, do NOT rely on Tailwind's `group` / `group-hover:` / `group-focus:` utilities. They're structurally the same kind of global-class-name dependency as `.grid` and `.flex-1`. If hover-to-reveal behavior is genuinely needed, use React state (`onMouseEnter`/`onMouseLeave` + `useState`) rather than CSS-only hover chains. Prefer always-visible controls where possible — they're more consistent with the rest of the CRM and better UX for destructive actions anyway.

@@ -61,7 +61,7 @@ const SavedToursList = ({ tours, activeTourId, loading, onLoad, onDelete }) => {
                         const stopCount = Array.isArray(tour.stops) ? tour.stops.length : 0;
                         const scheduledLabel = formatScheduledDate(tour.scheduled_date);
                         return (
-                            <li key={tour._id} className="group relative">
+                            <li key={tour._id} className="relative">
                                 <button
                                     type="button"
                                     onClick={() => onLoad(tour._id)}
@@ -115,10 +115,9 @@ const SavedToursList = ({ tours, activeTourId, loading, onLoad, onDelete }) => {
                                     aria-label={`Delete ${tour.name || 'this tour'}`}
                                     className={
                                         'absolute top-[8px] right-[8px] '
-                                        + 'opacity-0 group-hover:opacity-100 focus:opacity-100 '
-                                        + 'text-foreground/50 hover:text-danger '
+                                        + 'text-foreground/40 hover:text-danger focus:text-danger '
                                         + 'p-[4px] rounded-[4px] '
-                                        + 'transition-opacity'
+                                        + 'transition-colors'
                                     }
                                 >
                                     <i className="pi pi-times" aria-hidden="true" />
