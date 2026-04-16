@@ -51,15 +51,15 @@ const ScheduleShowings = () => {
                 {/* Two-column split:
                       - < 900px: search + list on top, map below
                       - >= 900px: search + list on left, map on right */}
-                <div className="flex flex-col min-[900px]:flex-row gap-[24px]">
+                <div className="grid grid-cols-1 min-[900px]:grid-cols-[420px_1fr] gap-[24px]">
                     {/* Left column — search + tour list */}
-                    <div className="w-full min-[900px]:w-[420px] flex flex-col gap-[16px]">
+                    <div className="flex flex-col gap-[16px] min-w-0">
                         <PropertySearch stops={stops} onAdd={handleAdd} />
                         <TourList stops={stops} onRemove={handleRemove} />
                     </div>
 
                     {/* Right column — map */}
-                    <div className="flex-1 min-w-0">
+                    <div className="min-w-0">
                         <TourMap stops={stops} />
                     </div>
                 </div>
