@@ -22,7 +22,7 @@ const ScheduleShowings = () => {
 
     return (
         <MainLayout title="Schedule Showings">
-            <div className="p-[24px] flex flex-col gap-[24px]">
+            <div className="p-[24px] flex flex-col gap-[24px] w-full">
                 {/* Header row */}
                 <div
                     className={
@@ -51,7 +51,7 @@ const ScheduleShowings = () => {
                 {/* Two-column split:
                       - < 900px: search + list on top, map below
                       - >= 900px: search + list on left, map on right */}
-                <div className="grid grid-cols-1 min-[900px]:grid-cols-[420px_1fr] gap-[24px]">
+                <div className="grid grid-cols-1 min-[900px]:grid-cols-[minmax(0,420px)_1fr] gap-[24px] w-full">
                     {/* Left column — search + tour list */}
                     <div className="flex flex-col gap-[16px] min-w-0">
                         <PropertySearch stops={stops} onAdd={handleAdd} />
