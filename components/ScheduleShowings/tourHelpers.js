@@ -26,6 +26,59 @@ export const isAlreadyInTour = (stops, mlsNumber) => {
     return stops.some((s) => s.mls_number === mlsNumber);
 };
 
+// Short relative-time formatter. Deliberately tiny — we don't pull in
+// date-fns just for this. Inputs: Date | ISO string | null/undefined.
+export const formatRelativeTime = (input) => {
+    if (!input) return '';
+    const then = input instanceof Date ? input : new Date(input);
+    if (Number.isNaN(then.getTime())) return '';
+    const diffMs = Date.now() - then.getTime();
+    const sec = Math.floor(diffMs / 1000);
+    if (sec < 10) return 'just now';
+    if (sec < 60) return `${sec}s ago`;
+    const min = Math.floor(sec / 60);
+    if (min < 60) return `${min}m ago`;
+    const hr = Math.floor(min / 60);
+    if (hr < 24) return `${hr}h ago`;
+    const day = Math.floor(hr / 24);
+    if (day < 30) return `${day}d ago`;
+    return then.toLocaleDateString();
+};
+
+// Build a normalized dirty-tracking snapshot — used by the page to
+// decide if the current editor state differs from the last saved state.
+// Keep this stable and deterministic (same inputs → same string).
+export const buildTourSnapshot = ({ name, client, scheduledDate, stops }) => JSON.stringify({
+    name: (name || '').trim(),
+    client: client?._id || null,
+    scheduled_date: scheduledDate
+        ? (scheduledDate instanceof Date ? scheduledDate.toISOString() : scheduledDate)
+        : null,
+    stops: Array.isArray(stops)
+        ? stops.map((s, idx) => ({
+            mls_number: s.mls_number,
+            order: idx,
+            note: s.note || '',
+            scheduled_time: s.scheduled_time || null,
+        }))
+        : [],
+});
+
+// Filter the Redux leads list by a case-insensitive substring match
+// against first_name, last_name, full-name, and email.
+export const filterLeadsByQuery = (leads, query) => {
+    if (!Array.isArray(leads)) return [];
+    const q = (query || '').trim().toLowerCase();
+    if (!q) return leads;
+    return leads.filter((lead) => {
+        const first = (lead?.first_name || '').toLowerCase();
+        const last = (lead?.last_name || '').toLowerCase();
+        const email = (lead?.email || '').toLowerCase();
+        const full = `${first} ${last}`.trim();
+        return first.includes(q) || last.includes(q) || email.includes(q) || full.includes(q);
+    });
+};
+
 // Normalize a raw /suggest result into the local `stop` shape the
 // page state holds. Uses the canonical CRM pattern: prefer `media_url`
 // (always populated at ingestion), fall back to `thumb_webp` (the one
