@@ -39,12 +39,12 @@ const COLUMNS = [
     { key: 'days_on_market', label: 'DOM' },
     { key: 'on_market_date', label: 'On Market' },
     { key: 'modification_timestamp', label: 'Last Modified' },
-    { key: 'date_updated', label: 'Last Synced' },
+    { key: 'last_mls_sync', label: 'Last Synced' },
     { key: 'reason', label: 'Reason' },
     { key: 'copy', label: '' },
 ];
 
-const DATE_KEYS = new Set(['on_market_date', 'modification_timestamp', 'date_updated']);
+const DATE_KEYS = new Set(['on_market_date', 'modification_timestamp', 'last_mls_sync']);
 const NON_SORT_KEYS = new Set(['image_url', 'copy']);
 
 const REASON_FILTERS = [
@@ -443,7 +443,7 @@ const DiscrepancyReports = () => {
                                                 'px-[12px] py-[10px]',
                                                 'text-foreground whitespace-nowrap',
                                             ].join(' ')}>
-                                                {formatDate(d.date_updated)}
+                                                {formatDate(d.last_mls_sync)}
                                             </td>
                                             <td className={[
                                                 'px-[12px] py-[10px]',
