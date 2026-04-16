@@ -1,9 +1,20 @@
+import { useState } from 'react';
 import PropTypes from 'prop-types';
 
 import { formatBedsBaths } from './tourHelpers';
 
 const TourList = ({ stops, onRemove }) => {
     const count = stops.length;
+
+    // Track thumbnail URLs that have failed to load so we can swap them
+    // out for the placeholder instead of showing a broken-image icon.
+    const [brokenThumbs, setBrokenThumbs] = useState(() => new Set());
+    const isBroken = (url) => brokenThumbs.has(url);
+    const markBroken = (url) => setBrokenThumbs((prev) => {
+        const next = new Set(prev);
+        next.add(url);
+        return next;
+    });
 
     return (
         <div className="flex flex-col gap-[12px]">
@@ -51,9 +62,10 @@ const TourList = ({ stops, onRemove }) => {
                                 {idx + 1}
                             </span>
 
-                            {stop.thumbnail ? (
+                            {stop.thumbnail && !isBroken(stop.thumbnail) ? (
                                 <img
                                     src={stop.thumbnail}
+                                    onError={() => markBroken(stop.thumbnail)}
                                     alt=""
                                     className="w-[48px] h-[48px] rounded-[8px] object-cover flex-shrink-0"
                                 />

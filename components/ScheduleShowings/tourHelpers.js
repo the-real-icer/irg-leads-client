@@ -26,11 +26,21 @@ export const isAlreadyInTour = (stops, mlsNumber) => {
 };
 
 // Normalize a raw /suggest result into the local `stop` shape the
-// page state holds. Pulls a thumbnail if present, otherwise undefined.
+// page state holds. Prefers pre-generated thumb_* variants, then falls
+// back to full-size URLs only if no thumb exists (thumb fields are
+// sparse in production data).
 export const stopFromSuggestResult = (result) => {
-    const thumbnail = Array.isArray(result?.listing_pictures)
+    const pic = Array.isArray(result?.listing_pictures)
         && result.listing_pictures.length > 0
-        ? result.listing_pictures[0]?.thumb_jpg
+        ? result.listing_pictures[0]
+        : null;
+    const thumbnail = pic
+        ? (pic.thumb_jpg
+            || pic.thumb_webp
+            || pic.thumb_png
+            || pic.imgix_url_regular_jpg
+            || pic.media_url
+            || undefined)
         : undefined;
 
     return {

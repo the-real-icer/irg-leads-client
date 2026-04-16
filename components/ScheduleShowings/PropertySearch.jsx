@@ -23,7 +23,24 @@ const PropertySearch = ({ stops, onAdd }) => {
     const [error, setError] = useState(null);
     const [open, setOpen] = useState(false);
 
+    // Track thumbnail URLs that have failed to load so we can swap them
+    // out for the placeholder instead of showing a broken-image icon.
+    const [brokenThumbs, setBrokenThumbs] = useState(() => new Set());
+    const isBroken = (url) => brokenThumbs.has(url);
+    const markBroken = (url) => setBrokenThumbs((prev) => {
+        const next = new Set(prev);
+        next.add(url);
+        return next;
+    });
+
     const containerRef = useRef(null);
+    const inputRef = useRef(null);
+
+    const handleClear = () => {
+        setQuery('');
+        setOpen(false);
+        inputRef.current?.focus();
+    };
 
     // Debounced fetch with AbortController — cancels in-flight requests
     // whenever the query changes or the component unmounts.
@@ -92,25 +109,54 @@ const PropertySearch = ({ stops, onAdd }) => {
             <label htmlFor="schedule-showings-search" className="sr-only">
                 Search properties by address or MLS number
             </label>
-            <input
-                id="schedule-showings-search"
-                type="text"
-                value={query}
-                onChange={(e) => {
-                    setQuery(e.target.value);
-                    setOpen(true);
-                }}
-                onFocus={() => setOpen(true)}
-                onKeyDown={handleKeyDown}
-                placeholder="Search by address or MLS number"
-                aria-label="Search properties by address or MLS number"
-                className={
-                    'w-full rounded-[12px] border border-border '
-                    + 'bg-surface text-foreground placeholder:text-foreground/50 '
-                    + 'text-[14px] px-[16px] py-[12px] '
-                    + 'focus:outline-none focus:ring-2 focus:ring-primary/40'
-                }
-            />
+
+            {/* Input wrapper — relative so the icon + clear button anchor
+                to the input, not to the outer container (which also hosts
+                the absolutely-positioned dropdown below). */}
+            <div className="relative">
+                <i
+                    className={
+                        'pi pi-search absolute left-[14px] top-1/2 '
+                        + '-translate-y-1/2 text-foreground/50 pointer-events-none'
+                    }
+                    aria-hidden="true"
+                />
+                <input
+                    ref={inputRef}
+                    id="schedule-showings-search"
+                    type="text"
+                    value={query}
+                    onChange={(e) => {
+                        setQuery(e.target.value);
+                        setOpen(true);
+                    }}
+                    onFocus={() => setOpen(true)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Search by address or MLS number"
+                    aria-label="Search properties by address or MLS number"
+                    autoComplete="off"
+                    className={
+                        'w-full rounded-[12px] border border-border '
+                        + 'bg-surface text-foreground placeholder:text-foreground/50 '
+                        + 'text-[14px] pl-[40px] pr-[40px] py-[12px] '
+                        + 'focus:outline-none focus:ring-2 focus:ring-primary/40'
+                    }
+                />
+                {query.length > 0 && (
+                    <button
+                        type="button"
+                        onClick={handleClear}
+                        aria-label="Clear search"
+                        className={
+                            'absolute right-[10px] top-1/2 -translate-y-1/2 '
+                            + 'text-foreground/50 hover:text-foreground '
+                            + 'p-[4px] rounded-[4px]'
+                        }
+                    >
+                        <i className="pi pi-times" aria-hidden="true" />
+                    </button>
+                )}
+            </div>
 
             {showDropdown && (
                 <ul
@@ -147,9 +193,10 @@ const PropertySearch = ({ stops, onAdd }) => {
                                     + 'rounded-[8px] hover:bg-background transition-colors'
                                 }
                             >
-                                {stop.thumbnail ? (
+                                {stop.thumbnail && !isBroken(stop.thumbnail) ? (
                                     <img
                                         src={stop.thumbnail}
+                                        onError={() => markBroken(stop.thumbnail)}
                                         alt=""
                                         className="w-[64px] h-[64px] rounded-[8px] object-cover flex-shrink-0"
                                     />

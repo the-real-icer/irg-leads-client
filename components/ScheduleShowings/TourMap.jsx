@@ -72,7 +72,7 @@ const TourMap = ({ stops }) => {
                 className={
                     'bg-surface rounded-[16px] border border-border '
                     + 'shadow-sm p-[24px] md:p-[32px] '
-                    + 'min-h-[400px] min-[900px]:min-h-[600px] '
+                    + 'h-[400px] min-[900px]:h-[600px] '
                     + 'flex flex-col items-center justify-center gap-[8px]'
                 }
             >
@@ -92,7 +92,7 @@ const TourMap = ({ stops }) => {
                 className={
                     'bg-surface rounded-[16px] border border-border '
                     + 'shadow-sm p-[24px] md:p-[32px] '
-                    + 'min-h-[400px] min-[900px]:min-h-[600px] '
+                    + 'h-[400px] min-[900px]:h-[600px] '
                     + 'flex items-center justify-center'
                 }
             >
@@ -109,7 +109,7 @@ const TourMap = ({ stops }) => {
             }
         >
             <GoogleMap
-                mapContainerClassName="w-full min-h-[400px] min-[900px]:min-h-[600px]"
+                mapContainerClassName="w-full h-[400px] min-[900px]:h-[600px]"
                 mapContainerStyle={{ width: '100%' }}
                 center={DEFAULT_CENTER}
                 zoom={DEFAULT_ZOOM}
