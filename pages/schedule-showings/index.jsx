@@ -6,6 +6,8 @@ import TourList from '../../components/ScheduleShowings/TourList';
 import TourMap from '../../components/ScheduleShowings/TourMap';
 import { isAlreadyInTour } from '../../components/ScheduleShowings/tourHelpers';
 
+import styles from './index.module.css';
+
 const ScheduleShowings = () => {
     const [stops, setStops] = useState([]);
 
@@ -51,7 +53,7 @@ const ScheduleShowings = () => {
                 {/* Two-column split:
                       - < 900px: search + list on top, map below
                       - >= 900px: search + list on left, map on right */}
-                <div className="grid grid-cols-1 min-[900px]:grid-cols-[minmax(0,420px)_1fr] gap-[24px] w-full">
+                <div className={styles.tourGrid}>
                     {/* Left column — search + tour list */}
                     <div className="flex flex-col gap-[16px] min-w-0">
                         <PropertySearch stops={stops} onAdd={handleAdd} />
