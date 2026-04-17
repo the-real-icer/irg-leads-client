@@ -385,7 +385,11 @@ const ScheduleShowings = () => {
                 <div className={styles.tourGrid}>
                     <div className="flex flex-col gap-[16px] min-w-0">
                         <PropertySearch stops={stops} onAdd={handleAdd} />
-                        <TourList stops={stops} onRemove={handleRemove} />
+                        <TourList
+                            stops={stops}
+                            onRemove={handleRemove}
+                            onReorder={setStops}
+                        />
                         <SavedToursList
                             tours={savedTours}
                             activeTourId={tourId}
