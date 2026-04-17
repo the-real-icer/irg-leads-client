@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { useSelector } from 'react-redux';
+import { confirmDialog } from 'primereact/confirmdialog';
 
 import MainLayout from '../../components/layout/MainLayout';
 import PropertySearch from '../../components/ScheduleShowings/PropertySearch';
@@ -15,6 +17,15 @@ import {
 import IrgApi from '../../assets/irgApi';
 
 import styles from './index.module.css';
+
+// PrimeReact ConfirmDialog is a portal component — dynamic-imported with
+// ssr: false so Next.js doesn't try to render it on the server. The
+// imperative `confirmDialog(...)` function is safe to import statically;
+// it just enqueues dialog events that this mounted instance consumes.
+const ConfirmDialog = dynamic(
+    () => import('primereact/confirmdialog').then((mod) => mod.ConfirmDialog),
+    { ssr: false },
+);
 
 // How long the transient 'saved' state lingers before fading back to 'clean'.
 const SAVED_FLASH_MS = 2000;
@@ -115,23 +126,27 @@ const ScheduleShowings = () => {
     }, []);
 
     // --- Save -----------------------------------------------------------
+    // Wrap EVERYTHING (including body construction) in try/catch so no
+    // exception path can escape. Guarantees saveState transitions out of
+    // 'saving' — either to 'saved' (happy) or 'error' (any failure).
     const handleSave = useCallback(async () => {
         if (!canSave) return;
-        setSaveState('saving');
-
-        const body = {
-            name: name.trim(),
-            client: client?._id || null,
-            scheduled_date: scheduledDate ? scheduledDate.toISOString() : null,
-            stops: stops.map((s, index) => ({
-                mls_number: s.mls_number,
-                order: index,
-                note: s.note || '',
-                scheduled_time: s.scheduled_time || null,
-            })),
-        };
 
         try {
+            setSaveState('saving');
+
+            const body = {
+                name: name.trim(),
+                client: client?._id || null,
+                scheduled_date: scheduledDate ? scheduledDate.toISOString() : null,
+                stops: stops.map((s, index) => ({
+                    mls_number: s.mls_number,
+                    order: index,
+                    note: s.note || '',
+                    scheduled_time: s.scheduled_time || null,
+                })),
+            };
+
             let saved;
             if (tourId === null) {
                 const res = await IrgApi.post('/tours', body, { headers: authHeaders });
@@ -146,8 +161,6 @@ const ScheduleShowings = () => {
             }
 
             // Reset the dirty-tracking snapshot based on what we just sent.
-            // Using the current state is equivalent because the POST body
-            // was built from it.
             lastSavedSnapshotRef.current = buildTourSnapshot({
                 name, client, scheduledDate, stops,
             });
@@ -158,23 +171,17 @@ const ScheduleShowings = () => {
             fetchSavedTours();
         } catch (err) {
             // eslint-disable-next-line no-console
-            console.error('Tour save failed', err);
+            console.error('[schedule-showings] save failed', err);
             setSaveState('error');
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [canSave, name, client, scheduledDate, stops, tourId, isLoggedIn, fetchSavedTours]);
 
     // --- Load an existing tour ------------------------------------------
-    const handleLoadTour = useCallback(async (id) => {
-        if (!id) return;
-
-        // If the user is abandoning unsaved edits, confirm first.
-        if (saveState === 'dirty' || saveState === 'saving') {
-            // eslint-disable-next-line no-alert
-            const ok = window.confirm('Unsaved changes will be lost. Load the selected tour?');
-            if (!ok) return;
-        }
-
+    // Split into a pure-effect `doLoad` function that performs the fetch
+    // and state updates, and a thin outer handler that gates it on
+    // whether we need a discard-changes confirm first.
+    const doLoadTour = useCallback(async (id) => {
         loadingTourIdRef.current = id;
 
         try {
@@ -266,15 +273,27 @@ const ScheduleShowings = () => {
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isLoggedIn, saveState]);
+    }, [isLoggedIn]);
+
+    const handleLoadTour = useCallback((id) => {
+        if (!id) return;
+        if (saveState === 'dirty' || saveState === 'saving') {
+            confirmDialog({
+                message: 'Unsaved changes will be lost. Load the selected tour?',
+                header: 'Discard changes?',
+                icon: 'pi pi-exclamation-triangle',
+                acceptLabel: 'Discard and load',
+                rejectLabel: 'Keep editing',
+                acceptClassName: 'p-button-danger',
+                accept: () => { doLoadTour(id); },
+            });
+        } else {
+            doLoadTour(id);
+        }
+    }, [saveState, doLoadTour]);
 
     // --- New tour -------------------------------------------------------
-    const handleNewTour = useCallback(() => {
-        if (saveState === 'dirty' || saveState === 'saving') {
-            // eslint-disable-next-line no-alert
-            const ok = window.confirm('Unsaved changes will be lost. Start a new tour?');
-            if (!ok) return;
-        }
+    const resetEditor = useCallback(() => {
         setTourId(null);
         setName('');
         setStops([]);
@@ -283,35 +302,70 @@ const ScheduleShowings = () => {
         setLastSavedAt(null);
         lastSavedSnapshotRef.current = EMPTY_SNAPSHOT;
         setSaveState('clean');
-    }, [saveState]);
+    }, []);
+
+    const handleNewTour = useCallback(() => {
+        if (saveState === 'dirty' || saveState === 'saving') {
+            confirmDialog({
+                message: 'Unsaved changes will be lost. Start a new tour?',
+                header: 'Discard changes?',
+                icon: 'pi pi-exclamation-triangle',
+                acceptLabel: 'Discard',
+                rejectLabel: 'Keep editing',
+                acceptClassName: 'p-button-danger',
+                accept: resetEditor,
+            });
+        } else {
+            resetEditor();
+        }
+    }, [saveState, resetEditor]);
 
     // --- Delete a saved tour --------------------------------------------
-    const handleDeleteTour = useCallback(async (id) => {
-        try {
-            await IrgApi.delete(`/tours/${id}`, { headers: authHeaders });
-            // If the currently loaded tour was deleted, detach it from
-            // its mongo _id so the next save creates a new record. Keep
-            // the editor contents — user may want to re-save under a
-            // fresh record rather than lose their work.
-            if (id === tourId) {
-                setTourId(null);
-                setLastSavedAt(null);
-                lastSavedSnapshotRef.current = EMPTY_SNAPSHOT;
-                setSaveState('dirty');
-            }
-            fetchSavedTours();
-        } catch (err) {
-            // eslint-disable-next-line no-console
-            console.error('Tour delete failed', err);
-            // eslint-disable-next-line no-alert
-            window.alert('Could not delete that tour. Please try again.');
-        }
+    // Page owns the confirm so PrimeReact's themed dialog (portaled to
+    // <ConfirmDialog /> rendered below) is used consistently — no more
+    // window.confirm. SavedToursList calls onDelete(id, name); we show
+    // the confirm and perform the actual API call on accept.
+    const handleDeleteTour = useCallback((id, tourName) => {
+        const displayName = tourName && tourName.trim() ? tourName : 'Untitled tour';
+        confirmDialog({
+            message: `Delete "${displayName}"?`,
+            header: 'Delete tour?',
+            icon: 'pi pi-exclamation-triangle',
+            acceptLabel: 'Delete',
+            rejectLabel: 'Cancel',
+            acceptClassName: 'p-button-danger',
+            accept: async () => {
+                try {
+                    await IrgApi.delete(`/tours/${id}`, { headers: authHeaders });
+                    // If the currently loaded tour was deleted, detach
+                    // its mongo _id so the next save creates a new
+                    // record. Keep the editor contents so the agent
+                    // doesn't lose in-progress work.
+                    if (id === tourId) {
+                        setTourId(null);
+                        setLastSavedAt(null);
+                        lastSavedSnapshotRef.current = EMPTY_SNAPSHOT;
+                        setSaveState('dirty');
+                    }
+                    fetchSavedTours();
+                } catch (err) {
+                    // eslint-disable-next-line no-console
+                    console.error('[schedule-showings] delete failed', err);
+                    // eslint-disable-next-line no-alert
+                    window.alert('Could not delete that tour. Please try again.');
+                }
+            },
+        });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [tourId, isLoggedIn, fetchSavedTours]);
 
     // --- Render ---------------------------------------------------------
     return (
         <MainLayout title="Schedule Showings">
+            {/* Singleton PrimeReact dialog — consumes imperative
+                confirmDialog(...) events from handlers above. Themed
+                automatically for light/dark mode. */}
+            <ConfirmDialog />
             <div className="p-[24px] flex flex-col gap-[24px] w-full">
                 <TourHeader
                     name={name}

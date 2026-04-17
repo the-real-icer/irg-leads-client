@@ -97,10 +97,7 @@ const SavedToursList = ({ tours, activeTourId, loading, onLoad, onDelete }) => {
                                     type="button"
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        // eslint-disable-next-line no-alert
-                                        if (window.confirm('Delete this tour?')) {
-                                            onDelete(tour._id);
-                                        }
+                                        onDelete(tour._id, tour.name || '');
                                     }}
                                     aria-label={`Delete ${tour.name || 'this tour'}`}
                                     className={
