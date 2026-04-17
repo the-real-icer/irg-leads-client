@@ -150,3 +150,20 @@
     --status-pending:        337 55% 69%;      /* #DB85AC                       */
     --status-closed:         160 38% 50%;      /* #4FAF92                       */
 }
+
+/* ── TOUR STOP STATUS COLORS (same in both modes) ────────────────── */
+/* Aliases of existing status colors scoped to Schedule Showings so we */
+/* don't carry the semantic baggage of status-trash / status-hot /     */
+/* status-qualify names. Edit values independently if the two domains  */
+/* diverge visually in the future.                                     */
+
+:root,
+.dark {
+    --tour-stop-pending:       0 0% 27%;       /* matches status-trash          */
+    --tour-stop-requested:     37 56% 49%;     /* matches status-watch          */
+    --tour-stop-confirmed:     88 44% 45%;     /* matches status-qualify        */
+    --tour-stop-not-available: 16 93% 53%;     /* matches status-hot            */
+    --tour-stop-showed:        210 83% 49%;    /* matches status-nurture        */
+    --tour-stop-skipped:       0 0% 55%;       /* new — light gray, distinct    */
+                                               /* from pending's dark gray      */
+}

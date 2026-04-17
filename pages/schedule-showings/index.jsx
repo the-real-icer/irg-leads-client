@@ -142,6 +142,7 @@ const ScheduleShowings = () => {
                 stops: stops.map((s, index) => ({
                     mls_number: s.mls_number,
                     order: index,
+                    status: s.status || 'pending',
                     note: s.note || '',
                     scheduled_time: s.scheduled_time || null,
                 })),
@@ -220,6 +221,7 @@ const ScheduleShowings = () => {
                 // Carry forward per-stop note / scheduled_time from the saved tour.
                 rebuilt.push({
                     ...stop,
+                    status: r.stop.status || 'pending',
                     note: r.stop.note || '',
                     scheduled_time: r.stop.scheduled_time || null,
                 });

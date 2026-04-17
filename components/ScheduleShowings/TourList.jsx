@@ -104,6 +104,11 @@ const SortableStopCard = ({ stop, index, onRemove, isBroken, markBroken }) => {
                     {stop.price}
                     {formatBedsBaths(stop) && ` · ${formatBedsBaths(stop)}`}
                 </div>
+                {/* Phase 3b-1: raw status text for round-trip verification.
+                    Styled badge + edit modal come in 3b-2. */}
+                <div className="text-[11px] text-foreground/50">
+                    {stop.status || 'pending'}
+                </div>
             </div>
 
             <button

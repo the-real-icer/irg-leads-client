@@ -87,6 +87,16 @@ const config = {
                     closed: 'hsl(var(--status-closed) / <alpha-value>)',
                 },
 
+                // Tour stop statuses (Schedule Showings feature)
+                'tour-stop': {
+                    pending: 'hsl(var(--tour-stop-pending) / <alpha-value>)',
+                    requested: 'hsl(var(--tour-stop-requested) / <alpha-value>)',
+                    confirmed: 'hsl(var(--tour-stop-confirmed) / <alpha-value>)',
+                    'not-available': 'hsl(var(--tour-stop-not-available) / <alpha-value>)',
+                    showed: 'hsl(var(--tour-stop-showed) / <alpha-value>)',
+                    skipped: 'hsl(var(--tour-stop-skipped) / <alpha-value>)',
+                },
+
                 /* ── Static Brand Palettes ───────────────────────────
                    Full scales for fine-grained use outside the
                    semantic system. Not affected by dark mode.

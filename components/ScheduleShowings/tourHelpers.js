@@ -72,6 +72,7 @@ export const buildTourSnapshot = ({ name, client, scheduledDate, stops }) => JSO
         ? stops.map((s, idx) => ({
             mls_number: s.mls_number,
             order: idx,
+            status: s.status || 'pending',
             note: s.note || '',
             scheduled_time: s.scheduled_time || null,
         }))
@@ -109,6 +110,13 @@ export const stopFromSuggestResult = (result) => {
         ? ikUrl(sourceUrl.replace(/http:/, 'https:').concat('?preset=Small'))
         : undefined;
 
+    // Note: `result.status` holds the MLS *property* listing status
+    // (Active / Pending / Coming Soon / ...). We intentionally DO NOT
+    // propagate it here — the local stop shape now carries a per-stop
+    // `status` field (pending / requested / confirmed / ...) whose name
+    // would collide. Nothing in Schedule Showings consumes the property
+    // status today; if we ever need it back we'll pull it under a
+    // distinct name like `mls_status`.
     return {
         mls_number: result.mls_number,
         address: result.address,
@@ -121,11 +129,11 @@ export const stopFromSuggestResult = (result) => {
         bedrooms: result.bedrooms,
         bathrooms: result.bathrooms,
         sqft_raw: result.sqft_raw,
-        status: result.status,
         coordinates: {
             lat: result?.coordinates?.lat,
             lng: result?.coordinates?.lng,
         },
         thumbnail,
+        status: 'pending',
     };
 };
