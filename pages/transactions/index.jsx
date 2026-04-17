@@ -15,6 +15,8 @@ import MainLayout from '../../components/layout/MainLayout';
 // API & Utils
 import IrgApi from '../../assets/irgApi';
 import showToast from '../../utils/showToast';
+import { getTransactionPropertyDetails } from '../../utils/transactionProperty';
+import { usePropertyFallbackImage } from '../../utils/propertyImageFallback';
 
 // ── Helpers ──────────────────────────────────────────────────────
 const formatCurrency = (value) => {
@@ -147,6 +149,11 @@ const TransactionsDashboard = () => {
     const isLoggedIn = useSelector((state) => state.isLoggedIn);
     const agent = useSelector((state) => state.agent);
     const isAdmin = agent?.role === 'admin';
+
+    // Theme-reactive fallback image for transactions without a usable
+    // property photo (off-MLS transactions always, MLS transactions
+    // when listing_pics is missing or the URL 404s).
+    const fallbackImage = usePropertyFallbackImage();
 
     // ── Tab state ────────────────────────────────────────────────
     const [activeTab, setActiveTab] = useState('my');
@@ -440,7 +447,10 @@ const TransactionsDashboard = () => {
                                         gap: '1.5rem',
                                         padding: '0.5rem',
                                     }}>
-                                        {transactions.map((transaction) => (
+                                        {transactions.map((transaction) => {
+                                            const details = getTransactionPropertyDetails(transaction);
+                                            const photoSrc = details.photoUrl || fallbackImage;
+                                            return (
                                             <div
                                                 key={transaction._id}
                                                 style={{
@@ -460,21 +470,28 @@ const TransactionsDashboard = () => {
                                                     e.currentTarget.style.boxShadow = 'none';
                                                 }}
                                             >
-                                                {transaction.property?.listing_pics && (
-                                                    <div style={{ marginBottom: '1rem', borderRadius: '6px', overflow: 'hidden' }}>
-                                                        <img
-                                                            src={transaction.property.listing_pics.replace(/http:/, 'https:')}
-                                                            alt={transaction.address}
-                                                            style={{ width: '100%', height: '180px', objectFit: 'cover' }}
-                                                        />
-                                                    </div>
-                                                )}
+                                                {/* Always render a photo slot for visual rhythm in the
+                                                    grid. MLS photo if available, otherwise the theme-
+                                                    reactive fallback. onError swaps to fallback if the
+                                                    MLS URL 404s (stale listing_pics, dead CDN, etc.). */}
+                                                <div style={{ marginBottom: '1rem', borderRadius: '6px', overflow: 'hidden' }}>
+                                                    <img
+                                                        src={photoSrc}
+                                                        alt={details.address}
+                                                        style={{ width: '100%', height: '180px', objectFit: 'cover' }}
+                                                        onError={(e) => {
+                                                            if (e.currentTarget.src !== fallbackImage) {
+                                                                e.currentTarget.src = fallbackImage;
+                                                            }
+                                                        }}
+                                                    />
+                                                </div>
 
                                                 <div style={{ fontWeight: '700', fontSize: '1.1rem', color: 'hsl(var(--foreground))', marginBottom: '0.5rem' }}>
-                                                    {transaction.address}
+                                                    {details.address}
                                                 </div>
                                                 <div style={{ color: 'hsl(var(--muted-foreground))', fontSize: '0.9rem', marginBottom: '1rem' }}>
-                                                    {transaction.city}, {transaction.state} {transaction.zipCode}
+                                                    {details.city}, {details.state} {details.zipCode ?? ''}
                                                 </div>
 
                                                 <div style={{
@@ -517,13 +534,44 @@ const TransactionsDashboard = () => {
                                                             {formatDate(transaction.actualClosingDate || transaction.anticipatedClosingDate)}
                                                         </span>
                                                     </div>
-                                                    {transaction.property && (
-                                                        <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '0.5rem', borderTop: '1px solid hsl(var(--border))', marginTop: '0.5rem' }}>
-                                                            <span style={{ color: 'hsl(var(--muted-foreground))' }}>MLS#:</span>
-                                                            <span style={{ color: 'hsl(var(--foreground))', fontFamily: 'monospace' }}>
-                                                                {transaction.property.mls_number}
+                                                    {/* Branched tail row: MLS# chip for MLS-backed
+                                                        transactions, "Off-MLS" badge for off-MLS. */}
+                                                    {details.isOffMls ? (
+                                                        <div style={{
+                                                            display: 'flex',
+                                                            justifyContent: 'flex-start',
+                                                            paddingTop: '0.5rem',
+                                                            borderTop: '1px solid hsl(var(--border))',
+                                                            marginTop: '0.5rem',
+                                                        }}>
+                                                            <span style={{
+                                                                display: 'inline-flex',
+                                                                alignItems: 'center',
+                                                                gap: '4px',
+                                                                padding: '2px 8px',
+                                                                borderRadius: '4px',
+                                                                fontSize: '0.75rem',
+                                                                fontWeight: '600',
+                                                                background: 'hsl(var(--primary) / 0.1)',
+                                                                color: 'hsl(var(--primary))',
+                                                            }}>
+                                                                <i
+                                                                    className="pi pi-tag"
+                                                                    style={{ fontSize: '10px' }}
+                                                                    aria-hidden="true"
+                                                                />
+                                                                Off-MLS
                                                             </span>
                                                         </div>
+                                                    ) : (
+                                                        details.mlsNumber && (
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '0.5rem', borderTop: '1px solid hsl(var(--border))', marginTop: '0.5rem' }}>
+                                                                <span style={{ color: 'hsl(var(--muted-foreground))' }}>MLS#:</span>
+                                                                <span style={{ color: 'hsl(var(--foreground))', fontFamily: 'monospace' }}>
+                                                                    {details.mlsNumber}
+                                                                </span>
+                                                            </div>
+                                                        )
                                                     )}
                                                 </div>
 
@@ -542,7 +590,8 @@ const TransactionsDashboard = () => {
                                                     }}
                                                 />
                                             </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 </ScrollPanel>
                             )}
