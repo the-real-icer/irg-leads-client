@@ -1,6 +1,51 @@
 import PropTypes from 'prop-types';
 
 import { formatRelativeTime, formatScheduledDate } from './tourHelpers';
+import { getStatusMeta } from './stopStatus';
+
+const MAX_STATUS_DOTS = 8;
+
+// A compact at-a-glance row of status dots — one per stop — up to
+// MAX_STATUS_DOTS. Overflow renders as "+N" instead of more dots.
+// Returns null if the tour has no stops so the card doesn't reserve
+// empty vertical space for nothing.
+const StatusDotRow = ({ stops }) => {
+    if (!Array.isArray(stops) || stops.length === 0) return null;
+    const shown = stops.slice(0, MAX_STATUS_DOTS);
+    const overflow = stops.length - shown.length;
+    return (
+        <div
+            className="flex items-center gap-[4px] mt-[6px]"
+            aria-label={`${stops.length} stop${stops.length === 1 ? '' : 's'} status summary`}
+        >
+            {shown.map((s, i) => {
+                const meta = getStatusMeta(s?.status);
+                return (
+                    <span
+                        // Stable composite key: using mls_number + index covers the
+                        // rare case of duplicates slipping into legacy docs.
+                        key={`${s?.mls_number || 'stop'}-${i}`}
+                        title={meta.label}
+                        className={`inline-block w-[8px] h-[8px] rounded-full bg-tour-stop-${meta.tailwindKey}`}
+                    />
+                );
+            })}
+            {overflow > 0 && (
+                <span className="text-[11px] text-foreground/60 ml-[2px]">
+                    +{overflow}
+                </span>
+            )}
+        </div>
+    );
+};
+
+StatusDotRow.propTypes = {
+    stops: PropTypes.array,
+};
+
+StatusDotRow.defaultProps = {
+    stops: [],
+};
 
 // Build the secondary metadata line for a saved-tour card.
 // Composes up to three segments joined by " · ": stop count, scheduled
@@ -90,6 +135,7 @@ const SavedToursList = ({ tours, activeTourId, loading, onLoad, onDelete }) => {
                                         <div className="text-[12px] text-foreground/70 truncate">
                                             {buildMetaLine(tour)}
                                         </div>
+                                        <StatusDotRow stops={tour.stops} />
                                     </div>
                                 </button>
 

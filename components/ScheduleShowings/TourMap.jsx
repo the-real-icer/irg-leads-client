@@ -4,6 +4,28 @@ import { GoogleMap, Marker } from '@react-google-maps/api';
 
 import useGoogleMaps from '../../utils/useGoogleMaps';
 import { hasValidCoords } from './tourHelpers';
+import { getStatusHex } from './stopStatus';
+
+// Build a data-URI SVG pin colored by the stop's status, with the order
+// number baked in as a label. Returns null before Google Maps is ready
+// so callers can safely pass it through to <Marker icon={...} /> — the
+// library falls back to the default pin for a frame, then re-renders
+// with our custom icon once `window.google` exists.
+const buildMarkerIcon = (statusValue, orderNumber) => {
+    if (typeof window === 'undefined' || !window.google) return null;
+    const color = getStatusHex(statusValue);
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="40" viewBox="0 0 32 40">`
+        + `<path d="M16 0 C24 0 32 7 32 16 C32 24 16 40 16 40 C16 40 0 24 0 16 C0 7 8 0 16 0 Z" `
+        + `fill="${color}" stroke="#FFFFFF" stroke-width="2"/>`
+        + `<text x="16" y="21" text-anchor="middle" font-family="Lato, sans-serif" `
+        + `font-size="14" font-weight="700" fill="#FFFFFF">${orderNumber}</text>`
+        + `</svg>`;
+    return {
+        url: `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`,
+        anchor: new window.google.maps.Point(16, 40),
+        scaledSize: new window.google.maps.Size(32, 40),
+    };
+};
 
 const DEFAULT_CENTER = { lat: 32.7157, lng: -117.1611 }; // San Diego
 const DEFAULT_ZOOM = 11;
@@ -124,11 +146,7 @@ const TourMap = ({ stops }) => {
                             lat: stop.coordinates.lat,
                             lng: stop.coordinates.lng,
                         }}
-                        label={{
-                            text: String(idx + 1),
-                            color: '#FFFFFF',
-                            fontWeight: '600',
-                        }}
+                        icon={buildMarkerIcon(stop.status, idx + 1)}
                     />
                 ))}
             </GoogleMap>

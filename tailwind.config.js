@@ -5,6 +5,44 @@ const config = {
     // Dark mode via class — toggle by adding class="dark" to <html> or <body>
     darkMode: 'class',
 
+    // Safelist classes that are generated at runtime via template literals
+    // and therefore invisible to Tailwind's JIT scanner. Schedule Showings
+    // builds `bg-tour-stop-${tailwindKey}` / `text-tour-stop-*` / `ring-
+    // tour-stop-*` dynamically for status badges, pill selectors, and
+    // marker ring states.
+    //
+    // Patterns with `\/\d+` alternation DON'T enumerate opacity variants
+    // exhaustively — Tailwind's safelist needs each opacity value spelled
+    // out in bounded alternation. The opacity values below (`15`, `40`)
+    // match the actual usage in TourList.jsx and StopEditDialog.jsx; if
+    // you add a new opacity (e.g. `/20`), add it here too.
+    safelist: [
+        {
+            pattern:
+                /^bg-tour-stop-(pending|requested|confirmed|not-available|showed|skipped)$/,
+        },
+        {
+            pattern:
+                /^bg-tour-stop-(pending|requested|confirmed|not-available|showed|skipped)\/(15|40)$/,
+        },
+        {
+            pattern:
+                /^text-tour-stop-(pending|requested|confirmed|not-available|showed|skipped)$/,
+        },
+        {
+            pattern:
+                /^ring-tour-stop-(pending|requested|confirmed|not-available|showed|skipped)$/,
+        },
+        {
+            pattern:
+                /^ring-tour-stop-(pending|requested|confirmed|not-available|showed|skipped)\/(15|40)$/,
+        },
+        {
+            pattern:
+                /^border-tour-stop-(pending|requested|confirmed|not-available|showed|skipped)$/,
+        },
+    ],
+
     theme: {
         extend: {
             /* ──────────────────────────────────────────────────────────

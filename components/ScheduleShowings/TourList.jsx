@@ -18,12 +18,55 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 
 import { formatBedsBaths } from './tourHelpers';
+import { getStatusMeta, formatStopTime } from './stopStatus';
+
+// Colored pill that shows a stop's current status and opens the edit
+// dialog when clicked. Dynamic Tailwind class names are covered by the
+// safelist in tailwind.config.js; without it they'd silently not compile.
+const StatusBadge = ({ status, onClick }) => {
+    const meta = getStatusMeta(status);
+    const key = meta.tailwindKey;
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            aria-label={`Status: ${meta.label}. Click to edit.`}
+            className={[
+                'inline-flex items-center gap-[6px]',
+                'px-[8px] py-[3px] rounded-[6px]',
+                'text-[11px] font-medium',
+                `bg-tour-stop-${key}/15`,
+                `text-tour-stop-${key}`,
+                'hover:opacity-80 transition-opacity',
+                'focus:outline-none focus:ring-2',
+                `focus:ring-tour-stop-${key}/40`,
+            ].join(' ')}
+        >
+            <span
+                aria-hidden="true"
+                className={`inline-block w-[8px] h-[8px] rounded-full bg-tour-stop-${key}`}
+            />
+            {meta.label}
+        </button>
+    );
+};
+
+StatusBadge.propTypes = {
+    status: PropTypes.string,
+    onClick: PropTypes.func.isRequired,
+};
+
+StatusBadge.defaultProps = {
+    status: 'pending',
+};
 
 // Sortable stop card — useSortable provides transform/transition/isDragging
 // plus `attributes` + `listeners` for the drag-handle button. We attach
-// those to the handle ONLY so clicks on Remove (or any future interactive
-// element on the card) never initiate a drag.
-const SortableStopCard = ({ stop, index, onRemove, isBroken, markBroken }) => {
+// those to the handle ONLY so clicks on Remove / Edit badge / note icon
+// never initiate a drag.
+const SortableStopCard = ({
+    stop, index, onRemove, onEditStop, isBroken, markBroken,
+}) => {
     const {
         attributes,
         listeners,
@@ -38,6 +81,10 @@ const SortableStopCard = ({ stop, index, onRemove, isBroken, markBroken }) => {
         transition,
         opacity: isDragging ? 0.5 : 1,
     };
+
+    const timeLabel = formatStopTime(stop.scheduled_time);
+    const hasNote = Boolean(stop.note && stop.note.trim());
+    const openEdit = () => onEditStop(stop);
 
     return (
         <li
@@ -103,11 +150,25 @@ const SortableStopCard = ({ stop, index, onRemove, isBroken, markBroken }) => {
                 <div className="text-[12px] text-foreground/70 truncate">
                     {stop.price}
                     {formatBedsBaths(stop) && ` · ${formatBedsBaths(stop)}`}
+                    {timeLabel && ` · ${timeLabel}`}
                 </div>
-                {/* Phase 3b-1: raw status text for round-trip verification.
-                    Styled badge + edit modal come in 3b-2. */}
-                <div className="text-[11px] text-foreground/50">
-                    {stop.status || 'pending'}
+                <div className="flex items-center gap-[8px] flex-wrap mt-[4px]">
+                    <StatusBadge status={stop.status} onClick={openEdit} />
+                    {hasNote && (
+                        <button
+                            type="button"
+                            onClick={openEdit}
+                            aria-label="This stop has a note. Click to view."
+                            className={
+                                'text-foreground/50 hover:text-foreground '
+                                + 'p-[2px] rounded-[4px] '
+                                + 'focus:outline-none focus:ring-2 focus:ring-primary/40 '
+                                + 'transition-colors'
+                            }
+                        >
+                            <i className="pi pi-file text-[12px]" aria-hidden="true" />
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -137,9 +198,16 @@ SortableStopCard.propTypes = {
         state: PropTypes.string,
         price: PropTypes.string,
         thumbnail: PropTypes.string,
+        status: PropTypes.string,
+        note: PropTypes.string,
+        scheduled_time: PropTypes.oneOfType([
+            PropTypes.instanceOf(Date),
+            PropTypes.string,
+        ]),
     }).isRequired,
     index: PropTypes.number.isRequired,
     onRemove: PropTypes.func.isRequired,
+    onEditStop: PropTypes.func.isRequired,
     isBroken: PropTypes.func.isRequired,
     markBroken: PropTypes.func.isRequired,
 };
@@ -153,7 +221,7 @@ const screenReaderInstructions = {
         + 'Press escape to cancel.',
 };
 
-const TourList = ({ stops, onRemove, onReorder }) => {
+const TourList = ({ stops, onRemove, onReorder, onEditStop }) => {
     const count = stops.length;
 
     const [brokenThumbs, setBrokenThumbs] = useState(() => new Set());
@@ -224,6 +292,7 @@ const TourList = ({ stops, onRemove, onReorder }) => {
                                     stop={stop}
                                     index={index}
                                     onRemove={onRemove}
+                                    onEditStop={onEditStop}
                                     isBroken={isBroken}
                                     markBroken={markBroken}
                                 />
@@ -240,6 +309,7 @@ TourList.propTypes = {
     stops: PropTypes.array.isRequired,
     onRemove: PropTypes.func.isRequired,
     onReorder: PropTypes.func.isRequired,
+    onEditStop: PropTypes.func.isRequired,
 };
 
 export default TourList;

@@ -9,6 +9,7 @@ import TourList from '../../components/ScheduleShowings/TourList';
 import TourMap from '../../components/ScheduleShowings/TourMap';
 import TourHeader from '../../components/ScheduleShowings/TourHeader';
 import SavedToursList from '../../components/ScheduleShowings/SavedToursList';
+import StopEditDialog from '../../components/ScheduleShowings/StopEditDialog';
 import {
     buildTourSnapshot,
     isAlreadyInTour,
@@ -51,6 +52,10 @@ const ScheduleShowings = () => {
     // Saved-tours sidebar state
     const [savedTours, setSavedTours] = useState([]);
     const [loadingTours, setLoadingTours] = useState(false);
+
+    // Per-stop edit dialog. When non-null, the dialog is open for that
+    // stop; null when closed.
+    const [editingStop, setEditingStop] = useState(null);
 
     // Guard against stale tour loads when the user clicks another tour
     // while a load is in flight.
@@ -123,6 +128,30 @@ const ScheduleShowings = () => {
 
     const handleRemove = useCallback((mlsNumber) => {
         setStops((prev) => prev.filter((s) => s.mls_number !== mlsNumber));
+    }, []);
+
+    // Open the per-stop edit dialog for a given stop
+    const handleEditStop = useCallback((stop) => {
+        setEditingStop(stop);
+    }, []);
+
+    // Merge dialog updates back into the stops array by mls_number.
+    // Touches setStops → dirty-tracking effect flips saveState to 'dirty'
+    // so the header's Save button lights up. No separate persistence call.
+    const handleStopUpdate = useCallback((updates) => {
+        setEditingStop((current) => {
+            if (!current) return null;
+            setStops((prev) => prev.map((s) => (
+                s.mls_number === current.mls_number
+                    ? { ...s, ...updates }
+                    : s
+            )));
+            return null;
+        });
+    }, []);
+
+    const handleStopEditCancel = useCallback(() => {
+        setEditingStop(null);
     }, []);
 
     // --- Save -----------------------------------------------------------
@@ -368,6 +397,11 @@ const ScheduleShowings = () => {
                 confirmDialog(...) events from handlers above. Themed
                 automatically for light/dark mode. */}
             <ConfirmDialog />
+            <StopEditDialog
+                stop={editingStop}
+                onSave={handleStopUpdate}
+                onCancel={handleStopEditCancel}
+            />
             <div className="p-[24px] flex flex-col gap-[24px] w-full">
                 <TourHeader
                     name={name}
@@ -391,6 +425,7 @@ const ScheduleShowings = () => {
                             stops={stops}
                             onRemove={handleRemove}
                             onReorder={setStops}
+                            onEditStop={handleEditStop}
                         />
                         <SavedToursList
                             tours={savedTours}
