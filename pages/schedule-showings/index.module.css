@@ -1,0 +1,28 @@
+/*
+ * Scoped layout for the Schedule Showings page.
+ *
+ * Rationale: this file uses CSS Modules (hashed class names) to bypass a
+ * PrimeFlex global-class collision. PrimeFlex ships with PrimeReact and
+ * defines `.grid { display: flex; flex-wrap: wrap; margin: -.5rem; }`,
+ * which loads AFTER Tailwind and silently overrides Tailwind's `grid`
+ * utility. This means Tailwind's `grid-cols-*` + `gap-*` classes have
+ * no effect on any element tagged with the raw class name `grid`.
+ *
+ * Using a CSS Module gives us a class name like `.tourGrid_abc123` that
+ * PrimeFlex cannot target. The grid layout resolves natively as intended.
+ *
+ * See tasks/lessons.md for the longer write-up.
+ */
+
+.tourGrid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+    width: 100%;
+}
+
+@media (min-width: 900px) {
+    .tourGrid {
+        grid-template-columns: minmax(0, 420px) 1fr;
+    }
+}
