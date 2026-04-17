@@ -1,0 +1,34 @@
+/*
+ * Grid layouts for the off-MLS property fields card.
+ *
+ * IMPORTANT — these exist as a CSS Module rather than Tailwind `grid
+ * grid-cols-*` utilities because PrimeFlex (loaded globally by
+ * PrimeReact in the CRM) hijacks the `.grid` class name with
+ * `display: flex !important`, silently breaking Tailwind's grid.
+ * CSS Modules compile to hashed class names PrimeFlex cannot target.
+ * See tasks/lessons.md and CLAUDE.md "PrimeFlex Collision Warning".
+ */
+
+.cityStateZipGrid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+@media (min-width: 600px) {
+    .cityStateZipGrid {
+        grid-template-columns: 2fr 1fr 1fr;
+    }
+}
+
+.bedsBathsSqftGrid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+@media (min-width: 600px) {
+    .bedsBathsSqftGrid {
+        grid-template-columns: 1fr 1fr 1fr;
+    }
+}

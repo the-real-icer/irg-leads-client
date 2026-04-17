@@ -23,6 +23,7 @@ const AutoComplete = dynamic(() => import('primereact/autocomplete').then((mod) 
 
 // IRG Components
 import MainLayout from '../../components/layout/MainLayout';
+import OffMlsPropertyFields from '../../components/Transactions/OffMlsPropertyFields';
 
 // API & Utils
 import IrgApi from '../../assets/irgApi';
@@ -142,6 +143,24 @@ const Transactions = () => {
     const [propertySearchSuggestions, setPropertySearchSuggestions] = useState([]);
     const [selectedProperty, setSelectedProperty] = useState(null);
     const [searchLoading, setSearchLoading] = useState(false);
+
+    // ── Off-MLS / "Property Not Listed" state ────────────────────
+    // Parallel track to the MLS AutoComplete. When propertyNotListed is
+    // true, the MLS search is disabled and the form captures inline
+    // address + beds/baths/sqft/type for a private-sale transaction.
+    // All values are strings for PrimeReact controlled-input
+    // compatibility; we coerce to numbers at submit time.
+    const [propertyNotListed, setPropertyNotListed] = useState(false);
+    const [offMlsProperty, setOffMlsProperty] = useState({
+        address: '',
+        city: '',
+        state: 'CA',
+        zipCode: '',
+        propertyType: '',
+        bedrooms: '',
+        bathrooms: '',
+        sqft: '',
+    });
 
     // ── Representation (buyer / seller / both) ───────────────────
     const [representation, setRepresentation] = useState('buyer');
@@ -317,6 +336,33 @@ const Transactions = () => {
         setPropertySearchSuggestions([]);
     }, []);
 
+    // Toggle between MLS and off-MLS branches. When turning OFF, we
+    // reset the off-MLS fields so the next toggle starts clean. When
+    // turning ON, we clear any MLS selection so the server's
+    // discriminator hook can never see both branches set at once.
+    const handlePropertyNotListedToggle = (checked) => {
+        setPropertyNotListed(checked);
+
+        if (checked) {
+            setSelectedProperty(null);
+            setPropertySearch('');
+            setPropertySearchSuggestions([]);
+            // new.jsx: no prior MLS property to prefill from — agent
+            // starts the off-MLS form with blanks (state defaults 'CA').
+        } else {
+            setOffMlsProperty({
+                address: '',
+                city: '',
+                state: 'CA',
+                zipCode: '',
+                propertyType: '',
+                bedrooms: '',
+                bathrooms: '',
+                sqft: '',
+            });
+        }
+    };
+
     // ══════════════════════════════════════════════════════════════
     // HANDLERS — Lead Search (shared logic)
     // ══════════════════════════════════════════════════════════════
@@ -476,8 +522,27 @@ const Transactions = () => {
             return;
         }
 
-        if (!selectedProperty) {
-            showToast('error', 'Please select a property', 'Validation Error');
+        if (propertyNotListed) {
+            // Off-MLS branch — every field except sqft is required.
+            // Server enforces the same contract via pre-validate hook,
+            // but catching client-side avoids a wasted round trip.
+            const p = offMlsProperty;
+            const errors = [];
+            if (!p.address.trim()) errors.push('Address is required');
+            if (!p.city.trim()) errors.push('City is required');
+            if (!p.state.trim()) errors.push('State is required');
+            if (!p.zipCode.trim()) errors.push('Zip code is required');
+            else if (!/^\d{5}$/.test(p.zipCode.trim())) errors.push('Zip code must be 5 digits');
+            if (!p.propertyType) errors.push('Property type is required');
+            if (!p.bedrooms) errors.push('Bedrooms is required');
+            if (!p.bathrooms) errors.push('Bathrooms is required');
+
+            if (errors.length > 0) {
+                showToast('error', errors.join('. '), 'Validation Error');
+                return;
+            }
+        } else if (!selectedProperty) {
+            showToast('error', 'Please select a property or check "Property Not Listed"', 'Validation Error');
             return;
         }
 
@@ -529,12 +594,38 @@ const Transactions = () => {
             }
         }
 
+        // Branch the property fields between MLS and off-MLS. We MUST
+        // explicitly null out the abandoned branch's key on the server
+        // side — the Transaction schema's pre-validate hook rejects a
+        // document that has both `property` and `property_not_listed:
+        // true` set simultaneously.
+        const propertyFields = propertyNotListed
+            ? {
+                property: null,
+                property_not_listed: true,
+                address: offMlsProperty.address.trim(),
+                city: offMlsProperty.city.trim(),
+                state: offMlsProperty.state.trim().toUpperCase(),
+                zipCode: parseInt(offMlsProperty.zipCode, 10),
+                off_mls_property: {
+                    property_type: offMlsProperty.propertyType,
+                    bedrooms: parseInt(offMlsProperty.bedrooms, 10),
+                    bathrooms: parseFloat(offMlsProperty.bathrooms),
+                    sqft: offMlsProperty.sqft ? parseInt(offMlsProperty.sqft, 10) : undefined,
+                },
+            }
+            : {
+                property: selectedProperty._id,
+                property_not_listed: false,
+                off_mls_property: null,
+                address: selectedProperty.address,
+                city: selectedProperty.city,
+                state: selectedProperty.state,
+                zipCode: parseInt(selectedProperty.zip_code, 10),
+            };
+
         const transactionData = {
-            property: selectedProperty._id,
-            address: selectedProperty.address,
-            city: selectedProperty.city,
-            state: selectedProperty.state,
-            zipCode: parseInt(selectedProperty.zip_code, 10),
+            ...propertyFields,
             lead: leadId,
             salesPrice: parseFloat(transactionInfo.price),
             financing: transactionInfo.financing !== 'cash',
@@ -587,6 +678,17 @@ const Transactions = () => {
                 // Reset form
                 setSelectedProperty(null);
                 setPropertySearch('');
+                setPropertyNotListed(false);
+                setOffMlsProperty({
+                    address: '',
+                    city: '',
+                    state: 'CA',
+                    zipCode: '',
+                    propertyType: '',
+                    bedrooms: '',
+                    bathrooms: '',
+                    sqft: '',
+                });
                 setRepresentation('buyer');
                 setLinkBuyerLead(false);
                 setBuyerLeadInput('');
@@ -769,7 +871,11 @@ const Transactions = () => {
                 </div>
 
                 {/* ════════════════════════════════════════════════════
-                    SECTION 1 — PROPERTY (unchanged)
+                    SECTION 1 — PROPERTY
+                    MLS search OR off-MLS ("Property Not Listed") branch.
+                    The AutoComplete is disabled whenever the off-MLS
+                    checkbox is active to prevent both branches from
+                    being populated at once.
                     ════════════════════════════════════════════════════ */}
                 <div className="txn-new__card">
                     <h2 className="txn-new__card-title">Property</h2>
@@ -794,52 +900,76 @@ const Transactions = () => {
                             placeholder="Enter property address or MLS number (min 2 characters)"
                             style={{ width: '100%' }}
                             inputStyle={{ width: '100%' }}
-                            disabled={selectedProperty !== null}
+                            disabled={propertyNotListed || selectedProperty !== null}
                             loading={searchLoading}
                         />
                     </div>
 
-                    {/* Selected Property Display */}
-                    {selectedProperty && (
-                        <div className="txn-new__selected-property">
-                            <div className="txn-new__selected-property-inner">
-                                <div className="txn-new__selected-property-content">
-                                    <img
-                                        src={selectedProperty.listing_pics?.replace(/http:/, 'https:') || '/No-Photo-Light-Large.jpg'}
-                                        alt={selectedProperty.address}
-                                        className="txn-new__selected-property-img"
-                                    />
-                                    <div className="txn-new__selected-property-details">
-                                        <div className="txn-new__selected-property-address">
-                                            {selectedProperty.address}
-                                            {selectedProperty.unit_number && ` #${selectedProperty.unit_number}`}
-                                        </div>
-                                        <div className="txn-new__selected-property-location">
-                                            {selectedProperty.city}, {selectedProperty.state} {selectedProperty.zip_code}
-                                        </div>
-                                        <div className="txn-new__selected-property-meta">
-                                            <span><strong>MLS#:</strong> {selectedProperty.mls_number}</span>
-                                            <span><strong>Status:</strong> {selectedProperty.status}</span>
-                                            <span><strong>Price:</strong> {selectedProperty.price}</span>
-                                        </div>
-                                        <div className="txn-new__selected-property-meta" style={{ marginTop: '0.25rem' }}>
-                                            <span>{selectedProperty.bedrooms} Beds</span>
-                                            <span>|</span>
-                                            <span>{selectedProperty.bathrooms} Baths</span>
-                                            <span>|</span>
-                                            <span>{selectedProperty.sqft} SqFt</span>
+                    {/* Off-MLS toggle row */}
+                    <div className="flex items-center gap-[8px] mt-[12px]">
+                        <Checkbox
+                            inputId="property-not-listed"
+                            checked={propertyNotListed}
+                            onChange={(e) => handlePropertyNotListedToggle(e.checked)}
+                        />
+                        <label
+                            htmlFor="property-not-listed"
+                            className="text-[14px] text-foreground cursor-pointer"
+                        >
+                            Property Not Listed (Off-MLS / Private Sale)
+                        </label>
+                    </div>
+
+                    {/* Branched render: off-MLS fields, or selected-MLS card, or nothing */}
+                    {propertyNotListed ? (
+                        <div className="mt-[12px]">
+                            <OffMlsPropertyFields
+                                value={offMlsProperty}
+                                onChange={(updates) => setOffMlsProperty((prev) => ({ ...prev, ...updates }))}
+                            />
+                        </div>
+                    ) : (
+                        selectedProperty && (
+                            <div className="txn-new__selected-property">
+                                <div className="txn-new__selected-property-inner">
+                                    <div className="txn-new__selected-property-content">
+                                        <img
+                                            src={selectedProperty.listing_pics?.replace(/http:/, 'https:') || '/No-Photo-Light-Large.jpg'}
+                                            alt={selectedProperty.address}
+                                            className="txn-new__selected-property-img"
+                                        />
+                                        <div className="txn-new__selected-property-details">
+                                            <div className="txn-new__selected-property-address">
+                                                {selectedProperty.address}
+                                                {selectedProperty.unit_number && ` #${selectedProperty.unit_number}`}
+                                            </div>
+                                            <div className="txn-new__selected-property-location">
+                                                {selectedProperty.city}, {selectedProperty.state} {selectedProperty.zip_code}
+                                            </div>
+                                            <div className="txn-new__selected-property-meta">
+                                                <span><strong>MLS#:</strong> {selectedProperty.mls_number}</span>
+                                                <span><strong>Status:</strong> {selectedProperty.status}</span>
+                                                <span><strong>Price:</strong> {selectedProperty.price}</span>
+                                            </div>
+                                            <div className="txn-new__selected-property-meta" style={{ marginTop: '0.25rem' }}>
+                                                <span>{selectedProperty.bedrooms} Beds</span>
+                                                <span>|</span>
+                                                <span>{selectedProperty.bathrooms} Baths</span>
+                                                <span>|</span>
+                                                <span>{selectedProperty.sqft} SqFt</span>
+                                            </div>
                                         </div>
                                     </div>
+                                    <Button
+                                        icon="pi pi-times"
+                                        className="p-button-rounded p-button-text p-button-danger"
+                                        onClick={handleClearProperty}
+                                        tooltip="Clear selection"
+                                        tooltipOptions={{ position: 'left' }}
+                                    />
                                 </div>
-                                <Button
-                                    icon="pi pi-times"
-                                    className="p-button-rounded p-button-text p-button-danger"
-                                    onClick={handleClearProperty}
-                                    tooltip="Clear selection"
-                                    tooltipOptions={{ position: 'left' }}
-                                />
                             </div>
-                        </div>
+                        )
                     )}
                 </div>
 
