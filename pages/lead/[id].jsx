@@ -150,6 +150,9 @@ const Lead = () => {
     // Email Engagement state
     const [emailEvents, setEmailEvents] = useState([]);
     const [loadingEmailEvents, setLoadingEmailEvents] = useState(false);
+    const [activityLogs, setActivityLogs] = useState([]);
+    const [loadingActivityLogs, setLoadingActivityLogs] = useState(false);
+    const [activityLogError, setActivityLogError] = useState('');
 
     // Agent Saved Searches (e_alerts) state
     const [editEAlertVisible, setEditEAlertVisible] = useState(false);
@@ -317,6 +320,13 @@ const Lead = () => {
         }
     }, [lead?._id]); // eslint-disable-line
 
+    // Fetch ActivityLog timeline when lead is loaded
+    useEffect(() => {
+        if (lead?._id && isLoggedIn) {
+            fetchActivityLogs();
+        }
+    }, [lead?._id]); // eslint-disable-line
+
     const fetchEmails = async () => {
         if (!lead?.email) return;
 
@@ -362,6 +372,24 @@ const Lead = () => {
         }
     };
 
+    const fetchActivityLogs = async () => {
+        if (!lead?._id) return;
+
+        setLoadingActivityLogs(true);
+        setActivityLogError('');
+        try {
+            const response = await IrgApi.get(`/activity/leads/${lead._id}`, {
+                headers: { Authorization: `Bearer ${isLoggedIn}` },
+            });
+            setActivityLogs(Array.isArray(response.data?.data) ? response.data.data : []);
+        } catch {
+            setActivityLogs([]);
+            setActivityLogError('Activity timeline is unavailable right now.');
+        } finally {
+            setLoadingActivityLogs(false);
+        }
+    };
+
     const getEventIcon = (eventType) => {
         switch (eventType) {
             case 'open': return 'pi pi-eye';
@@ -395,6 +423,146 @@ const Lead = () => {
             case 'e_alert': return { label: 'E-Alert', bg: '#fef3c7', color: '#d97706', border: '#fcd34d' };
             default: return { label: 'Email', bg: '#f3f4f6', color: '#6b7280', border: '#d1d5db' };
         }
+    };
+
+    const ACTIVITY_LABELS = {
+        'lead.note.created': 'Note added',
+        'lead.call.logged': 'Call logged',
+        'lead.owner.changed': 'Lead owner changed',
+        'lead.category.changed': 'Category changed',
+        'lead.type.changed': 'Lead type changed',
+        'lead.reminder.created': 'Reminder created',
+        'lead.reminder.updated': 'Reminder updated',
+        'lead.reminder.completed': 'Reminder completed',
+        'lead.reminder.deleted': 'Reminder deleted',
+        'lead.e_alert.created': 'E-alert created',
+        'lead.e_alert.updated': 'E-alert updated',
+        'lead.e_alert.deleted': 'E-alert deleted',
+        'lead.drip.enrolled': 'Enrolled in drip campaign',
+        'lead.drip.unenrolled': 'Unenrolled from drip campaign',
+        'property.sent.agent_direct': 'Properties sent',
+        'property_note.created.agent': 'Property note added',
+        'showing.status.changed': 'Showing status changed',
+        'email.sent.gmail': 'Gmail email sent',
+        'calendar.event.created': 'Calendar event created',
+        'lead.google_contact.created': 'Google contact created',
+    };
+
+    const ACTIVITY_METADATA_LABELS = {
+        frequency: 'Frequency',
+        enabled: 'Enabled',
+        active: 'Active',
+        status: 'Status',
+        propertyCount: 'Properties',
+        successfulRecipientCount: 'Sent',
+        failedRecipientCount: 'Failed',
+        coBuyerCount: 'Co-buyers',
+        campaignName: 'Campaign',
+        campaignType: 'Campaign Type',
+        timeframe: 'Timeframe',
+        hasLead: 'Lead Linked',
+        recipientCount: 'Recipients',
+        subject: 'Subject',
+        title: 'Title',
+        gmailMessageId: 'Gmail ID',
+        googleEventId: 'Google Event',
+        googleContactResourceName: 'Google Contact',
+        channel: 'Channel',
+        insertedDeliveryCount: 'Deliveries',
+    };
+
+    const ACTIVITY_CHANGE_LABELS = {
+        'backend_profile.lead_category': 'Category',
+        'backend_profile.lead_type': 'Lead Type',
+        agent_assigned: 'Assigned Agent',
+        'reminders.reminder_date': 'Reminder Date',
+        'reminders.type': 'Reminder Type',
+        'reminders.completed': 'Reminder Complete',
+        'reminders.description': 'Reminder Description',
+        searchFrequency: 'Search Frequency',
+        active: 'Active',
+        enabled: 'Enabled',
+        status: 'Status',
+    };
+
+    const getActivityLabel = (type) => {
+        if (ACTIVITY_LABELS[type]) return ACTIVITY_LABELS[type];
+        if (!type) return 'Activity';
+
+        return type
+            .replace(/[._]/g, ' ')
+            .replace(/\b\w/g, (char) => char.toUpperCase());
+    };
+
+    const formatActivityTimestamp = (occurredAt) => {
+        const date = new Date(occurredAt);
+        if (Number.isNaN(date.getTime())) return 'Recent';
+
+        return date.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+        });
+    };
+
+    const getActivityIcon = (type) => {
+        if (type?.includes('reminder')) return 'pi pi-bell';
+        if (type?.includes('email') || type?.includes('gmail')) return 'pi pi-envelope';
+        if (type?.includes('call')) return 'pi pi-phone';
+        if (type?.includes('drip')) return 'pi pi-send';
+        if (type?.includes('e_alert')) return 'pi pi-bookmark';
+        if (type?.includes('property') || type?.includes('showing')) return 'pi pi-home';
+        if (type?.includes('calendar')) return 'pi pi-calendar';
+        if (type?.includes('contact')) return 'pi pi-user-plus';
+        if (type?.includes('owner') || type?.includes('agent')) return 'pi pi-user-edit';
+        return 'pi pi-history';
+    };
+
+    const formatActivityValue = (value) => {
+        if (value === null || value === undefined || value === '') return 'None';
+        if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+        if (typeof value === 'number') return String(value);
+        if (typeof value !== 'string') return null;
+        if (value.length > 80) return null;
+
+        const date = new Date(value);
+        if (/^\d{4}-\d{2}-\d{2}/.test(value) && !Number.isNaN(date.getTime())) {
+            return date.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+            });
+        }
+
+        return value;
+    };
+
+    const getSafeActivityMetadata = (metadata = {}) => {
+        if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) return [];
+
+        return Object.entries(ACTIVITY_METADATA_LABELS)
+            .map(([key, label]) => {
+                const value = formatActivityValue(metadata[key]);
+                return value ? { key, label, value } : null;
+            })
+            .filter(Boolean);
+    };
+
+    const getSafeActivityChanges = (changes = []) => {
+        if (!Array.isArray(changes)) return [];
+
+        return changes
+            .map((change) => {
+                const label = ACTIVITY_CHANGE_LABELS[change?.path];
+                if (!label) return null;
+
+                const before = formatActivityValue(change.before);
+                const after = formatActivityValue(change.after);
+                return before !== null && after !== null ? { label, before, after } : null;
+            })
+            .filter(Boolean);
     };
 
     const formatDate = (val) => {
@@ -2219,6 +2387,216 @@ const Lead = () => {
                             }}>
                                 <i className="pi pi-inbox" style={{ fontSize: '2rem', display: 'block', marginBottom: '0.75rem', opacity: 0.5 }}></i>
                                 <p style={{ fontSize: '0.9rem', margin: 0 }}>No email events recorded yet</p>
+                            </div>
+                        )}
+                    </Card>
+                </div>
+
+                {/* ActivityLog Timeline Section */}
+                <div className="lead-activity-timeline" style={{ marginTop: '2rem', marginBottom: '2rem' }}>
+                    <Card>
+                        <h3 style={{
+                            fontSize: '1.25rem',
+                            fontWeight: '700',
+                            color: 'hsl(var(--foreground))',
+                            marginBottom: '1rem',
+                            margin: 0,
+                        }}>
+                            Activity Timeline
+                        </h3>
+
+                        {loadingActivityLogs ? (
+                            <div style={{
+                                textAlign: 'center',
+                                padding: '1.5rem',
+                                color: 'hsl(var(--foreground-muted))',
+                            }}>
+                                <i
+                                    className="pi pi-spin pi-spinner"
+                                    style={{
+                                        fontSize: '1.5rem',
+                                        display: 'block',
+                                        marginBottom: '0.75rem',
+                                    }}
+                                ></i>
+                                <p style={{ fontSize: '0.9rem', margin: 0 }}>Loading activity timeline...</p>
+                            </div>
+                        ) : activityLogError ? (
+                            <div style={{
+                                textAlign: 'center',
+                                padding: '1.5rem',
+                                color: 'hsl(var(--foreground-muted))',
+                                backgroundColor: 'hsl(var(--muted))',
+                                borderRadius: '8px',
+                                marginTop: '1rem',
+                            }}>
+                                <i
+                                    className="pi pi-info-circle"
+                                    style={{
+                                        fontSize: '1.5rem',
+                                        display: 'block',
+                                        marginBottom: '0.75rem',
+                                        opacity: 0.6,
+                                    }}
+                                ></i>
+                                <p style={{ fontSize: '0.9rem', margin: 0 }}>{activityLogError}</p>
+                            </div>
+                        ) : activityLogs.length > 0 ? (
+                            <>
+                                <div style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '0.75rem',
+                                    marginTop: '1rem',
+                                }}>
+                                    {activityLogs.slice(0, 25).map((activity) => {
+                                        const metadata = getSafeActivityMetadata(activity.metadata);
+                                        const changes = getSafeActivityChanges(activity.changes);
+
+                                        return (
+                                            <div
+                                                key={activity._id}
+                                                style={{
+                                                    padding: '0.9rem 1rem',
+                                                    backgroundColor: 'hsl(var(--muted))',
+                                                    borderLeft: '4px solid hsl(var(--primary))',
+                                                    borderRadius: '8px',
+                                                }}
+                                            >
+                                                <div style={{
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    gap: '1rem',
+                                                    alignItems: 'flex-start',
+                                                }}>
+                                                    <div style={{ display: 'flex', gap: '0.65rem', flex: 1 }}>
+                                                        <i
+                                                            className={getActivityIcon(activity.type)}
+                                                            style={{
+                                                                color: 'hsl(var(--primary))',
+                                                                fontSize: '1rem',
+                                                                marginTop: '0.15rem',
+                                                            }}
+                                                        ></i>
+                                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                                            <div style={{
+                                                                display: 'flex',
+                                                                flexWrap: 'wrap',
+                                                                alignItems: 'baseline',
+                                                                gap: '0.4rem',
+                                                                marginBottom: '0.35rem',
+                                                            }}>
+                                                                <span style={{
+                                                                    fontWeight: '700',
+                                                                    fontSize: '0.95rem',
+                                                                    color: 'hsl(var(--foreground))',
+                                                                }}>
+                                                                    {getActivityLabel(activity.type)}
+                                                                </span>
+                                                                {activity.actor?.name && (
+                                                                    <span style={{
+                                                                        fontSize: '0.8rem',
+                                                                        color: 'hsl(var(--foreground-muted))',
+                                                                    }}>
+                                                                        by {activity.actor.name}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+
+                                                            {activity.summary && (
+                                                                <p style={{
+                                                                    fontSize: '0.9rem',
+                                                                    color: 'hsl(var(--foreground-muted))',
+                                                                    margin: '0 0 0.5rem',
+                                                                }}>
+                                                                    {activity.summary}
+                                                                </p>
+                                                            )}
+
+                                                            {metadata.length > 0 && (
+                                                                <div style={{
+                                                                    display: 'flex',
+                                                                    flexWrap: 'wrap',
+                                                                    gap: '0.4rem',
+                                                                    marginBottom: changes.length > 0 ? '0.5rem' : 0,
+                                                                }}>
+                                                                    {metadata.map((item) => (
+                                                                        <span
+                                                                            key={item.key}
+                                                                            style={{
+                                                                                fontSize: '0.75rem',
+                                                                                padding: '0.18rem 0.5rem',
+                                                                                borderRadius: '999px',
+                                                                                background: 'hsl(var(--background))',
+                                                                                border: '1px solid hsl(var(--border))',
+                                                                                color: 'hsl(var(--foreground-muted))',
+                                                                            }}
+                                                                        >
+                                                                            {item.label}: {item.value}
+                                                                        </span>
+                                                                    ))}
+                                                                </div>
+                                                            )}
+
+                                                            {changes.length > 0 && (
+                                                                <div style={{
+                                                                    display: 'flex',
+                                                                    flexDirection: 'column',
+                                                                    gap: '0.25rem',
+                                                                    fontSize: '0.82rem',
+                                                                    color: 'hsl(var(--foreground-muted))',
+                                                                }}>
+                                                                    {changes.map((change) => (
+                                                                        <div key={change.label}>
+                                                                            <strong>{change.label}:</strong>{' '}
+                                                                            {change.before} &rarr; {change.after}
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <span style={{
+                                                        fontSize: '0.8rem',
+                                                        color: 'hsl(var(--foreground-muted))',
+                                                        whiteSpace: 'nowrap',
+                                                    }}>
+                                                        {formatActivityTimestamp(activity.occurredAt)}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                                {activityLogs.length > 25 && (
+                                    <p style={{
+                                        fontSize: '0.82rem',
+                                        color: 'hsl(var(--foreground-muted))',
+                                        margin: '0.75rem 0 0',
+                                    }}>
+                                        Showing latest 25 activity events.
+                                    </p>
+                                )}
+                            </>
+                        ) : (
+                            <div style={{
+                                textAlign: 'center',
+                                padding: '1.5rem',
+                                color: 'hsl(var(--foreground-muted))',
+                                backgroundColor: 'hsl(var(--muted))',
+                                borderRadius: '8px',
+                                marginTop: '1rem',
+                            }}>
+                                <i
+                                    className="pi pi-history"
+                                    style={{
+                                        fontSize: '2rem',
+                                        display: 'block',
+                                        marginBottom: '0.75rem',
+                                        opacity: 0.5,
+                                    }}
+                                ></i>
+                                <p style={{ fontSize: '0.9rem', margin: 0 }}>No ActivityLog events yet.</p>
                             </div>
                         )}
                     </Card>
