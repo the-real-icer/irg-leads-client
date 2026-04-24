@@ -3,9 +3,6 @@ import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 
-// Redux
-import { useSelector } from 'react-redux';
-
 // Dynamically import PrimeReact components
 const Button = dynamic(() => import('primereact/button').then((mod) => mod.Button), { ssr: false });
 const Card = dynamic(() => import('primereact/card').then((mod) => mod.Card), { ssr: false });
@@ -19,6 +16,7 @@ import MainLayout from '../../components/layout/MainLayout';
 import IrgApi from '../../assets/irgApi';
 import formatAgentLastLogin from '../../utils/formatAgentLastLogin';
 import showToast from '../../utils/showToast';
+import useRequireAdmin from '../../hooks/useRequireAdmin';
 
 const AgentProfile = () => {
     // __________________Next Router______________________\\
@@ -26,9 +24,7 @@ const AgentProfile = () => {
     const { id } = router.query;
 
     // __________________Redux State______________________\\
-    const isLoggedIn = useSelector((state) => state.isLoggedIn);
-    const currentAgent = useSelector((state) => state.agent);
-    const isAdmin = currentAgent?.role === 'admin';
+    const { isAdmin, allowed, isLoggedIn } = useRequireAdmin();
 
     // ________________Component State_________________\\
     const [agent, setAgent] = useState(null);
@@ -63,7 +59,7 @@ const AgentProfile = () => {
 
     // Fetch agent data on mount
     useEffect(() => {
-        if (!isLoggedIn || !id) return;
+        if (!allowed || !id) return;
 
         const fetchAgent = async () => {
             setLoading(true);
@@ -114,7 +110,7 @@ const AgentProfile = () => {
         };
 
         fetchAgent();
-    }, [isLoggedIn, id, router]);
+    }, [allowed, isLoggedIn, id, router]);
 
     // Handle form input changes
     const handleChange = (field, value) => {
@@ -242,6 +238,16 @@ const AgentProfile = () => {
     const handleBack = () => {
         router.push('/agents');
     };
+
+    if (!allowed) {
+        return (
+            <MainLayout title="Agent">
+                <div className="flex items-center justify-center h-[400px]">
+                    <i className="pi pi-spin pi-spinner text-[24px] text-foreground-muted" />
+                </div>
+            </MainLayout>
+        );
+    }
 
     return (
         <MainLayout title={agent?.name || 'Agent'}>
