@@ -148,7 +148,10 @@ const EditTransaction = () => {
     // ── Redux ────────────────────────────────────────────────────
     const isLoggedIn = useSelector((state) => state.isLoggedIn);
     const agent = useSelector((state) => state.agent);
+    const authChecked = useSelector((state) => state.authChecked);
     const allLeads = useSelector((state) => state.allLeadsPage.leads);
+    const isAdmin = agent?.role === 'admin';
+    const currentAgentId = agent?._id;
 
     // ── Loading & action states ──────────────────────────────────
     const [loading, setLoading] = useState(true);
@@ -227,6 +230,8 @@ const EditTransaction = () => {
 
     // ── Agent assignment (admin only) ───────────────────────────
     const [selectedAgentId, setSelectedAgentId] = useState(null);
+    const [transactionOwnerAgentId, setTransactionOwnerAgentId] = useState(null);
+    const [permissionChecked, setPermissionChecked] = useState(false);
     const [agentsList, setAgentsList] = useState([]);
 
     // ── Referral fee percentage (separate from transactionInfo) ──
@@ -262,6 +267,15 @@ const EditTransaction = () => {
     // ── Debounce ref ─────────────────────────────────────────────
     const searchTimeoutRef = useRef(null);
 
+    const isOwner = Boolean(
+        transactionOwnerAgentId
+        && currentAgentId
+        && transactionOwnerAgentId === currentAgentId,
+    );
+    const canEditTransaction = isAdmin || isOwner;
+    const canDeleteTransaction = isAdmin;
+    const canReassignTransaction = isAdmin;
+
     // ── Memoized recent leads (sorted by last_visit) ─────────────
     const recentLeads = useMemo(() => {
         return [...(allLeads || [])]
@@ -275,7 +289,13 @@ const EditTransaction = () => {
 
     // ── Fetch agents list (admin only) ──────────────────────────
     useEffect(() => {
-        if (!isLoggedIn || !agent || agent.role !== 'admin') return;
+        if (authChecked && !isLoggedIn) {
+            router.replace('/');
+        }
+    }, [authChecked, isLoggedIn, router]);
+
+    useEffect(() => {
+        if (!authChecked || !isLoggedIn || !isAdmin) return;
         const fetchAgents = async () => {
             try {
                 const response = await IrgApi.get('/agents/all-agents', {
@@ -289,24 +309,38 @@ const EditTransaction = () => {
             }
         };
         fetchAgents();
-    }, [isLoggedIn, agent]);
+    }, [authChecked, isLoggedIn, isAdmin]);
 
     // ══════════════════════════════════════════════════════════════
     // FETCH TRANSACTION ON MOUNT
     // ══════════════════════════════════════════════════════════════
 
     useEffect(() => {
-        if (!id || !isLoggedIn) return;
+        if (!authChecked || !isLoggedIn || !currentAgentId || !id) return;
 
         const fetchTransaction = async () => {
             try {
                 setLoading(true);
+                setPermissionChecked(false);
+                setTransactionOwnerAgentId(null);
                 const response = await IrgApi.get(`/transactions/single-transaction/${id}`, {
                     headers: { Authorization: `Bearer ${isLoggedIn}` },
                 });
 
                 if (response.data.status === 'success' && response.data.data) {
                     const txn = response.data.data;
+                    const ownerAgentId = txn.agent && typeof txn.agent === 'object'
+                        ? txn.agent._id
+                        : txn.agent;
+                    const userCanEdit = isAdmin || ownerAgentId === currentAgentId;
+
+                    setTransactionOwnerAgentId(ownerAgentId || null);
+                    setPermissionChecked(true);
+
+                    if (!userCanEdit) {
+                        router.replace('/transactions');
+                        return;
+                    }
 
                     // Property (now populated from backend)
                     if (txn.property && typeof txn.property === 'object') {
@@ -438,7 +472,7 @@ const EditTransaction = () => {
         };
 
         fetchTransaction();
-    }, [id, isLoggedIn]);
+    }, [id, authChecked, isLoggedIn, currentAgentId, isAdmin, router]);
 
     // ══════════════════════════════════════════════════════════════
     // HANDLERS — Property Search
@@ -707,6 +741,8 @@ const EditTransaction = () => {
     // ══════════════════════════════════════════════════════════════
 
     const handleDelete = async () => {
+        if (!canDeleteTransaction) return;
+
         try {
             setDeleting(true);
             await IrgApi.delete(`/transactions/single-transaction/${id}`, {
@@ -727,6 +763,8 @@ const EditTransaction = () => {
     // ══════════════════════════════════════════════════════════════
 
     const handleMarkSold = async () => {
+        if (!canEditTransaction) return;
+
         try {
             setMarkingSold(true);
             const response = await IrgApi.patch(
@@ -752,8 +790,10 @@ const EditTransaction = () => {
     // ══════════════════════════════════════════════════════════════
 
     const handleSubmit = async () => {
+        if (!canEditTransaction) return;
+
         // Validation
-        if (agent?.role === 'admin' && !selectedAgentId) {
+        if (canReassignTransaction && !selectedAgentId) {
             showToast('error', 'Please select an agent for this transaction', 'Validation Error');
             return;
         }
@@ -892,7 +932,7 @@ const EditTransaction = () => {
             })),
             sellerLead: sellerLeadId,
             doubleEnded: isDoubleEnded,
-            agent: selectedAgentId || agent._id,
+            agent: canReassignTransaction ? selectedAgentId : transactionOwnerAgentId,
             status: transactionInfo.status,
             actualClosingDate: actualClosingDate || undefined,
             inspectionContingencyDate: contingencies.inspection ? contingencyDates.inspectionDue : undefined,
@@ -1063,7 +1103,7 @@ const EditTransaction = () => {
     // RENDER
     // ══════════════════════════════════════════════════════════════
 
-    if (loading) {
+    if (!authChecked || !isLoggedIn || loading || !permissionChecked || !canEditTransaction) {
         return (
             <MainLayout title="Edit Transaction">
                 <div className="txn-new">
@@ -1196,15 +1236,17 @@ const EditTransaction = () => {
                     SECTION 2 — ACTION BAR
                     ════════════════════════════════════════════════════ */}
                 <div className="txn-edit__action-bar">
-                    <Button
-                        label={deleting ? 'Deleting...' : 'Delete Transaction'}
-                        icon={deleting ? 'pi pi-spin pi-spinner' : 'pi pi-trash'}
-                        className="p-button-outlined p-button-danger"
-                        onClick={() => setDeleteConfirmVisible(true)}
-                        disabled={saving || deleting || markingSold}
-                    />
+                    {canDeleteTransaction && (
+                        <Button
+                            label={deleting ? 'Deleting...' : 'Delete Transaction'}
+                            icon={deleting ? 'pi pi-spin pi-spinner' : 'pi pi-trash'}
+                            className="p-button-outlined p-button-danger"
+                            onClick={() => setDeleteConfirmVisible(true)}
+                            disabled={saving || deleting || markingSold}
+                        />
+                    )}
                     <div className="txn-edit__action-bar__right">
-                        {transactionInfo.status !== 'Closed' && transactionInfo.status !== 'Cancelled' && (
+                        {canEditTransaction && transactionInfo.status !== 'Closed' && transactionInfo.status !== 'Cancelled' && (
                             <Button
                                 label={markingSold ? 'Updating...' : 'Mark as Sold'}
                                 icon={markingSold ? 'pi pi-spin pi-spinner' : 'pi pi-check-circle'}
@@ -1230,7 +1272,7 @@ const EditTransaction = () => {
                     <h2 className="txn-new__card-title">Transaction Information</h2>
 
                     {/* Agent Assignment (admin only) */}
-                    {agent?.role === 'admin' && agentsList.length > 0 && (
+                    {canReassignTransaction && agentsList.length > 0 && (
                         <div className="txn-new__field" style={{ marginBottom: '1.5rem' }}>
                             <label className="txn-new__label" htmlFor="agent-select">Assign to Agent *</label>
                             <Dropdown
@@ -1782,35 +1824,40 @@ const EditTransaction = () => {
                 </div>
 
                 {/* ── Delete Confirmation Dialog ──────────────────── */}
-                <Dialog
-                    visible={deleteConfirmVisible}
-                    onHide={() => setDeleteConfirmVisible(false)}
-                    header="Delete Transaction"
-                    style={{ width: '450px' }}
-                    modal
-                    footer={
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
-                            <Button
-                                label="Cancel"
-                                className="p-button-text"
-                                onClick={() => setDeleteConfirmVisible(false)}
-                                disabled={deleting}
+                {canDeleteTransaction && (
+                    <Dialog
+                        visible={deleteConfirmVisible}
+                        onHide={() => setDeleteConfirmVisible(false)}
+                        header="Delete Transaction"
+                        style={{ width: '450px' }}
+                        modal
+                        footer={
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+                                <Button
+                                    label="Cancel"
+                                    className="p-button-text"
+                                    onClick={() => setDeleteConfirmVisible(false)}
+                                    disabled={deleting}
+                                />
+                                <Button
+                                    label={deleting ? 'Deleting...' : 'Delete'}
+                                    icon={deleting ? 'pi pi-spin pi-spinner' : 'pi pi-trash'}
+                                    className="p-button-danger"
+                                    onClick={handleDelete}
+                                    disabled={deleting}
+                                />
+                            </div>
+                        }
+                    >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                            <i
+                                className="pi pi-exclamation-triangle"
+                                style={{ fontSize: '2rem', color: 'hsl(var(--danger))' }}
                             />
-                            <Button
-                                label={deleting ? 'Deleting...' : 'Delete'}
-                                icon={deleting ? 'pi pi-spin pi-spinner' : 'pi pi-trash'}
-                                className="p-button-danger"
-                                onClick={handleDelete}
-                                disabled={deleting}
-                            />
+                            <span>Are you sure you want to delete this transaction? This cannot be undone.</span>
                         </div>
-                    }
-                >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                        <i className="pi pi-exclamation-triangle" style={{ fontSize: '2rem', color: 'hsl(var(--danger))' }} />
-                        <span>Are you sure you want to delete this transaction? This cannot be undone.</span>
-                    </div>
-                </Dialog>
+                    </Dialog>
+                )}
 
                 {/* ── Sold Confirmation Dialog ────────────────────── */}
                 <Dialog
