@@ -14,6 +14,7 @@ import NewPropertyCard from '../components/NewProperties/NewPropertyCard';
 import NewPropertyEditDialog from '../components/NewProperties/NewPropertyEditDialog';
 import ConfirmOffMarketDialog from '../components/NewProperties/ConfirmOffMarketDialog';
 import MapDialog from '../components/Shared/MapDialog';
+import useRequireAdmin from '../hooks/useRequireAdmin';
 
 // IRG API - HOOKS - INFO - UTILS
 import IrgApi from '../assets/irgApi';
@@ -34,6 +35,7 @@ const NewProperties = () => {
     // __________________Redux State______________________\\
     const isLoggedIn = useSelector((state) => state.isLoggedIn);
     const newProperties = useSelector((state) => state.newProperties);
+    const { allowed } = useRequireAdmin();
 
     // ________________Component State_________________\\
     const [formData, setFormData] = useState({
@@ -349,6 +351,16 @@ const NewProperties = () => {
         () => newProperties.filter((p) => !hideDuplicates || !p.is_duplicate_property).length,
         [newProperties, hideDuplicates],
     );
+
+    if (!allowed) {
+        return (
+            <MainLayout title="New Properties">
+                <div className="flex items-center justify-center h-[400px]">
+                    <i className="pi pi-spin pi-spinner text-[24px] text-foreground-muted" />
+                </div>
+            </MainLayout>
+        );
+    }
 
     return (
         <MainLayout title="New Properties">

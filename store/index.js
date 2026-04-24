@@ -7,6 +7,7 @@ import { RESET_STORE } from './actions/types';
 
 import agent from './reducers/agentReducer';
 import allLeadsPage from './reducers/allLeadsPageReducer';
+import authChecked from './reducers/authCheckedReducer';
 import clientSearchFilter from './reducers/clientSearchFilterReducer';
 import hotsheet from './reducers/hotsheetReducer';
 import irgAreas from './reducers/irgAreasReducer';
@@ -22,6 +23,7 @@ import theme from './reducers/themeReducer';
 const sliceReducers = combineReducers({
     agent,
     allLeadsPage,
+    authChecked,
     clientSearchFilter,
     hotsheet,
     irgAreas,

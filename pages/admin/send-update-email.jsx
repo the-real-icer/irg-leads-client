@@ -1,7 +1,5 @@
 // React & NextJS
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useSelector } from 'react-redux';
-import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
 
 // Dynamically import PrimeReact components
@@ -16,14 +14,11 @@ import MainLayout from '../../components/layout/MainLayout';
 // API & Utils
 import IrgApi from '../../assets/irgApi';
 import showToast from '../../utils/showToast';
+import useRequireAdmin from '../../hooks/useRequireAdmin';
 
 const SendUpdateEmail = () => {
-    // __________________Next Router______________________\\
-    const router = useRouter();
-
     // __________________Redux State______________________\\
-    const isLoggedIn = useSelector((state) => state.isLoggedIn);
-    const agent = useSelector((state) => state.agent);
+    const { allowed, isLoggedIn } = useRequireAdmin();
 
     // __________________Local State______________________\\
     const [agents, setAgents] = useState([]);
@@ -36,16 +31,9 @@ const SendUpdateEmail = () => {
     const [sending, setSending] = useState(false);
     const iframeRef = useRef(null);
 
-    // __________________Access Control______________________\\
-    useEffect(() => {
-        if (agent && agent.role !== 'admin') {
-            router.replace('/dashboard');
-        }
-    }, [agent, router]);
-
     // __________________Fetch Agents______________________\\
     const fetchAgents = useCallback(async () => {
-        if (!isLoggedIn) return;
+        if (!allowed) return;
         setLoading(true);
         try {
             const response = await IrgApi.get('/agents/all-agents', {
@@ -59,7 +47,7 @@ const SendUpdateEmail = () => {
         } finally {
             setLoading(false);
         }
-    }, [isLoggedIn]);
+    }, [allowed, isLoggedIn]);
 
     useEffect(() => {
         fetchAgents();
@@ -111,7 +99,15 @@ const SendUpdateEmail = () => {
     };
 
     // __________________Render Guard______________________\\
-    if (agent && agent.role !== 'admin') return null;
+    if (!allowed) {
+        return (
+            <MainLayout title="Send Update Email">
+                <div className="flex items-center justify-center h-[400px]">
+                    <i className="pi pi-spin pi-spinner text-[24px] text-foreground-muted" />
+                </div>
+            </MainLayout>
+        );
+    }
 
     return (
         <MainLayout title="Send Update Email">

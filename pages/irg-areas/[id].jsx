@@ -24,6 +24,7 @@ import MainLayout from '../../components/layout/MainLayout';
 // API & Utils
 import IrgApi from '../../assets/irgApi';
 import showToast from '../../utils/showToast';
+import useRequireAdmin from '../../hooks/useRequireAdmin';
 
 const AreaDetail = () => {
     // __________________Next Router______________________\\
@@ -32,7 +33,7 @@ const AreaDetail = () => {
 
     // __________________Redux State______________________\\
     const isLoggedIn = useSelector((state) => state.isLoggedIn);
-    const agent = useSelector((state) => state.agent);
+    const { allowed } = useRequireAdmin();
 
     // ________________Component State_________________\\
     const [area, setArea] = useState(null);
@@ -88,7 +89,7 @@ const AreaDetail = () => {
 
     // Fetch area data on mount
     useEffect(() => {
-        if (!isLoggedIn || !id || !agent || agent.role !== 'admin') return;
+        if (!allowed || !id) return;
 
         const fetchArea = async () => {
             setLoading(true);
@@ -146,7 +147,7 @@ const AreaDetail = () => {
         };
 
         fetchArea();
-    }, [isLoggedIn, id, agent, router]);
+    }, [allowed, isLoggedIn, id, router]);
 
     // Handle form input changes
     const handleChange = (field, value) => {
@@ -287,6 +288,16 @@ const AreaDetail = () => {
             </GoogleMap>
         );
     };
+
+    if (!allowed) {
+        return (
+            <MainLayout title="IRG Area">
+                <div className="flex items-center justify-center h-[400px]">
+                    <i className="pi pi-spin pi-spinner text-[24px] text-foreground-muted" />
+                </div>
+            </MainLayout>
+        );
+    }
 
     return (
         <MainLayout title={area?.name || 'IRG Area'}>

@@ -22,6 +22,7 @@ import MainLayout from '../../components/layout/MainLayout';
 import PrpCard from '../../components/prpCard/PrpCard';
 import MapDialog from '../../components/Shared/MapDialog';
 import showToast from '../../utils/showToast';
+import useRequireAdmin from '../../hooks/useRequireAdmin';
 
 // IRG API - HOOKS - INFO - UTILS
 import IrgApi from '../../assets/irgApi';
@@ -30,6 +31,7 @@ import agentProduction from '../../utils/agentProduction';
 const AgentProduction = () => {
     // __________________Redux State______________________\\
     const isLoggedIn = useSelector((state) => state.isLoggedIn);
+    const { allowed } = useRequireAdmin();
 
     // ________________Component State_________________\\
     const [selectedProduction, setSelectedProduction] = useState(null);
@@ -63,6 +65,7 @@ const AgentProduction = () => {
     const onFormSubmit = useCallback(
         async (e) => {
             e.preventDefault();
+            if (!allowed) return;
 
             if (!value || !selectedProduction?.name) {
                 showToast(
@@ -121,8 +124,18 @@ const AgentProduction = () => {
                 );
             }
         },
-        [value, selectedProduction, results, isLoggedIn],
+        [value, selectedProduction, results, isLoggedIn, allowed],
     );
+
+    if (!allowed) {
+        return (
+            <MainLayout title="Agent Production">
+                <div className="flex items-center justify-center h-[400px]">
+                    <i className="pi pi-spin pi-spinner text-[24px] text-foreground-muted" />
+                </div>
+            </MainLayout>
+        );
+    }
 
     return (
         <MainLayout title="Agent Production">

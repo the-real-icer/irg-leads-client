@@ -16,6 +16,7 @@ const Button = dynamic(() => import('primereact/button').then((mod) => mod.Butto
 import MainLayout from '../components/layout/MainLayout';
 import ConfirmOffMarketDialog from '../components/Property/AdminBar/ConfirmOffMarketDialog';
 import showToast from '../utils/showToast';
+import useRequireAdmin from '../hooks/useRequireAdmin';
 
 // IRG API - HOOKS - INFO - UTILS
 import IrgApi from '../assets/irgApi';
@@ -25,6 +26,7 @@ import { usePropertyFallbackImage } from '../utils/propertyImageFallback';
 const PropertyUrlSearch = () => {
     // __________________Redux State______________________\\
     const isLoggedIn = useSelector((state) => state.isLoggedIn);
+    const { allowed } = useRequireAdmin();
     const fallbackImage = usePropertyFallbackImage();
 
     // ________________Component State_________________\\
@@ -110,6 +112,16 @@ const PropertyUrlSearch = () => {
         home?.listing_pictures?.length > 0
             ? ikUrl(home.listing_pictures[0].media_url.replace(/http:/, 'https:'))
             : fallbackImage;
+
+    if (!allowed) {
+        return (
+            <MainLayout title="Property URL Search">
+                <div className="flex items-center justify-center h-[400px]">
+                    <i className="pi pi-spin pi-spinner text-[24px] text-foreground-muted" />
+                </div>
+            </MainLayout>
+        );
+    }
 
     return (
         <MainLayout title="Property URL Search">

@@ -1,7 +1,5 @@
 // React & NextJS
 import { useState, useEffect, useCallback } from 'react';
-import { useSelector } from 'react-redux';
-import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
 
 // Dynamically import PrimeReact components
@@ -13,12 +11,11 @@ const ScrollPanel = dynamic(() => import('primereact/scrollpanel').then((mod) =>
 // IRG Components
 import MainLayout from '../components/layout/MainLayout';
 import IrgApi from '../assets/irgApi';
+import useRequireAdmin from '../hooks/useRequireAdmin';
 
 const TrafficDashboard = () => {
     // __________________Redux State______________________\\
-    const agent = useSelector((state) => state.agent);
-    const isLoggedIn = useSelector((state) => state.isLoggedIn);
-    const router = useRouter();
+    const { allowed, isLoggedIn } = useRequireAdmin();
 
     // __________________Local State______________________\\
     const [liveSessions, setLiveSessions] = useState([]);
@@ -27,16 +24,9 @@ const TrafficDashboard = () => {
     const [statsLoading, setStatsLoading] = useState(true);
     const [showIdentifiedOnly, setShowIdentifiedOnly] = useState(false);
 
-    // __________________Access Control______________________\\
-    useEffect(() => {
-        if (agent && agent.role !== 'admin') {
-            router.replace('/dashboard');
-        }
-    }, [agent, router]);
-
     // __________________Data Fetching______________________\\
     const fetchLiveSessions = useCallback(async () => {
-        if (!isLoggedIn) return;
+        if (!allowed) return;
         try {
             const res = await IrgApi.get('/tracking/live-sessions', {
                 headers: { Authorization: `Bearer ${isLoggedIn}` },
@@ -49,10 +39,10 @@ const TrafficDashboard = () => {
         } finally {
             setLiveLoading(false);
         }
-    }, [isLoggedIn]);
+    }, [allowed, isLoggedIn]);
 
     const fetchPageStats = useCallback(async () => {
-        if (!isLoggedIn) return;
+        if (!allowed) return;
         try {
             const res = await IrgApi.get('/tracking/page-stats', {
                 headers: { Authorization: `Bearer ${isLoggedIn}` },
@@ -65,7 +55,7 @@ const TrafficDashboard = () => {
         } finally {
             setStatsLoading(false);
         }
-    }, [isLoggedIn]);
+    }, [allowed, isLoggedIn]);
 
     // Fetch on mount + auto-refresh live sessions every 30s
     useEffect(() => {
@@ -75,8 +65,15 @@ const TrafficDashboard = () => {
         return () => clearInterval(interval);
     }, [fetchLiveSessions, fetchPageStats]);
 
-    // Don't render for non-admins
-    if (agent && agent.role !== 'admin') return null;
+    if (!allowed) {
+        return (
+            <MainLayout title="Traffic Dashboard">
+                <div className="flex items-center justify-center h-[400px]">
+                    <i className="pi pi-spin pi-spinner text-[24px] text-foreground-muted" />
+                </div>
+            </MainLayout>
+        );
+    }
 
     // Filter recent activity
     const recentActivity = pageStats?.data?.recentActivity || [];

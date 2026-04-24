@@ -10,7 +10,7 @@ import { wrapper } from '../store';
 
 // API
 import IrgApi, { COOKIE_AUTH_FALLBACK, setupAuthInterceptor } from '../assets/irgApi';
-import { addAgent, loginUser } from '../store/actions';
+import { addAgent, loginUser, setAuthChecked } from '../store/actions';
 
 // Prop-Types
 import PropTypes from 'prop-types';
@@ -45,10 +45,18 @@ const inter = Inter({
 const AuthBootstrap = () => {
     const dispatch = useDispatch();
     const isLoggedIn = useSelector((state) => state.isLoggedIn);
+    const authChecked = useSelector((state) => state.authChecked);
     const hasCheckedAuth = useRef(false);
 
     useEffect(() => {
-        if (isLoggedIn || hasCheckedAuth.current) {
+        if (isLoggedIn) {
+            if (!authChecked) {
+                dispatch(setAuthChecked());
+            }
+            return;
+        }
+
+        if (hasCheckedAuth.current) {
             return;
         }
 
@@ -62,8 +70,11 @@ const AuthBootstrap = () => {
                 dispatch(addAgent(agent));
                 dispatch(loginUser(COOKIE_AUTH_FALLBACK));
             })
-            .catch(() => {});
-    }, [dispatch, isLoggedIn]);
+            .catch(() => {})
+            .finally(() => {
+                dispatch(setAuthChecked());
+            });
+    }, [authChecked, dispatch, isLoggedIn]);
 
     return null;
 };

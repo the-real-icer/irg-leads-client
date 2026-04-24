@@ -1,6 +1,7 @@
 // isLoggedIn Types
 export const LOGIN_AGENT = 'LOGIN_AGENT';
 export const LOGOUT_AGENT = 'LOGOUT_AGENT';
+export const AUTH_CHECKED = 'AUTH_CHECKED';
 
 // Agent Types
 export const ADD_AGENT = 'ADD_AGENT';

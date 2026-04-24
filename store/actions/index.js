@@ -15,6 +15,7 @@ import {
     UPDATE_LEADS,
     LOGIN_AGENT,
     LOGOUT_AGENT,
+    AUTH_CHECKED,
     GET_THEME,
     SWITCH_THEME,
     ADD_SELECTED_HOME,
@@ -53,6 +54,12 @@ export function logoutUser() {
     return {
         type: LOGOUT_AGENT,
         payload: null,
+    };
+}
+
+export function setAuthChecked() {
+    return {
+        type: AUTH_CHECKED,
     };
 }
 

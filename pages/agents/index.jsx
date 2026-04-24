@@ -20,6 +20,7 @@ import MainLayout from '../../components/layout/MainLayout';
 import IrgApi from '../../assets/irgApi';
 import formatAgentLastLogin from '../../utils/formatAgentLastLogin';
 import showToast from '../../utils/showToast';
+import useRequireAdmin from '../../hooks/useRequireAdmin';
 
 const Agents = () => {
     // __________________Next Router______________________\\
@@ -27,8 +28,7 @@ const Agents = () => {
 
     // __________________Redux State______________________\\
     const isLoggedIn = useSelector((state) => state.isLoggedIn);
-    const currentAgent = useSelector((state) => state.agent);
-    const isAdmin = currentAgent?.role === 'admin';
+    const { isAdmin, allowed } = useRequireAdmin();
 
     // ________________Component State_________________\\
     const [agents, setAgents] = useState([]);
@@ -62,7 +62,7 @@ const Agents = () => {
 
     // Fetch all agents on mount
     useEffect(() => {
-        if (!isLoggedIn) return;
+        if (!allowed) return;
 
         const fetchAgents = async () => {
             setLoading(true);
@@ -89,7 +89,7 @@ const Agents = () => {
         };
 
         fetchAgents();
-    }, [isLoggedIn]);
+    }, [allowed, isLoggedIn]);
 
     // Handle form input changes
     const handleChange = (field, value) => {
@@ -242,6 +242,16 @@ const Agents = () => {
     const handleAgentClick = (agentId) => {
         router.push(`/agents/${agentId}`);
     };
+
+    if (!allowed) {
+        return (
+            <MainLayout title="Agents">
+                <div className="flex items-center justify-center h-[400px]">
+                    <i className="pi pi-spin pi-spinner text-[24px] text-foreground-muted" />
+                </div>
+            </MainLayout>
+        );
+    }
 
     return (
         <MainLayout title="Agents">

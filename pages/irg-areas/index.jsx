@@ -21,6 +21,7 @@ import MainLayout from '../../components/layout/MainLayout';
 // API & Utils
 import IrgApi from '../../assets/irgApi';
 import showToast from '../../utils/showToast';
+import useRequireAdmin from '../../hooks/useRequireAdmin';
 
 const IrgAreas = () => {
     // __________________Next Router______________________\\
@@ -28,7 +29,7 @@ const IrgAreas = () => {
 
     // __________________Redux State______________________\\
     const isLoggedIn = useSelector((state) => state.isLoggedIn);
-    const agent = useSelector((state) => state.agent);
+    const { allowed } = useRequireAdmin();
 
     // ________________Component State_________________\\
     const [areas, setAreas] = useState([]);
@@ -93,7 +94,7 @@ const IrgAreas = () => {
 
     // Fetch all areas on mount
     useEffect(() => {
-        if (!isLoggedIn || !agent || agent.role !== 'admin') return;
+        if (!allowed) return;
 
         const fetchAreas = async () => {
             setLoading(true);
@@ -121,7 +122,7 @@ const IrgAreas = () => {
         };
 
         fetchAreas();
-    }, [isLoggedIn, agent]);
+    }, [allowed, isLoggedIn]);
 
     // Filter areas based on county, type, and search query
     useEffect(() => {
@@ -307,6 +308,16 @@ const IrgAreas = () => {
                 return { bg: '#6c757d20', color: '#6c757d' };
         }
     };
+
+    if (!allowed) {
+        return (
+            <MainLayout title="IRG Areas">
+                <div className="flex items-center justify-center h-[400px]">
+                    <i className="pi pi-spin pi-spinner text-[24px] text-foreground-muted" />
+                </div>
+            </MainLayout>
+        );
+    }
 
     return (
         <MainLayout title="IRG Areas">
