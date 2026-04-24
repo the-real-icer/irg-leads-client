@@ -1767,7 +1767,7 @@ const Lead = () => {
                                                             fontSize: '0.85rem',
                                                             color: 'hsl(var(--foreground-muted))'
                                                         }}>
-                                                            Due: {reminderDate.toLocaleDateString('en-US', {
+                                                            Due: {currentReminderDate.toLocaleDateString('en-US', {
                                                                 weekday: 'short',
                                                                 month: 'short',
                                                                 day: 'numeric',
