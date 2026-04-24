@@ -464,6 +464,12 @@ const Lead = () => {
         recipientCount: 'Recipients',
         subject: 'Subject',
         title: 'Title',
+        start: 'Start',
+        end: 'End',
+        reminderType: 'Reminder Type',
+        reminderDate: 'Reminder Date',
+        dueDate: 'Due',
+        description: 'Details',
         gmailMessageId: 'Gmail ID',
         googleEventId: 'Google Event',
         googleContactResourceName: 'Google Contact',
@@ -476,13 +482,45 @@ const Lead = () => {
         'backend_profile.lead_type': 'Lead Type',
         agent_assigned: 'Assigned Agent',
         'reminders.reminder_date': 'Reminder Date',
+        reminder_date: 'Reminder Date',
         'reminders.type': 'Reminder Type',
+        type: 'Type',
         'reminders.completed': 'Reminder Complete',
+        completed: 'Completed',
         'reminders.description': 'Reminder Description',
+        description: 'Description',
         searchFrequency: 'Search Frequency',
+        frequency: 'Frequency',
         active: 'Active',
         enabled: 'Enabled',
         status: 'Status',
+        salesPrice: 'Sale Price',
+        acceptanceDate: 'Acceptance Date',
+        anticipatedClosingDate: 'Est. Closing',
+        actualClosingDate: 'Actual Closing',
+        agent: 'Agent',
+    };
+
+    const ACTIVITY_METADATA_BY_TYPE = {
+        'lead.reminder.created': ['reminderType', 'reminderDate', 'dueDate', 'description', 'status'],
+        'lead.reminder.updated': ['reminderType', 'reminderDate', 'dueDate', 'description', 'status'],
+        'lead.reminder.completed': [],
+        'lead.reminder.deleted': ['reminderType', 'reminderDate', 'dueDate'],
+        'property.sent.agent_direct': [
+            'propertyCount',
+            'successfulRecipientCount',
+            'failedRecipientCount',
+            'coBuyerCount',
+            'insertedDeliveryCount',
+        ],
+        'lead.drip.enrolled': ['campaignName', 'campaignType', 'timeframe'],
+        'lead.drip.unenrolled': ['campaignName', 'campaignType', 'timeframe'],
+        'email.sent.gmail': ['subject'],
+        'calendar.event.created': ['title', 'start', 'end'],
+        'lead.google_contact.created': [],
+        'lead.e_alert.created': ['frequency', 'enabled', 'active', 'status'],
+        'lead.e_alert.updated': ['frequency', 'enabled', 'active', 'status'],
+        'lead.e_alert.deleted': ['frequency', 'enabled', 'active', 'status'],
     };
 
     const getActivityLabel = (type) => {
@@ -520,12 +558,24 @@ const Lead = () => {
         return 'pi pi-history';
     };
 
-    const formatActivityValue = (value) => {
-        if (value === null || value === undefined || value === '') return 'None';
+    const isUsefulActivityValue = (value, { allowFalse = false, allowZero = false } = {}) => {
+        if (value === null || value === undefined) return false;
+        if (Array.isArray(value)) return value.length > 0;
+        if (typeof value === 'object') return Object.keys(value).length > 0;
+        if (value === false) return allowFalse;
+        if (value === 0) return allowZero;
+        if (typeof value === 'string') {
+            const trimmed = value.trim();
+            return trimmed !== '' && trimmed.toLowerCase() !== 'none' && trimmed.length <= 80;
+        }
+        return true;
+    };
+
+    const formatActivityValue = (value, { allowFalse = false, allowZero = false } = {}) => {
+        if (!isUsefulActivityValue(value, { allowFalse, allowZero })) return null;
         if (typeof value === 'boolean') return value ? 'Yes' : 'No';
         if (typeof value === 'number') return String(value);
         if (typeof value !== 'string') return null;
-        if (value.length > 80) return null;
 
         const date = new Date(value);
         if (/^\d{4}-\d{2}-\d{2}/.test(value) && !Number.isNaN(date.getTime())) {
@@ -539,18 +589,39 @@ const Lead = () => {
         return value;
     };
 
-    const getSafeActivityMetadata = (metadata = {}) => {
+    const normalizeActivityText = (value) => (
+        String(value || '')
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, ' ')
+            .trim()
+    );
+
+    const shouldShowActivitySummary = (activity, label) => (
+        isUsefulActivityValue(activity?.summary)
+        && normalizeActivityText(activity.summary) !== normalizeActivityText(label)
+    );
+
+    const getDisplayMetadataForActivity = (activity) => {
+        const metadata = activity?.metadata || {};
         if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) return [];
 
-        return Object.entries(ACTIVITY_METADATA_LABELS)
-            .map(([key, label]) => {
+        if (activity?.type === 'lead.google_contact.created') {
+            return [{ key: 'googleContactCreated', label: 'Contact', value: 'Added to Google Contacts' }];
+        }
+
+        const keys = ACTIVITY_METADATA_BY_TYPE[activity?.type] || ['status', 'subject', 'title'];
+
+        return keys
+            .map((key) => {
+                const label = ACTIVITY_METADATA_LABELS[key];
                 const value = formatActivityValue(metadata[key]);
                 return value ? { key, label, value } : null;
             })
             .filter(Boolean);
     };
 
-    const getSafeActivityChanges = (changes = []) => {
+    const getDisplayChangesForActivity = (activity) => {
+        const changes = activity?.changes || [];
         if (!Array.isArray(changes)) return [];
 
         return changes
@@ -558,8 +629,8 @@ const Lead = () => {
                 const label = ACTIVITY_CHANGE_LABELS[change?.path];
                 if (!label) return null;
 
-                const before = formatActivityValue(change.before);
-                const after = formatActivityValue(change.after);
+                const before = formatActivityValue(change.before, { allowFalse: true, allowZero: true });
+                const after = formatActivityValue(change.after, { allowFalse: true, allowZero: true });
                 return before !== null && after !== null ? { label, before, after } : null;
             })
             .filter(Boolean);
@@ -2450,16 +2521,18 @@ const Lead = () => {
                                     marginTop: '1rem',
                                 }}>
                                     {activityLogs.slice(0, 25).map((activity) => {
-                                        const metadata = getSafeActivityMetadata(activity.metadata);
-                                        const changes = getSafeActivityChanges(activity.changes);
+                                        const label = getActivityLabel(activity.type);
+                                        const metadata = getDisplayMetadataForActivity(activity);
+                                        const changes = getDisplayChangesForActivity(activity);
 
                                         return (
                                             <div
                                                 key={activity._id}
                                                 style={{
-                                                    padding: '0.9rem 1rem',
-                                                    backgroundColor: 'hsl(var(--muted))',
-                                                    borderLeft: '4px solid hsl(var(--primary))',
+                                                    padding: '0.85rem 1rem',
+                                                    backgroundColor: 'hsl(var(--background))',
+                                                    border: '1px solid hsl(var(--border))',
+                                                    borderLeft: '3px solid hsl(var(--primary) / 0.35)',
                                                     borderRadius: '8px',
                                                 }}
                                             >
@@ -2473,7 +2546,7 @@ const Lead = () => {
                                                         <i
                                                             className={getActivityIcon(activity.type)}
                                                             style={{
-                                                                color: 'hsl(var(--primary))',
+                                                                color: 'hsl(var(--primary) / 0.75)',
                                                                 fontSize: '1rem',
                                                                 marginTop: '0.15rem',
                                                             }}
@@ -2491,7 +2564,7 @@ const Lead = () => {
                                                                     fontSize: '0.95rem',
                                                                     color: 'hsl(var(--foreground))',
                                                                 }}>
-                                                                    {getActivityLabel(activity.type)}
+                                                                    {label}
                                                                 </span>
                                                                 {activity.actor?.name && (
                                                                     <span style={{
@@ -2503,7 +2576,7 @@ const Lead = () => {
                                                                 )}
                                                             </div>
 
-                                                            {activity.summary && (
+                                                            {shouldShowActivitySummary(activity, label) && (
                                                                 <p style={{
                                                                     fontSize: '0.9rem',
                                                                     color: 'hsl(var(--foreground-muted))',
@@ -2517,22 +2590,18 @@ const Lead = () => {
                                                                 <div style={{
                                                                     display: 'flex',
                                                                     flexWrap: 'wrap',
-                                                                    gap: '0.4rem',
+                                                                    gap: '0.65rem',
                                                                     marginBottom: changes.length > 0 ? '0.5rem' : 0,
                                                                 }}>
                                                                     {metadata.map((item) => (
                                                                         <span
                                                                             key={item.key}
                                                                             style={{
-                                                                                fontSize: '0.75rem',
-                                                                                padding: '0.18rem 0.5rem',
-                                                                                borderRadius: '999px',
-                                                                                background: 'hsl(var(--background))',
-                                                                                border: '1px solid hsl(var(--border))',
+                                                                                fontSize: '0.8rem',
                                                                                 color: 'hsl(var(--foreground-muted))',
                                                                             }}
                                                                         >
-                                                                            {item.label}: {item.value}
+                                                                            <strong>{item.label}:</strong> {item.value}
                                                                         </span>
                                                                     ))}
                                                                 </div>
