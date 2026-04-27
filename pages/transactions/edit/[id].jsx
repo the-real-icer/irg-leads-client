@@ -26,6 +26,7 @@ const Dialog = dynamic(() => import('primereact/dialog').then((mod) => mod.Dialo
 // IRG Components
 import MainLayout from '../../../components/layout/MainLayout';
 import OffMlsPropertyFields from '../../../components/Transactions/OffMlsPropertyFields';
+import TransactionHistoryCard from '../../../components/Transactions/TransactionHistoryCard';
 
 // API & Utils
 import IrgApi from '../../../assets/irgApi';
@@ -264,6 +265,11 @@ const EditTransaction = () => {
     const [clientCredits, setClientCredits] = useState([]);
     const [showClientCredits, setShowClientCredits] = useState(false);
 
+    // Read-only transaction activity history.
+    const [transactionHistory, setTransactionHistory] = useState([]);
+    const [transactionHistoryLoading, setTransactionHistoryLoading] = useState(false);
+    const [transactionHistoryError, setTransactionHistoryError] = useState('');
+
     // ── Debounce ref ─────────────────────────────────────────────
     const searchTimeoutRef = useRef(null);
 
@@ -473,6 +479,65 @@ const EditTransaction = () => {
 
         fetchTransaction();
     }, [id, authChecked, isLoggedIn, currentAgentId, isAdmin, router]);
+
+    useEffect(() => {
+        if (
+            !authChecked
+            || !isLoggedIn
+            || !currentAgentId
+            || !id
+            || !permissionChecked
+            || !canEditTransaction
+            || loading
+        ) {
+            return;
+        }
+
+        let isMounted = true;
+
+        const fetchTransactionHistory = async () => {
+            try {
+                setTransactionHistoryLoading(true);
+                setTransactionHistoryError('');
+
+                const response = await IrgApi.get(`/activity/transactions/${id}?limit=25`, {
+                    headers: { Authorization: `Bearer ${isLoggedIn}` },
+                });
+
+                if (!isMounted) return;
+
+                if (response.data?.status === 'success') {
+                    setTransactionHistory(Array.isArray(response.data.data) ? response.data.data : []);
+                    return;
+                }
+
+                setTransactionHistory([]);
+                setTransactionHistoryError('Transaction history could not be loaded.');
+            } catch (error) {
+                if (!isMounted) return;
+                setTransactionHistory([]);
+                setTransactionHistoryError('Transaction history could not be loaded.');
+            } finally {
+                if (isMounted) {
+                    setTransactionHistoryLoading(false);
+                }
+            }
+        };
+
+        fetchTransactionHistory();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [
+        authChecked,
+        isLoggedIn,
+        currentAgentId,
+        id,
+        permissionChecked,
+        canEditTransaction,
+        loading,
+    ]);
 
     // ══════════════════════════════════════════════════════════════
     // HANDLERS — Property Search
@@ -1268,6 +1333,12 @@ const EditTransaction = () => {
                 {/* ════════════════════════════════════════════════════
                     SECTION 3 — TRANSACTION INFORMATION
                     ════════════════════════════════════════════════════ */}
+                <TransactionHistoryCard
+                    history={transactionHistory}
+                    loading={transactionHistoryLoading}
+                    error={transactionHistoryError}
+                />
+
                 <div className="txn-new__card">
                     <h2 className="txn-new__card-title">Transaction Information</h2>
 
