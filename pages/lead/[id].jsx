@@ -70,6 +70,7 @@ import IrgApi from '../../assets/irgApi';
 import showToast from '../../utils/showToast';
 import AddCoBuyerDialog from '../../components/lead/AddCoBuyerDialog';
 import ActivityTimelineCard from '../../components/lead/ActivityTimelineCard';
+import LeadStatsGrid from '../../components/lead/LeadStatsGrid';
 import getLeadDisplayName, { getLeadInitials } from '../../utils/getLeadDisplayName';
 
 // Filter Value Options (for Edit E-Alert dialog)
@@ -1571,126 +1572,17 @@ const Lead = () => {
                 )}
 
                 {/* Statistics Cards */}
-                <div className="lead-profile-stats">
-                    <div className="grid">
-                        <div className="col-12 md:col-3">
-                            <Card
-                                className="stat-card clickable"
-                                onClick={() => setShowViewedHomesDialog(true)}
-                            >
-                                <div className="stat-content">
-                                    <i className="pi pi-home stat-icon"></i>
-                                    <div className="stat-details">
-                                        <span className="stat-value">
-                                            {lead?.viewed_homes?.length || 0}
-                                        </span>
-                                        <span className="stat-label">Homes Viewed</span>
-                                    </div>
-                                </div>
-                            </Card>
-                        </div>
-                        <div className="col-12 md:col-3">
-                            <Card
-                                className="stat-card clickable"
-                                onClick={() => setShowFavoritedHomesDialog(true)}
-                            >
-                                <div className="stat-content">
-                                    <i className="pi pi-heart stat-icon"></i>
-                                    <div className="stat-details">
-                                        <span className="stat-value">
-                                            {lead?.favorited_homes?.length || 0}
-                                        </span>
-                                        <span className="stat-label">Favorited Homes</span>
-                                    </div>
-                                </div>
-                            </Card>
-                        </div>
-                        <div className="col-12 md:col-3">
-                            <Card
-                                className="stat-card clickable"
-                                onClick={() => setShowSearchHistoryDialog(true)}
-                            >
-                                <div className="stat-content">
-                                    <i className="pi pi-search stat-icon"></i>
-                                    <div className="stat-details">
-                                        <span className="stat-value">
-                                            {lead?.searches_performed?.length || 0}
-                                        </span>
-                                        <span className="stat-label">Searches Performed</span>
-                                    </div>
-                                </div>
-                            </Card>
-                        </div>
-                        <div className="col-12 md:col-3">
-                            <Card
-                                className="stat-card clickable"
-                                onClick={() => setShowSavedSearchesDialog(true)}
-                            >
-                                <div className="stat-content">
-                                    <i className="pi pi-bookmark stat-icon"></i>
-                                    <div className="stat-details">
-                                        <span className="stat-value">
-                                            {(lead?.saved_searches?.length || 0) + (lead?.e_alerts?.length || 0)}
-                                        </span>
-                                        <span className="stat-label">Saved Searches</span>
-                                    </div>
-                                </div>
-                            </Card>
-                        </div>
-                    </div>
-
-                    {/* Second Row of Stats */}
-                    <div className="grid" style={{ marginTop: '1rem' }}>
-                        <div className="col-12 md:col-3">
-                            <Card className="stat-card">
-                                <div className="stat-content">
-                                    <i className="pi pi-dollar stat-icon"></i>
-                                    <div className="stat-details">
-                                        <span className="stat-value">{getAveragePrice()}</span>
-                                        <span className="stat-label">Average Price</span>
-                                    </div>
-                                </div>
-                            </Card>
-                        </div>
-                        <div className="col-12 md:col-3">
-                            <Card className="stat-card">
-                                <div className="stat-content">
-                                    <i className="pi pi-clock stat-icon"></i>
-                                    <div className="stat-details">
-                                        <span className="stat-value">
-                                            {formatLastVisit(lead?.last_visit)}
-                                        </span>
-                                        <span className="stat-label">Last Visit</span>
-                                    </div>
-                                </div>
-                            </Card>
-                        </div>
-                        <div className="col-12 md:col-3">
-                            <Card className="stat-card">
-                                <div className="stat-content">
-                                    <i className="pi pi-map-marker stat-icon"></i>
-                                    <div className="stat-details">
-                                        <span className="stat-value" style={{ fontSize: '1.2rem' }}>
-                                            {getAreasSearched()}
-                                        </span>
-                                        <span className="stat-label">Areas Searched</span>
-                                    </div>
-                                </div>
-                            </Card>
-                        </div>
-                        <div className="col-12 md:col-3">
-                            <Card className="stat-card">
-                                <div className="stat-content">
-                                    <i className="pi pi-comment stat-icon"></i>
-                                    <div className="stat-details">
-                                        <span className="stat-value">{getLastContactedText()}</span>
-                                        <span className="stat-label">Last Contacted</span>
-                                    </div>
-                                </div>
-                            </Card>
-                        </div>
-                    </div>
-                </div>
+                <LeadStatsGrid
+                    lead={lead}
+                    averagePrice={getAveragePrice()}
+                    lastVisitLabel={formatLastVisit(lead?.last_visit)}
+                    areasSearchedLabel={getAreasSearched()}
+                    lastContactedLabel={getLastContactedText()}
+                    onViewedHomesClick={() => setShowViewedHomesDialog(true)}
+                    onFavoritedHomesClick={() => setShowFavoritedHomesDialog(true)}
+                    onSearchHistoryClick={() => setShowSearchHistoryDialog(true)}
+                    onSavedSearchesClick={() => setShowSavedSearchesDialog(true)}
+                />
 
                 {/* Reminders Section */}
                 <div className="lead-reminders" style={{ marginTop: '2rem', marginBottom: '2rem' }}>
