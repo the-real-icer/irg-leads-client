@@ -25,6 +25,9 @@ const useDashboardData = () => {
     const [brokerageStats, setBrokerageStats] = useState(null);
     const [brokerageUpcomingDates, setBrokerageUpcomingDates] = useState([]);
     const [brokerageLoading, setBrokerageLoading] = useState(false);
+    const [leadSourceReport, setLeadSourceReport] = useState(null);
+    const [leadSourceReportLoading, setLeadSourceReportLoading] = useState(false);
+    const [leadSourceReportError, setLeadSourceReportError] = useState(false);
     const brokerageFetched = useRef(false);
 
     // ── Derived data ────────────────────────────────────────────
@@ -134,6 +137,8 @@ const useDashboardData = () => {
 
         const fetchBrokerageData = async () => {
             setBrokerageLoading(true);
+            setLeadSourceReportLoading(true);
+            setLeadSourceReportError(false);
             try {
                 const headers = { Authorization: `Bearer ${isLoggedIn}` };
                 const [statsRes, datesRes] = await Promise.all([
@@ -146,6 +151,18 @@ const useDashboardData = () => {
                 // silent fail
             } finally {
                 setBrokerageLoading(false);
+            }
+
+            try {
+                const res = await IrgApi.get('/reports/lead-source-conversions', {
+                    headers: { Authorization: `Bearer ${isLoggedIn}` },
+                });
+                setLeadSourceReport(res.data?.status === 'success' ? res.data.data : null);
+            } catch {
+                setLeadSourceReport(null);
+                setLeadSourceReportError(true);
+            } finally {
+                setLeadSourceReportLoading(false);
             }
         };
         fetchBrokerageData();
@@ -186,6 +203,9 @@ const useDashboardData = () => {
         brokerageStats,
         brokerageUpcomingDates,
         brokerageLoading,
+        leadSourceReport,
+        leadSourceReportLoading,
+        leadSourceReportError,
     };
 };
 

@@ -35,6 +35,9 @@ const Dashboard = () => {
         brokerageStats,
         brokerageUpcomingDates,
         brokerageLoading,
+        leadSourceReport,
+        leadSourceReportLoading,
+        leadSourceReportError,
     } = useDashboardData();
 
     return (
@@ -98,6 +101,9 @@ const Dashboard = () => {
                         stats={brokerageStats}
                         upcomingDates={brokerageUpcomingDates}
                         loading={brokerageLoading}
+                        leadSourceReport={leadSourceReport}
+                        leadSourceReportLoading={leadSourceReportLoading}
+                        leadSourceReportError={leadSourceReportError}
                     />
                 )}
             </div>
