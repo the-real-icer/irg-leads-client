@@ -60,6 +60,7 @@ import LeadDripCampaignsCard from '../../components/lead/LeadDripCampaignsCard';
 import LeadInteractionTabs from '../../components/lead/LeadInteractionTabs';
 import LeadRemindersCard from '../../components/lead/LeadRemindersCard';
 import LeadStatsGrid from '../../components/lead/LeadStatsGrid';
+import LeadAttributionCard from '../../components/lead/LeadAttributionCard';
 import getLeadDisplayName, { getLeadInitials } from '../../utils/getLeadDisplayName';
 
 // Filter Value Options (for Edit E-Alert dialog)
@@ -1513,6 +1514,8 @@ const Lead = () => {
                     onSearchHistoryClick={() => setShowSearchHistoryDialog(true)}
                     onSavedSearchesClick={() => setShowSavedSearchesDialog(true)}
                 />
+
+                <LeadAttributionCard lead={lead} isAdmin={agent?.role === 'admin'} />
 
                 {/* Reminders Section */}
                 <LeadRemindersCard
