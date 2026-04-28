@@ -12,6 +12,7 @@ import { Button } from 'primereact/button';
 
 // IRG Components
 import MainLayout from '../../components/layout/MainLayout';
+import LeadAttributionBadge from '../../components/lead/LeadAttributionBadge';
 import IrgApi from '../../assets/irgApi';
 import getLeadDisplayName, { getLeadInitials } from '../../utils/getLeadDisplayName';
 
@@ -385,6 +386,8 @@ const LeadCard = ({ lead, onClick, isMobile, isTablet }) => {
                         {lastVisit}
                     </div>
                 </div>
+
+                <LeadAttributionBadge lead={lead} compact style={{ marginLeft: '50px' }} />
             </button>
         );
     }
@@ -575,6 +578,7 @@ const LeadCard = ({ lead, onClick, isMobile, isTablet }) => {
                 }}>
                     {source}
                 </div>
+                <LeadAttributionBadge lead={lead} compact style={{ marginTop: '6px' }} />
             </div>
 
             {/* Avg Price */}
