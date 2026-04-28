@@ -38,6 +38,9 @@ const Dashboard = () => {
         leadSourceReport,
         leadSourceReportLoading,
         leadSourceReportError,
+        leadAttributionReport,
+        leadAttributionReportLoading,
+        leadAttributionReportError,
     } = useDashboardData();
 
     return (
@@ -104,6 +107,9 @@ const Dashboard = () => {
                         leadSourceReport={leadSourceReport}
                         leadSourceReportLoading={leadSourceReportLoading}
                         leadSourceReportError={leadSourceReportError}
+                        leadAttributionReport={leadAttributionReport}
+                        leadAttributionReportLoading={leadAttributionReportLoading}
+                        leadAttributionReportError={leadAttributionReportError}
                     />
                 )}
             </div>

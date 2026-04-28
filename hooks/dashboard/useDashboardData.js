@@ -28,6 +28,9 @@ const useDashboardData = () => {
     const [leadSourceReport, setLeadSourceReport] = useState(null);
     const [leadSourceReportLoading, setLeadSourceReportLoading] = useState(false);
     const [leadSourceReportError, setLeadSourceReportError] = useState(false);
+    const [leadAttributionReport, setLeadAttributionReport] = useState(null);
+    const [leadAttributionReportLoading, setLeadAttributionReportLoading] = useState(false);
+    const [leadAttributionReportError, setLeadAttributionReportError] = useState(false);
     const brokerageFetched = useRef(false);
 
     // ── Derived data ────────────────────────────────────────────
@@ -139,6 +142,8 @@ const useDashboardData = () => {
             setBrokerageLoading(true);
             setLeadSourceReportLoading(true);
             setLeadSourceReportError(false);
+            setLeadAttributionReportLoading(true);
+            setLeadAttributionReportError(false);
             try {
                 const headers = { Authorization: `Bearer ${isLoggedIn}` };
                 const [statsRes, datesRes] = await Promise.all([
@@ -163,6 +168,18 @@ const useDashboardData = () => {
                 setLeadSourceReportError(true);
             } finally {
                 setLeadSourceReportLoading(false);
+            }
+
+            try {
+                const res = await IrgApi.get('/reports/lead-attribution-summary', {
+                    headers: { Authorization: `Bearer ${isLoggedIn}` },
+                });
+                setLeadAttributionReport(res.data?.status === 'success' ? res.data.data : null);
+            } catch {
+                setLeadAttributionReport(null);
+                setLeadAttributionReportError(true);
+            } finally {
+                setLeadAttributionReportLoading(false);
             }
         };
         fetchBrokerageData();
@@ -206,6 +223,9 @@ const useDashboardData = () => {
         leadSourceReport,
         leadSourceReportLoading,
         leadSourceReportError,
+        leadAttributionReport,
+        leadAttributionReportLoading,
+        leadAttributionReportError,
     };
 };
 

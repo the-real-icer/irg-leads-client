@@ -1,4 +1,5 @@
 import dynamic from 'next/dynamic';
+import LeadAttributionSummaryCard from './LeadAttributionSummaryCard';
 import LeadSourceConversionCard from './LeadSourceConversionCard';
 import ProductionGrid from './ProductionGrid';
 import UpcomingDatesList from './UpcomingDatesList';
@@ -12,6 +13,9 @@ const BrokerageTab = ({
     leadSourceReport,
     leadSourceReportLoading,
     leadSourceReportError,
+    leadAttributionReport,
+    leadAttributionReportLoading,
+    leadAttributionReportError,
 }) => {
     if (loading) {
         return (
@@ -45,6 +49,11 @@ const BrokerageTab = ({
                 data={leadSourceReport}
                 loading={leadSourceReportLoading}
                 error={leadSourceReportError}
+            />
+            <LeadAttributionSummaryCard
+                data={leadAttributionReport}
+                loading={leadAttributionReportLoading}
+                error={leadAttributionReportError}
             />
         </>
     );
