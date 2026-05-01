@@ -29,6 +29,10 @@ const TourHeader = ({
     lastSavedAt,
     onSave,
     onNewTour,
+    onPrintTour,
+    canPrint,
+    hasUnsavedPrintState,
+    disabled,
 }) => {
     const saveDisabled = !canSave;
 
@@ -44,27 +48,51 @@ const TourHeader = ({
                 <h1 className="m-0 text-[28px] font-semibold text-foreground">
                     Schedule Showings
                 </h1>
-                <div className="flex items-center gap-[12px]">
-                    <TourSaveStatus
-                        saveState={saveState}
-                        isNewTour={isNewTour}
-                        lastSavedAt={lastSavedAt}
-                        onRetry={onSave}
-                    />
-                    <button
-                        type="button"
-                        onClick={onSave}
-                        disabled={saveDisabled}
-                        className={
-                            'bg-primary text-white rounded-[8px] '
-                            + 'px-[20px] py-[10px] text-[14px] font-semibold '
-                            + 'hover:bg-primary-hover transition-colors '
-                            + 'disabled:opacity-50 disabled:cursor-not-allowed '
-                            + 'focus:outline-none focus:ring-2 focus:ring-primary/40'
-                        }
-                    >
-                        {saveButtonLabel(saveState, isNewTour)}
-                    </button>
+                <div className="flex flex-col items-start gap-[6px] min-[900px]:items-end">
+                    <div className="flex flex-wrap items-center gap-[12px]">
+                        <TourSaveStatus
+                            saveState={saveState}
+                            isNewTour={isNewTour}
+                            lastSavedAt={lastSavedAt}
+                            onRetry={onSave}
+                        />
+                        <button
+                            type="button"
+                            onClick={onSave}
+                            disabled={saveDisabled}
+                            className={
+                                'bg-primary text-white rounded-[8px] '
+                                + 'px-[20px] py-[10px] text-[14px] font-semibold '
+                                + 'hover:bg-primary-hover transition-colors '
+                                + 'disabled:opacity-50 disabled:cursor-not-allowed '
+                                + 'focus:outline-none focus:ring-2 focus:ring-primary/40'
+                            }
+                        >
+                            {saveButtonLabel(saveState, isNewTour)}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={onPrintTour}
+                            disabled={!canPrint || disabled}
+                            className={
+                                'rounded-[8px] border border-border bg-surface '
+                                + 'text-foreground hover:bg-background '
+                                + 'px-[16px] py-[10px] text-[14px] font-semibold '
+                                + 'transition-colors '
+                                + 'focus:outline-none focus:ring-2 focus:ring-primary/40 '
+                                + 'disabled:opacity-50 disabled:cursor-not-allowed'
+                            }
+                        >
+                            Print Tour
+                        </button>
+                    </div>
+                    {canPrint && (
+                        <div className="text-[11px] text-foreground/60">
+                            {hasUnsavedPrintState
+                                ? 'Uses current unsaved tour state. Save as PDF from the browser print dialog.'
+                                : 'Save as PDF from the browser print dialog.'}
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -86,6 +114,7 @@ const TourHeader = ({
                         onChange={(e) => onNameChange(e.target.value)}
                         placeholder="Tour name — e.g. Buyer Smith's Weekend Tour"
                         maxLength={120}
+                        disabled={disabled}
                         className={
                             'w-full rounded-[12px] border border-border '
                             + 'bg-surface text-foreground placeholder:text-foreground/50 '
@@ -96,7 +125,7 @@ const TourHeader = ({
                 </div>
 
                 <div className="min-[900px]:w-[260px]">
-                    <ClientPicker value={client} onChange={onClientChange} />
+                    <ClientPicker value={client} onChange={onClientChange} disabled={disabled} />
                 </div>
 
                 <div className="flex flex-col gap-[6px] min-[900px]:w-[200px]">
@@ -112,19 +141,22 @@ const TourHeader = ({
                         showIcon
                         dateFormat="mm/dd/yy"
                         showButtonBar
+                        disabled={disabled}
                     />
                 </div>
 
                 <button
                     type="button"
                     onClick={onNewTour}
+                    disabled={disabled}
                     className={
                         'rounded-[8px] border border-border bg-surface '
                         + 'text-foreground hover:bg-background '
                         + 'px-[16px] py-[10px] text-[14px] font-semibold '
                         + 'transition-colors '
                         + 'focus:outline-none focus:ring-2 focus:ring-primary/40 '
-                        + 'self-start min-[900px]:self-auto min-[900px]:mb-[2px]'
+                        + 'self-start min-[900px]:self-auto min-[900px]:mb-[2px] '
+                        + 'disabled:opacity-50 disabled:cursor-not-allowed'
                     }
                 >
                     New Tour
@@ -152,12 +184,19 @@ TourHeader.propTypes = {
     lastSavedAt: PropTypes.oneOfType([PropTypes.instanceOf(Date), PropTypes.string]),
     onSave: PropTypes.func.isRequired,
     onNewTour: PropTypes.func.isRequired,
+    onPrintTour: PropTypes.func.isRequired,
+    canPrint: PropTypes.bool,
+    hasUnsavedPrintState: PropTypes.bool,
+    disabled: PropTypes.bool,
 };
 
 TourHeader.defaultProps = {
     client: null,
     scheduledDate: null,
     lastSavedAt: null,
+    canPrint: false,
+    hasUnsavedPrintState: false,
+    disabled: false,
 };
 
 export default TourHeader;

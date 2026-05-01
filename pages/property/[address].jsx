@@ -18,6 +18,8 @@ import UserActions from '../../components/Property/TopBar/UserActions';
 import AdminBar from '../../components/Property/AdminBar/AdminBar';
 import PropertyMap from '../../components/Property/PropertyMap/PropertyMap';
 import PropertyFeatures from '../../components/Property/PropertyFeatures/PropertyFeatures';
+import PrintDocumentShell from '../../components/Print/PrintDocumentShell';
+import PrintablePropertySheet from '../../components/Print/PrintablePropertySheet';
 
 // IRG API - HOOKS - INFO - UTILS
 import IrgApi from '../../assets/irgApi';
@@ -42,6 +44,7 @@ const Address = () => {
     const [refetchTrigger, setRefetchTrigger] = useState(0);
 
     const toastProperty = useRef(null);
+    const printCleanupRef = useRef(null);
 
     const handleToastMessage = (severity, summary, detail, life) => {
         toastProperty.current.show({
@@ -84,6 +87,30 @@ const Address = () => {
         return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
     }, [property]);
 
+    useEffect(() => () => {
+        if (printCleanupRef.current) {
+            printCleanupRef.current();
+        }
+    }, []);
+
+    const handlePrintProperty = () => {
+        if (!property || typeof window === 'undefined') return;
+        if (printCleanupRef.current) return;
+
+        const body = window.document.body;
+        const cleanup = () => {
+            body.classList.remove('printing-tour-packet');
+            window.removeEventListener('afterprint', cleanup);
+            printCleanupRef.current = null;
+        };
+        printCleanupRef.current = cleanup;
+        body.classList.add('printing-tour-packet');
+        window.addEventListener('afterprint', cleanup);
+        window.requestAnimationFrame(() => {
+            window.print();
+        });
+    };
+
     return (
         <MainLayout title={address ? decodeURIComponent(address) : 'Property'}>
             <div className="property__page">
@@ -116,6 +143,15 @@ const Address = () => {
                     <div className="property__action-bar">
                         <div className="property__action-bar__left">
                             <QueueButton property={property} />
+                            <button
+                                className="property__action-btn property__action-btn--secondary"
+                                onClick={handlePrintProperty}
+                                type="button"
+                                disabled={!property}
+                            >
+                                <i className="pi pi-print" />
+                                Print Property
+                            </button>
                         </div>
                         <div className="property__action-bar__right">
                             {agent.role === 'admin' ? (
@@ -134,6 +170,11 @@ const Address = () => {
                 {property && <PropertyFeatures property={property} />}
                 {property && <PropertyMap property={property} />}
             </div>
+            {property && (
+                <PrintDocumentShell>
+                    <PrintablePropertySheet property={property} agentContact={agent} />
+                </PrintDocumentShell>
+            )}
         </MainLayout>
     );
 };

@@ -7,6 +7,7 @@ import {
     formatBedsBaths,
     formatSqft,
     hasValidCoords,
+    hasUsableMlsNumber,
     isAlreadyInTour,
     stopFromSuggestResult,
 } from './tourHelpers';
@@ -14,7 +15,7 @@ import {
 const MIN_QUERY_LENGTH = 2;
 const DEBOUNCE_MS = 250;
 
-const PropertySearch = ({ stops, onAdd }) => {
+const PropertySearch = ({ stops, onAdd, disabled }) => {
     const isLoggedIn = useSelector((state) => state.isLoggedIn);
 
     const [query, setQuery] = useState('');
@@ -22,6 +23,7 @@ const PropertySearch = ({ stops, onAdd }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [open, setOpen] = useState(false);
+    const [searchCompleted, setSearchCompleted] = useState(false);
 
     // Track thumbnail URLs that have failed to load so we can swap them
     // out for the placeholder instead of showing a broken-image icon.
@@ -38,6 +40,7 @@ const PropertySearch = ({ stops, onAdd }) => {
 
     const handleClear = () => {
         setQuery('');
+        setSearchCompleted(false);
         setOpen(false);
         inputRef.current?.focus();
     };
@@ -47,10 +50,11 @@ const PropertySearch = ({ stops, onAdd }) => {
     useEffect(() => {
         const trimmed = query.trim();
 
-        if (trimmed.length < MIN_QUERY_LENGTH) {
+        if (disabled || trimmed.length < MIN_QUERY_LENGTH) {
             setResults([]);
             setLoading(false);
             setError(null);
+            setSearchCompleted(false);
             return undefined;
         }
 
@@ -58,6 +62,8 @@ const PropertySearch = ({ stops, onAdd }) => {
         const timer = setTimeout(() => {
             setLoading(true);
             setError(null);
+            setResults([]);
+            setSearchCompleted(false);
 
             IrgApi.get('/mlsproperties/suggest', {
                 params: { q: trimmed, limit: 10 },
@@ -66,14 +72,18 @@ const PropertySearch = ({ stops, onAdd }) => {
             })
                 .then((res) => {
                     const raw = Array.isArray(res?.data?.data) ? res.data.data : [];
-                    // Defense: drop any result missing finite coordinates
-                    setResults(raw.filter(hasValidCoords));
+                    // Defense: only add stops the list/map identity can safely handle.
+                    setResults(raw.filter((result) => (
+                        hasValidCoords(result) && hasUsableMlsNumber(result?.mls_number)
+                    )));
+                    setSearchCompleted(true);
                     setLoading(false);
                 })
                 .catch((err) => {
                     if (err?.name === 'CanceledError' || err?.code === 'ERR_CANCELED') return;
                     setError(err?.response?.data?.message || err?.message || 'Search failed');
                     setResults([]);
+                    setSearchCompleted(true);
                     setLoading(false);
                 });
         }, DEBOUNCE_MS);
@@ -82,7 +92,7 @@ const PropertySearch = ({ stops, onAdd }) => {
             clearTimeout(timer);
             controller.abort();
         };
-    }, [query, isLoggedIn]);
+    }, [query, isLoggedIn, disabled]);
 
     // Close dropdown on outside click
     useEffect(() => {
@@ -102,7 +112,7 @@ const PropertySearch = ({ stops, onAdd }) => {
 
     const showDropdown = open
         && query.trim().length >= MIN_QUERY_LENGTH
-        && (loading || error || results.length > 0);
+        && (loading || error || results.length > 0 || searchCompleted);
 
     return (
         <div ref={containerRef} className="relative w-full">
@@ -135,11 +145,13 @@ const PropertySearch = ({ stops, onAdd }) => {
                     placeholder="Search by address or MLS number"
                     aria-label="Search properties by address or MLS number"
                     autoComplete="off"
+                    disabled={disabled}
                     className={
                         'w-full rounded-[12px] border border-border '
                         + 'bg-surface text-foreground placeholder:text-foreground/50 '
                         + 'text-[14px] pl-[40px] pr-[40px] py-[12px] '
-                        + 'focus:outline-none focus:ring-2 focus:ring-primary/40'
+                        + 'focus:outline-none focus:ring-2 focus:ring-primary/40 '
+                        + 'disabled:opacity-60 disabled:cursor-not-allowed'
                     }
                 />
                 {query.length > 0 && (
@@ -238,11 +250,13 @@ const PropertySearch = ({ stops, onAdd }) => {
                                     <button
                                         type="button"
                                         onClick={() => onAdd(stop)}
+                                        disabled={disabled}
                                         className={
                                             'text-[12px] font-semibold text-white '
                                             + 'bg-primary hover:bg-primary/90 '
                                             + 'px-[10px] py-[6px] rounded-[6px] flex-shrink-0 '
-                                            + 'transition-colors'
+                                            + 'transition-colors disabled:opacity-50 '
+                                            + 'disabled:cursor-not-allowed'
                                         }
                                     >
                                         Add to tour
@@ -260,6 +274,11 @@ const PropertySearch = ({ stops, onAdd }) => {
 PropertySearch.propTypes = {
     stops: PropTypes.array.isRequired,
     onAdd: PropTypes.func.isRequired,
+    disabled: PropTypes.bool,
+};
+
+PropertySearch.defaultProps = {
+    disabled: false,
 };
 
 export default PropertySearch;

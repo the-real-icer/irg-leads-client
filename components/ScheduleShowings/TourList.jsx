@@ -17,19 +17,20 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
-import { formatBedsBaths } from './tourHelpers';
+import { formatBedsBaths, hasValidCoords } from './tourHelpers';
 import { getStatusMeta, formatStopTime } from './stopStatus';
 
 // Colored pill that shows a stop's current status and opens the edit
 // dialog when clicked. Dynamic Tailwind class names are covered by the
 // safelist in tailwind.config.js; without it they'd silently not compile.
-const StatusBadge = ({ status, onClick }) => {
+const StatusBadge = ({ status, onClick, disabled }) => {
     const meta = getStatusMeta(status);
     const key = meta.tailwindKey;
     return (
         <button
             type="button"
             onClick={onClick}
+            disabled={disabled}
             aria-label={`Status: ${meta.label}. Click to edit.`}
             className={[
                 'inline-flex items-center gap-[6px]',
@@ -40,6 +41,7 @@ const StatusBadge = ({ status, onClick }) => {
                 'hover:opacity-80 transition-opacity',
                 'focus:outline-none focus:ring-2',
                 `focus:ring-tour-stop-${key}/40`,
+                'disabled:opacity-50 disabled:cursor-not-allowed',
             ].join(' ')}
         >
             <span
@@ -54,10 +56,12 @@ const StatusBadge = ({ status, onClick }) => {
 StatusBadge.propTypes = {
     status: PropTypes.string,
     onClick: PropTypes.func.isRequired,
+    disabled: PropTypes.bool,
 };
 
 StatusBadge.defaultProps = {
     status: 'pending',
+    disabled: false,
 };
 
 // Sortable stop card — useSortable provides transform/transition/isDragging
@@ -65,7 +69,7 @@ StatusBadge.defaultProps = {
 // those to the handle ONLY so clicks on Remove / Edit badge / note icon
 // never initiate a drag.
 const SortableStopCard = ({
-    stop, index, onRemove, onEditStop, isBroken, markBroken,
+    stop, index, onRemove, onEditStop, isBroken, markBroken, disabled,
 }) => {
     const {
         attributes,
@@ -85,6 +89,7 @@ const SortableStopCard = ({
     const timeLabel = formatStopTime(stop.scheduled_time);
     const hasNote = Boolean(stop.note && stop.note.trim());
     const openEdit = () => onEditStop(stop);
+    const mapUnavailable = !hasValidCoords(stop);
 
     return (
         <li
@@ -101,12 +106,14 @@ const SortableStopCard = ({
                 {...attributes}
                 {...listeners}
                 aria-label={`Drag to reorder ${stop.address}`}
+                disabled={disabled}
                 className={
                     'flex-shrink-0 cursor-grab active:cursor-grabbing '
                     + 'text-foreground/40 hover:text-foreground '
                     + 'p-[4px] rounded-[4px] '
                     + 'focus:outline-none focus:ring-2 focus:ring-primary/40 '
-                    + 'transition-colors'
+                    + 'transition-colors disabled:opacity-50 '
+                    + 'disabled:cursor-not-allowed'
                 }
             >
                 <i className="pi pi-bars" aria-hidden="true" />
@@ -153,17 +160,30 @@ const SortableStopCard = ({
                     {timeLabel && ` · ${timeLabel}`}
                 </div>
                 <div className="flex items-center gap-[8px] flex-wrap mt-[4px]">
-                    <StatusBadge status={stop.status} onClick={openEdit} />
+                    <StatusBadge status={stop.status} onClick={openEdit} disabled={disabled} />
+                    {mapUnavailable && (
+                        <span
+                            className={
+                                'inline-flex items-center px-[8px] py-[3px] '
+                                + 'rounded-[6px] bg-warning/10 text-warning '
+                                + 'text-[11px] font-medium'
+                            }
+                        >
+                            Map unavailable
+                        </span>
+                    )}
                     {hasNote && (
                         <button
                             type="button"
                             onClick={openEdit}
+                            disabled={disabled}
                             aria-label="This stop has a note. Click to view."
                             className={
                                 'text-foreground/50 hover:text-foreground '
                                 + 'p-[2px] rounded-[4px] '
                                 + 'focus:outline-none focus:ring-2 focus:ring-primary/40 '
-                                + 'transition-colors'
+                                + 'transition-colors disabled:opacity-50 '
+                                + 'disabled:cursor-not-allowed'
                             }
                         >
                             <i className="pi pi-file text-[12px]" aria-hidden="true" />
@@ -176,11 +196,13 @@ const SortableStopCard = ({
                 type="button"
                 onClick={() => onRemove(stop.mls_number)}
                 aria-label={`Remove ${stop.address} from tour`}
+                disabled={disabled}
                 className={
                     'flex-shrink-0 text-[12px] font-semibold '
                     + 'text-foreground/70 hover:text-danger '
                     + 'px-[8px] py-[4px] rounded-[6px] '
-                    + 'transition-colors'
+                    + 'transition-colors disabled:opacity-50 '
+                    + 'disabled:cursor-not-allowed'
                 }
             >
                 Remove
@@ -210,6 +232,11 @@ SortableStopCard.propTypes = {
     onEditStop: PropTypes.func.isRequired,
     isBroken: PropTypes.func.isRequired,
     markBroken: PropTypes.func.isRequired,
+    disabled: PropTypes.bool,
+};
+
+SortableStopCard.defaultProps = {
+    disabled: false,
 };
 
 // Screen-reader instructions surfaced when a drag handle receives focus.
@@ -221,7 +248,9 @@ const screenReaderInstructions = {
         + 'Press escape to cancel.',
 };
 
-const TourList = ({ stops, onRemove, onReorder, onEditStop }) => {
+const TourList = ({
+    stops, onRemove, onReorder, onEditStop, disabled,
+}) => {
     const count = stops.length;
 
     const [brokenThumbs, setBrokenThumbs] = useState(() => new Set());
@@ -242,6 +271,7 @@ const TourList = ({ stops, onRemove, onReorder, onEditStop }) => {
     );
 
     const handleDragEnd = (event) => {
+        if (disabled) return;
         const { active, over } = event;
         if (!over || active.id === over.id) return;
         const oldIndex = stops.findIndex((s) => s.mls_number === active.id);
@@ -295,6 +325,7 @@ const TourList = ({ stops, onRemove, onReorder, onEditStop }) => {
                                     onEditStop={onEditStop}
                                     isBroken={isBroken}
                                     markBroken={markBroken}
+                                    disabled={disabled}
                                 />
                             ))}
                         </ul>
@@ -310,6 +341,11 @@ TourList.propTypes = {
     onRemove: PropTypes.func.isRequired,
     onReorder: PropTypes.func.isRequired,
     onEditStop: PropTypes.func.isRequired,
+    disabled: PropTypes.bool,
+};
+
+TourList.defaultProps = {
+    disabled: false,
 };
 
 export default TourList;

@@ -60,14 +60,20 @@ const buildMetaLine = (tour) => {
     return parts.join(' · ');
 };
 
-const SavedToursList = ({ tours, activeTourId, loading, onLoad, onDelete }) => {
+const SavedToursList = ({
+    tours, activeTourId, loading, loadingActiveTour, onLoad, onDelete,
+}) => {
     return (
         <div className="flex flex-col gap-[12px]">
             <div className="flex items-center justify-between">
                 <h2 className="m-0 text-[16px] font-semibold text-foreground">
                     Saved Tours
                 </h2>
-                {tours.length > 0 && (
+                {loadingActiveTour ? (
+                    <span className="text-[12px] text-foreground/60">
+                        Loading tour...
+                    </span>
+                ) : tours.length > 0 && (
                     <span className="text-[12px] text-foreground/60">
                         {tours.length}
                     </span>
@@ -115,10 +121,12 @@ const SavedToursList = ({ tours, activeTourId, loading, onLoad, onDelete }) => {
                                     type="button"
                                     onClick={() => onLoad(tour._id)}
                                     aria-current={isActive ? 'true' : undefined}
+                                    disabled={loadingActiveTour}
                                     className={
                                         'w-full text-left rounded-[12px] border p-[12px] '
                                         + 'shadow-sm transition-colors '
                                         + 'focus:outline-none focus:ring-2 focus:ring-primary/40 '
+                                        + 'disabled:opacity-60 disabled:cursor-not-allowed '
                                         + (isActive
                                             ? 'bg-primary/10 border-primary/40 border-l-4 '
                                             : 'bg-surface border-border hover:bg-background '
@@ -145,12 +153,14 @@ const SavedToursList = ({ tours, activeTourId, loading, onLoad, onDelete }) => {
                                         e.stopPropagation();
                                         onDelete(tour._id, tour.name || '');
                                     }}
+                                    disabled={loadingActiveTour}
                                     aria-label={`Delete ${tour.name || 'this tour'}`}
                                     className={
                                         'absolute top-[8px] right-[8px] '
                                         + 'text-foreground/40 hover:text-danger focus:text-danger '
                                         + 'p-[4px] rounded-[4px] '
-                                        + 'transition-colors'
+                                        + 'transition-colors disabled:opacity-50 '
+                                        + 'disabled:cursor-not-allowed'
                                     }
                                 >
                                     <i className="pi pi-times" aria-hidden="true" />
@@ -168,6 +178,7 @@ SavedToursList.propTypes = {
     tours: PropTypes.array.isRequired,
     activeTourId: PropTypes.string,
     loading: PropTypes.bool,
+    loadingActiveTour: PropTypes.bool,
     onLoad: PropTypes.func.isRequired,
     onDelete: PropTypes.func.isRequired,
 };
@@ -175,6 +186,7 @@ SavedToursList.propTypes = {
 SavedToursList.defaultProps = {
     activeTourId: null,
     loading: false,
+    loadingActiveTour: false,
 };
 
 export default SavedToursList;

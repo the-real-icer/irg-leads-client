@@ -17,13 +17,16 @@ const Calendar = dynamic(
 
 // One pill per status. Clicked → onSelect(value). Selected pill gets a
 // ring in its own status color so it's obvious which one is active.
-const StatusPill = ({ meta, selected, onSelect }) => {
+const StatusPill = ({
+    meta, selected, onSelect, disabled,
+}) => {
     const key = meta.tailwindKey;
     return (
         <button
             type="button"
             onClick={() => onSelect(meta.value)}
             aria-pressed={selected}
+            disabled={disabled}
             className={[
                 'inline-flex items-center gap-[6px]',
                 'px-[10px] py-[6px] rounded-[8px]',
@@ -34,6 +37,7 @@ const StatusPill = ({ meta, selected, onSelect }) => {
                 selected
                     ? `ring-2 ring-tour-stop-${key} shadow-sm`
                     : 'hover:opacity-80',
+                'disabled:opacity-50 disabled:cursor-not-allowed',
             ].join(' ')}
         >
             <span
@@ -53,9 +57,16 @@ StatusPill.propTypes = {
     }).isRequired,
     selected: PropTypes.bool.isRequired,
     onSelect: PropTypes.func.isRequired,
+    disabled: PropTypes.bool,
 };
 
-const StopEditDialog = ({ stop, onSave, onCancel }) => {
+StatusPill.defaultProps = {
+    disabled: false,
+};
+
+const StopEditDialog = ({
+    stop, onSave, onCancel, disabled,
+}) => {
     // Local editing state — copied in from the stop prop whenever the
     // dialog opens (i.e. the identity of `stop` changes). Local edits
     // stay scoped until Save; Cancel discards without touching the
@@ -141,6 +152,7 @@ const StopEditDialog = ({ stop, onSave, onCancel }) => {
                                 meta={meta}
                                 selected={status === meta.value}
                                 onSelect={setStatus}
+                                disabled={disabled}
                             />
                         ))}
                     </div>
@@ -164,6 +176,7 @@ const StopEditDialog = ({ stop, onSave, onCancel }) => {
                         showIcon
                         showButtonBar
                         style={{ width: '100%' }}
+                        disabled={disabled}
                     />
                 </div>
 
@@ -181,13 +194,14 @@ const StopEditDialog = ({ stop, onSave, onCancel }) => {
                         onChange={(e) => setNote(e.target.value)}
                         maxLength={500}
                         rows={3}
+                        disabled={disabled}
                         placeholder="Anything to remember about this showing…"
                         className={
                             'w-full rounded-[8px] border border-border '
                             + 'bg-surface text-foreground placeholder:text-foreground/50 '
                             + 'text-[14px] px-[12px] py-[10px] '
                             + 'focus:outline-none focus:ring-2 focus:ring-primary/40 '
-                            + 'resize-y'
+                            + 'resize-y disabled:opacity-60 disabled:cursor-not-allowed'
                         }
                     />
                     <div className="text-[11px] text-foreground/50 self-end">
@@ -205,7 +219,8 @@ const StopEditDialog = ({ stop, onSave, onCancel }) => {
                             + 'text-foreground hover:bg-background '
                             + 'px-[16px] py-[8px] text-[14px] font-medium '
                             + 'transition-colors '
-                            + 'focus:outline-none focus:ring-2 focus:ring-primary/40'
+                            + 'focus:outline-none focus:ring-2 focus:ring-primary/40 '
+                            + 'disabled:opacity-50 disabled:cursor-not-allowed'
                         }
                     >
                         Cancel
@@ -213,12 +228,14 @@ const StopEditDialog = ({ stop, onSave, onCancel }) => {
                     <button
                         type="button"
                         onClick={handleSave}
+                        disabled={disabled}
                         className={
                             'rounded-[8px] bg-primary text-white '
                             + 'hover:bg-primary-hover '
                             + 'px-[16px] py-[8px] text-[14px] font-semibold '
                             + 'transition-colors '
-                            + 'focus:outline-none focus:ring-2 focus:ring-primary/40'
+                            + 'focus:outline-none focus:ring-2 focus:ring-primary/40 '
+                            + 'disabled:opacity-50 disabled:cursor-not-allowed'
                         }
                     >
                         Save
@@ -246,10 +263,12 @@ StopEditDialog.propTypes = {
     }),
     onSave: PropTypes.func.isRequired,
     onCancel: PropTypes.func.isRequired,
+    disabled: PropTypes.bool,
 };
 
 StopEditDialog.defaultProps = {
     stop: null,
+    disabled: false,
 };
 
 export default StopEditDialog;

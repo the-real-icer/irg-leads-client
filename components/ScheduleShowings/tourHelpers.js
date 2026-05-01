@@ -21,9 +21,17 @@ export const hasValidCoords = (stop) => {
     return Number.isFinite(lat) && Number.isFinite(lng);
 };
 
+export const normalizeMlsNumber = (mlsNumber) => {
+    if (typeof mlsNumber !== 'string' && typeof mlsNumber !== 'number') return '';
+    return String(mlsNumber).trim();
+};
+
+export const hasUsableMlsNumber = (mlsNumber) => normalizeMlsNumber(mlsNumber).length > 0;
+
 export const isAlreadyInTour = (stops, mlsNumber) => {
-    if (!Array.isArray(stops) || !mlsNumber) return false;
-    return stops.some((s) => s.mls_number === mlsNumber);
+    if (!Array.isArray(stops) || !hasUsableMlsNumber(mlsNumber)) return false;
+    const normalized = normalizeMlsNumber(mlsNumber);
+    return stops.some((s) => normalizeMlsNumber(s?.mls_number) === normalized);
 };
 
 // Format a scheduled date for inline display in metadata lines.
@@ -62,12 +70,17 @@ export const formatRelativeTime = (input) => {
 // Build a normalized dirty-tracking snapshot — used by the page to
 // decide if the current editor state differs from the last saved state.
 // Keep this stable and deterministic (same inputs → same string).
+const toSnapshotDate = (input) => {
+    if (!input) return null;
+    const date = input instanceof Date ? input : new Date(input);
+    if (Number.isNaN(date.getTime())) return null;
+    return date.toISOString();
+};
+
 export const buildTourSnapshot = ({ name, client, scheduledDate, stops }) => JSON.stringify({
     name: (name || '').trim(),
     client: client?._id || null,
-    scheduled_date: scheduledDate
-        ? (scheduledDate instanceof Date ? scheduledDate.toISOString() : scheduledDate)
-        : null,
+    scheduled_date: toSnapshotDate(scheduledDate),
     stops: Array.isArray(stops)
         ? stops.map((s, idx) => ({
             mls_number: s.mls_number,
@@ -118,7 +131,7 @@ export const stopFromSuggestResult = (result) => {
     // status today; if we ever need it back we'll pull it under a
     // distinct name like `mls_status`.
     return {
-        mls_number: result.mls_number,
+        mls_number: normalizeMlsNumber(result.mls_number),
         address: result.address,
         unit_number: result.unit_number,
         city: result.city,

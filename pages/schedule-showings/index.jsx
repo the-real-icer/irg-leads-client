@@ -10,12 +10,18 @@ import TourMap from '../../components/ScheduleShowings/TourMap';
 import TourHeader from '../../components/ScheduleShowings/TourHeader';
 import SavedToursList from '../../components/ScheduleShowings/SavedToursList';
 import StopEditDialog from '../../components/ScheduleShowings/StopEditDialog';
+import PrintDocumentShell from '../../components/Print/PrintDocumentShell';
+import PrintableTourPacket from '../../components/Print/PrintableTourPacket';
 import {
     buildTourSnapshot,
+    hasUsableMlsNumber,
+    hasValidCoords,
     isAlreadyInTour,
+    normalizeMlsNumber,
     stopFromSuggestResult,
 } from '../../components/ScheduleShowings/tourHelpers';
 import IrgApi from '../../assets/irgApi';
+import showToast from '../../utils/showToast';
 
 import styles from './index.module.css';
 
@@ -35,7 +41,16 @@ const EMPTY_SNAPSHOT = buildTourSnapshot({
     name: '', client: null, scheduledDate: null, stops: [],
 });
 
+const toValidIsoString = (value) => {
+    if (!value) return null;
+    const date = value instanceof Date ? value : new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date.toISOString();
+};
+
+const needsDiscardConfirm = (state) => ['dirty', 'saving', 'error'].includes(state);
+
 const ScheduleShowings = () => {
+    const agent = useSelector((state) => state.agent);
     const isLoggedIn = useSelector((state) => state.isLoggedIn);
 
     // Tour editor state
@@ -52,20 +67,29 @@ const ScheduleShowings = () => {
     // Saved-tours sidebar state
     const [savedTours, setSavedTours] = useState([]);
     const [loadingTours, setLoadingTours] = useState(false);
+    const [loadingActiveTour, setLoadingActiveTour] = useState(false);
 
     // Per-stop edit dialog. When non-null, the dialog is open for that
     // stop; null when closed.
     const [editingStop, setEditingStop] = useState(null);
+    const [printGeneratedAt, setPrintGeneratedAt] = useState(() => new Date());
 
     // Guard against stale tour loads when the user clicks another tour
     // while a load is in flight.
     const loadingTourIdRef = useRef(null);
+    const activeLoadTokenRef = useRef(0);
+    const printCleanupRef = useRef(null);
 
     // Snapshot of the last-saved tour for dirty comparison.
     const lastSavedSnapshotRef = useRef(EMPTY_SNAPSHOT);
+    const failedSaveSnapshotRef = useRef(null);
 
     const isNewTour = tourId === null;
-    const canSave = Boolean(name.trim()) && stops.length > 0 && saveState !== 'saving';
+    const canSave = Boolean(name.trim())
+        && stops.length > 0
+        && saveState !== 'saving'
+        && !loadingActiveTour;
+    const hasUnsavedPrintState = ['dirty', 'saving', 'error'].includes(saveState);
 
     const authHeaders = {
         Authorization: `Bearer ${isLoggedIn}`,
@@ -73,14 +97,16 @@ const ScheduleShowings = () => {
 
     // --- Dirty tracking --------------------------------------------------
     // Compare current editor state against the last-saved snapshot.
-    // Flip saveState between 'clean' and 'dirty' based on the diff,
-    // unless we're mid-save or in the transient 'saved'/'error' states
-    // (those transition themselves).
+    // A failed save keeps Retry available for the exact failed payload,
+    // but any subsequent edit should return the indicator to dirty.
     useEffect(() => {
-        if (saveState === 'saving' || saveState === 'saved' || saveState === 'error') {
+        if (saveState === 'saving' || saveState === 'saved') {
             return;
         }
         const currentSnapshot = buildTourSnapshot({ name, client, scheduledDate, stops });
+        if (saveState === 'error' && currentSnapshot === failedSaveSnapshotRef.current) {
+            return;
+        }
         const matches = currentSnapshot === lastSavedSnapshotRef.current;
         if (matches && saveState !== 'clean') {
             setSaveState('clean');
@@ -118,27 +144,50 @@ const ScheduleShowings = () => {
         fetchSavedTours();
     }, [isLoggedIn, fetchSavedTours]);
 
-    // --- Editor handlers ------------------------------------------------
-    const handleAdd = useCallback((stop) => {
-        setStops((prev) => {
-            if (isAlreadyInTour(prev, stop.mls_number)) return prev;
-            return [...prev, stop];
-        });
+    useEffect(() => () => {
+        if (printCleanupRef.current) {
+            printCleanupRef.current();
+        }
     }, []);
 
+    // --- Editor handlers ------------------------------------------------
+    const handleAdd = useCallback((stop) => {
+        if (loadingActiveTour) return;
+        if (!hasUsableMlsNumber(stop?.mls_number)) {
+            showToast('warn', 'That property is missing an MLS number and cannot be added.', 'Not Added');
+            return;
+        }
+        const normalizedStop = {
+            ...stop,
+            mls_number: normalizeMlsNumber(stop.mls_number),
+        };
+        setStops((prev) => {
+            if (isAlreadyInTour(prev, normalizedStop.mls_number)) return prev;
+            return [...prev, normalizedStop];
+        });
+    }, [loadingActiveTour]);
+
     const handleRemove = useCallback((mlsNumber) => {
+        if (loadingActiveTour) return;
         setStops((prev) => prev.filter((s) => s.mls_number !== mlsNumber));
-    }, []);
+    }, [loadingActiveTour]);
+
+    const handleReorder = useCallback((nextStops) => {
+        if (loadingActiveTour) return;
+        setStops(nextStops);
+    }, [loadingActiveTour]);
 
     // Open the per-stop edit dialog for a given stop
     const handleEditStop = useCallback((stop) => {
+        if (loadingActiveTour) return;
         setEditingStop(stop);
-    }, []);
+    }, [loadingActiveTour]);
 
     // Merge dialog updates back into the stops array by mls_number.
     // Touches setStops → dirty-tracking effect flips saveState to 'dirty'
     // so the header's Save button lights up. No separate persistence call.
     const handleStopUpdate = useCallback((updates) => {
+        if (loadingActiveTour) return;
         setEditingStop((current) => {
             if (!current) return null;
             setStops((prev) => prev.map((s) => (
@@ -148,7 +197,7 @@ const ScheduleShowings = () => {
             )));
             return null;
         });
-    }, []);
+    }, [loadingActiveTour]);
 
     const handleStopEditCancel = useCallback(() => {
         setEditingStop(null);
@@ -160,6 +209,7 @@ const ScheduleShowings = () => {
     // 'saving' — either to 'saved' (happy) or 'error' (any failure).
     const handleSave = useCallback(async () => {
         if (!canSave) return;
+        const saveSnapshot = buildTourSnapshot({ name, client, scheduledDate, stops });
 
         try {
             setSaveState('saving');
@@ -167,7 +217,7 @@ const ScheduleShowings = () => {
             const body = {
                 name: name.trim(),
                 client: client?._id || null,
-                scheduled_date: scheduledDate ? scheduledDate.toISOString() : null,
+                scheduled_date: toValidIsoString(scheduledDate),
                 stops: stops.map((s, index) => ({
                     mls_number: s.mls_number,
                     order: index,
@@ -191,9 +241,8 @@ const ScheduleShowings = () => {
             }
 
             // Reset the dirty-tracking snapshot based on what we just sent.
-            lastSavedSnapshotRef.current = buildTourSnapshot({
-                name, client, scheduledDate, stops,
-            });
+            failedSaveSnapshotRef.current = null;
+            lastSavedSnapshotRef.current = saveSnapshot;
             setLastSavedAt(new Date());
             setSaveState('saved');
 
@@ -202,6 +251,7 @@ const ScheduleShowings = () => {
         } catch (err) {
             // eslint-disable-next-line no-console
             console.error('[schedule-showings] save failed', err);
+            failedSaveSnapshotRef.current = saveSnapshot;
             setSaveState('error');
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -212,11 +262,18 @@ const ScheduleShowings = () => {
     // and state updates, and a thin outer handler that gates it on
     // whether we need a discard-changes confirm first.
     const doLoadTour = useCallback(async (id) => {
+        const loadToken = activeLoadTokenRef.current + 1;
+        activeLoadTokenRef.current = loadToken;
         loadingTourIdRef.current = id;
+        setLoadingActiveTour(true);
+        setEditingStop(null);
+        const isCurrentLoad = () => (
+            activeLoadTokenRef.current === loadToken && loadingTourIdRef.current === id
+        );
 
         try {
             const res = await IrgApi.get(`/tours/${id}`, { headers: authHeaders });
-            if (loadingTourIdRef.current !== id) return; // stale
+            if (!isCurrentLoad()) return; // stale
 
             const tour = res?.data?.data;
             if (!tour) throw new Error('Tour not found');
@@ -224,11 +281,29 @@ const ScheduleShowings = () => {
             const orderedStops = Array.isArray(tour.stops)
                 ? [...tour.stops].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
                 : [];
+            const seenMlsNumbers = new Set();
+            let invalidSavedStops = 0;
+            let duplicateSavedStops = 0;
+            const loadableStops = [];
+
+            orderedStops.forEach((stop) => {
+                const normalizedMlsNumber = normalizeMlsNumber(stop?.mls_number);
+                if (!normalizedMlsNumber) {
+                    invalidSavedStops += 1;
+                    return;
+                }
+                if (seenMlsNumbers.has(normalizedMlsNumber)) {
+                    duplicateSavedStops += 1;
+                    return;
+                }
+                seenMlsNumbers.add(normalizedMlsNumber);
+                loadableStops.push({ ...stop, mls_number: normalizedMlsNumber });
+            });
 
             // Fetch each stop's MLS property in parallel. Some may fail
             // (property removed from MLS since the tour was saved); we
-            // silently drop those and show a notice.
-            const fetches = orderedStops.map((s) =>
+            // keep a non-map fallback stop so legacy tours do not lose data.
+            const fetches = loadableStops.map((s) =>
                 IrgApi.get(`/mlsproperties/mls-number/${encodeURIComponent(s.mls_number)}`, {
                     headers: authHeaders,
                 })
@@ -237,32 +312,66 @@ const ScheduleShowings = () => {
             );
             const results = await Promise.all(fetches);
 
-            if (loadingTourIdRef.current !== id) return; // stale
+            if (!isCurrentLoad()) return; // stale
 
             const rebuilt = [];
             let missing = 0;
+            let invalidCoords = 0;
             results.forEach((r) => {
                 if (!r.ok || !r.raw) {
                     missing += 1;
+                    rebuilt.push({
+                        mls_number: r.stop.mls_number,
+                        address: `MLS #${r.stop.mls_number}`,
+                        city: '',
+                        state: '',
+                        zip_code: '',
+                        price: '',
+                        coordinates: null,
+                        mapUnavailable: true,
+                        status: r.stop.status || 'pending',
+                        note: r.stop.note || '',
+                        scheduled_time: r.stop.scheduled_time || null,
+                    });
                     return;
                 }
                 const stop = stopFromSuggestResult(r.raw);
+                if (!hasUsableMlsNumber(stop?.mls_number)) {
+                    invalidSavedStops += 1;
+                    return;
+                }
+                if (!hasValidCoords(stop)) {
+                    invalidCoords += 1;
+                }
                 // Carry forward per-stop note / scheduled_time from the saved tour.
                 rebuilt.push({
                     ...stop,
+                    mapUnavailable: !hasValidCoords(stop),
                     status: r.stop.status || 'pending',
                     note: r.stop.note || '',
                     scheduled_time: r.stop.scheduled_time || null,
                 });
             });
 
+            const warningParts = [];
             if (missing > 0) {
-                // eslint-disable-next-line no-alert
-                window.alert(
-                    `${missing} propert${missing === 1 ? 'y' : 'ies'} from this tour `
-                    + 'could not be loaded (possibly removed from MLS). '
-                    + 'The rest have been loaded.',
+                warningParts.push(`${missing} saved stop${missing === 1 ? '' : 's'} could not be refreshed from MLS`);
+            }
+            if (invalidCoords > 0) {
+                warningParts.push(`${invalidCoords} stop${invalidCoords === 1 ? ' has' : 's have'} no map coordinates`);
+            }
+            if (invalidSavedStops > 0) {
+                const suffix = invalidSavedStops === 1 ? ' was' : 's were';
+                warningParts.push(
+                    `${invalidSavedStops} saved stop${suffix} missing an MLS number and omitted`,
                 );
+            }
+            if (duplicateSavedStops > 0) {
+                const suffix = duplicateSavedStops === 1 ? ' was' : 's were';
+                warningParts.push(`${duplicateSavedStops} duplicate saved stop${suffix} omitted`);
+            }
+            if (warningParts.length > 0) {
+                showToast('warn', warningParts.join('. '), 'Tour Loaded With Warnings');
             }
 
             const nextName = tour.name || '';
@@ -292,23 +401,24 @@ const ScheduleShowings = () => {
                 scheduledDate: nextScheduled,
                 stops: rebuilt,
             });
+            failedSaveSnapshotRef.current = null;
             setSaveState('clean');
         } catch (err) {
             // eslint-disable-next-line no-console
             console.error('Tour load failed', err);
-            // eslint-disable-next-line no-alert
-            window.alert('Could not load that tour. Please try again.');
+            showToast('error', 'Could not load that tour. Please try again.', 'Load Failed');
         } finally {
-            if (loadingTourIdRef.current === id) {
+            if (isCurrentLoad()) {
                 loadingTourIdRef.current = null;
+                setLoadingActiveTour(false);
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoggedIn]);
 
     const handleLoadTour = useCallback((id) => {
-        if (!id) return;
-        if (saveState === 'dirty' || saveState === 'saving') {
+        if (!id || loadingActiveTour) return;
+        if (needsDiscardConfirm(saveState)) {
             confirmDialog({
                 message: 'Unsaved changes will be lost. Load the selected tour?',
                 header: 'Discard changes?',
@@ -321,10 +431,13 @@ const ScheduleShowings = () => {
         } else {
             doLoadTour(id);
         }
-    }, [saveState, doLoadTour]);
+    }, [saveState, loadingActiveTour, doLoadTour]);
 
     // --- New tour -------------------------------------------------------
     const resetEditor = useCallback(() => {
+        activeLoadTokenRef.current += 1;
+        loadingTourIdRef.current = null;
+        setLoadingActiveTour(false);
         setTourId(null);
         setName('');
         setStops([]);
@@ -332,11 +445,13 @@ const ScheduleShowings = () => {
         setScheduledDate(null);
         setLastSavedAt(null);
         lastSavedSnapshotRef.current = EMPTY_SNAPSHOT;
+        failedSaveSnapshotRef.current = null;
         setSaveState('clean');
     }, []);
 
     const handleNewTour = useCallback(() => {
-        if (saveState === 'dirty' || saveState === 'saving') {
+        if (loadingActiveTour) return;
+        if (needsDiscardConfirm(saveState)) {
             confirmDialog({
                 message: 'Unsaved changes will be lost. Start a new tour?',
                 header: 'Discard changes?',
@@ -349,7 +464,7 @@ const ScheduleShowings = () => {
         } else {
             resetEditor();
         }
-    }, [saveState, resetEditor]);
+    }, [saveState, loadingActiveTour, resetEditor]);
 
     // --- Delete a saved tour --------------------------------------------
     // Page owns the confirm so PrimeReact's themed dialog (portaled to
@@ -357,6 +472,7 @@ const ScheduleShowings = () => {
     // window.confirm. SavedToursList calls onDelete(id, name); we show
     // the confirm and perform the actual API call on accept.
     const handleDeleteTour = useCallback((id, tourName) => {
+        if (loadingActiveTour) return;
         const displayName = tourName && tourName.trim() ? tourName : 'Untitled tour';
         confirmDialog({
             message: `Delete "${displayName}"?`,
@@ -382,13 +498,34 @@ const ScheduleShowings = () => {
                 } catch (err) {
                     // eslint-disable-next-line no-console
                     console.error('[schedule-showings] delete failed', err);
-                    // eslint-disable-next-line no-alert
-                    window.alert('Could not delete that tour. Please try again.');
+                    showToast('error', 'Could not delete that tour. Please try again.', 'Delete Failed');
                 }
             },
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [tourId, isLoggedIn, fetchSavedTours]);
+    }, [tourId, isLoggedIn, loadingActiveTour, fetchSavedTours]);
+
+    const handlePrintTour = useCallback(() => {
+        if (loadingActiveTour || stops.length === 0 || typeof window === 'undefined') return;
+        if (printCleanupRef.current) return;
+        setPrintGeneratedAt(new Date());
+
+        // The printable packet is mounted in a body-level portal. This
+        // class lets print CSS hide the CRM shell without affecting the
+        // normal screen layout before or after the browser print dialog.
+        const body = window.document.body;
+        const cleanup = () => {
+            body.classList.remove('printing-tour-packet');
+            window.removeEventListener('afterprint', cleanup);
+            printCleanupRef.current = null;
+        };
+        printCleanupRef.current = cleanup;
+        body.classList.add('printing-tour-packet');
+        window.addEventListener('afterprint', cleanup);
+        window.requestAnimationFrame(() => {
+            window.print();
+        });
+    }, [loadingActiveTour, stops.length]);
 
     // --- Render ---------------------------------------------------------
     return (
@@ -401,6 +538,7 @@ const ScheduleShowings = () => {
                 stop={editingStop}
                 onSave={handleStopUpdate}
                 onCancel={handleStopEditCancel}
+                disabled={loadingActiveTour}
             />
             <div className="p-[24px] flex flex-col gap-[24px] w-full">
                 <TourHeader
@@ -416,21 +554,31 @@ const ScheduleShowings = () => {
                     lastSavedAt={lastSavedAt}
                     onSave={handleSave}
                     onNewTour={handleNewTour}
+                    onPrintTour={handlePrintTour}
+                    canPrint={stops.length > 0 && !loadingActiveTour}
+                    hasUnsavedPrintState={hasUnsavedPrintState}
+                    disabled={loadingActiveTour}
                 />
 
                 <div className={styles.tourGrid}>
                     <div className="flex flex-col gap-[16px] min-w-0">
-                        <PropertySearch stops={stops} onAdd={handleAdd} />
+                        <PropertySearch
+                            stops={stops}
+                            onAdd={handleAdd}
+                            disabled={loadingActiveTour}
+                        />
                         <TourList
                             stops={stops}
                             onRemove={handleRemove}
-                            onReorder={setStops}
+                            onReorder={handleReorder}
                             onEditStop={handleEditStop}
+                            disabled={loadingActiveTour}
                         />
                         <SavedToursList
                             tours={savedTours}
                             activeTourId={tourId}
                             loading={loadingTours}
+                            loadingActiveTour={loadingActiveTour}
                             onLoad={handleLoadTour}
                             onDelete={handleDeleteTour}
                         />
@@ -441,6 +589,17 @@ const ScheduleShowings = () => {
                     </div>
                 </div>
             </div>
+            <PrintDocumentShell>
+                <PrintableTourPacket
+                    name={name}
+                    client={client}
+                    agent={agent}
+                    scheduledDate={scheduledDate}
+                    stops={stops}
+                    generatedAt={printGeneratedAt}
+                    hasUnsavedChanges={hasUnsavedPrintState}
+                />
+            </PrintDocumentShell>
         </MainLayout>
     );
 };

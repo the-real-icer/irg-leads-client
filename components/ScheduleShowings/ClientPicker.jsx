@@ -15,7 +15,7 @@ const formatLeadName = (lead) => {
     return full || lead.email || 'Unnamed lead';
 };
 
-const ClientPicker = ({ value, onChange }) => {
+const ClientPicker = ({ value, onChange, disabled }) => {
     const allLeads = useSelector((state) => state.allLeadsPage.leads);
     const leadsLoading = useSelector((state) => state.allLeadsPage.loading);
     const lastFetched = useSelector((state) => state.allLeadsPage.lastFetched);
@@ -90,10 +90,12 @@ const ClientPicker = ({ value, onChange }) => {
                     <button
                         type="button"
                         onClick={handleClear}
+                        disabled={disabled}
                         aria-label="Clear selected client"
                         className={
                             'text-foreground/50 hover:text-foreground '
-                            + 'p-[4px] rounded-[4px]'
+                            + 'p-[4px] rounded-[4px] disabled:opacity-50 '
+                            + 'disabled:cursor-not-allowed'
                         }
                     >
                         <i className="pi pi-times" aria-hidden="true" />
@@ -135,7 +137,7 @@ const ClientPicker = ({ value, onChange }) => {
                     onFocus={() => setOpen(true)}
                     onKeyDown={handleKeyDown}
                     placeholder={ready ? 'Search by name or email' : 'Loading leads…'}
-                    disabled={!ready}
+                    disabled={!ready || disabled}
                     autoComplete="off"
                     aria-label="Search for a client"
                     className={
@@ -212,10 +214,12 @@ ClientPicker.propTypes = {
         email: PropTypes.string,
     }),
     onChange: PropTypes.func.isRequired,
+    disabled: PropTypes.bool,
 };
 
 ClientPicker.defaultProps = {
     value: null,
+    disabled: false,
 };
 
 export default ClientPicker;

@@ -139,15 +139,17 @@ const TourMap = ({ stops }) => {
                 onUnmount={onUnmount}
                 options={MAP_OPTIONS}
             >
-                {stops.filter(hasValidCoords).map((stop, idx) => (
-                    <Marker
-                        key={stop.mls_number}
-                        position={{
-                            lat: stop.coordinates.lat,
-                            lng: stop.coordinates.lng,
-                        }}
-                        icon={buildMarkerIcon(stop.status, idx + 1)}
-                    />
+                {stops.map((stop, idx) => (
+                    hasValidCoords(stop) ? (
+                        <Marker
+                            key={stop.mls_number}
+                            position={{
+                                lat: stop.coordinates.lat,
+                                lng: stop.coordinates.lng,
+                            }}
+                            icon={buildMarkerIcon(stop.status, idx + 1)}
+                        />
+                    ) : null
                 ))}
             </GoogleMap>
         </div>
