@@ -1,35 +1,39 @@
-import axios from 'axios';
-import { useEffect } from 'react';
-import PropTypes from 'prop-types';
+import { headers } from 'next/headers';
+import { notFound } from 'next/navigation';
 
-import PrintablePropertySheet from '../../../components/Print/PrintablePropertySheet';
+import PrintablePropertySheet from '../../../../components/Print/PrintablePropertySheet';
 
 const INTERNAL_API_BASE = process.env.INTERNAL_API_BASE_URL || 'http://127.0.0.1:4000';
 
-export const getServerSideProps = async (ctx) => {
-    const authHeader = ctx.req.headers.authorization;
-    if (!authHeader) return { notFound: true };
+export default async function PrintPropertyPage({ params }) {
+    // Next.js 15 made params and headers() async — must await.
+    // The URL address segment is for routing/debugging; the authoritative
+    // address is in the verified token payload server-side.
+    const { address: _address } = await params;
+    const headersList = await headers();
+    const token = headersList.get('authorization');
 
+    if (!token) notFound();
+
+    let data = null;
     try {
-        const response = await axios.post(
-            `${INTERNAL_API_BASE}/api/v1/print/_resolve`,
-            { kind: 'property' },
-            { headers: { Authorization: authHeader }, timeout: 10_000 },
-        );
-        const { property, agent } = response.data || {};
-        if (!property) return { notFound: true };
-        return { props: { property, agent: agent || null } };
-    } catch {
-        return { notFound: true };
-    }
-};
-
-const PropertyPrintPage = ({ property, agent }) => {
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            window.__printReady = true;
+        const response = await fetch(`${INTERNAL_API_BASE}/api/v1/print/_resolve`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: token },
+            body: JSON.stringify({ kind: 'property' }),
+            cache: 'no-store',
+        });
+        if (response.ok) {
+            data = await response.json();
         }
-    }, []);
+    } catch {
+        // network/parse error — falls through to notFound() below
+    }
+
+    const property = data?.property;
+    const agent = data?.agent || null;
+
+    if (!property) notFound();
 
     return (
         <>
@@ -63,15 +67,4 @@ const PropertyPrintPage = ({ property, agent }) => {
             </main>
         </>
     );
-};
-
-PropertyPrintPage.propTypes = {
-    property: PropTypes.shape({}).isRequired,
-    agent: PropTypes.shape({}),
-};
-
-PropertyPrintPage.defaultProps = {
-    agent: null,
-};
-
-export default PropertyPrintPage;
+}
