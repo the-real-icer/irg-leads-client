@@ -25,6 +25,7 @@ const CHANGE_LABELS = {
     referralFee: 'Referral Fee',
     referral_fee_percentage: 'Referral Fee %',
     client_credits_total: 'Client Credits',
+    agentLoanRepaymentAmount: 'Agent Loan Repayment',
     inspectionContingencyDate: 'Inspection Due',
     appraisalContingencyDate: 'Appraisal Due',
     loanContingencyDate: 'Loan Due',
@@ -46,7 +47,7 @@ const METADATA_BY_TYPE = {
     'transaction.status.changed': ['status', 'actualClosingDate'],
 };
 
-const CURRENCY_FIELDS = new Set(['salesPrice', 'client_credits_total']);
+const CURRENCY_FIELDS = new Set(['salesPrice', 'client_credits_total', 'agentLoanRepaymentAmount']);
 const DATE_FIELDS = new Set([
     'acceptanceDate',
     'anticipatedClosingDate',

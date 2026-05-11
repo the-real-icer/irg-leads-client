@@ -515,7 +515,7 @@ const TransactionsDashboard = () => {
                                                         </span>
                                                     </div>
                                                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                                        <span style={{ color: 'hsl(var(--muted-foreground))' }}>Est. Commission:</span>
+                                                        <span style={{ color: 'hsl(var(--muted-foreground))' }}>Est. Net Commission:</span>
                                                         <span style={{ fontWeight: '600', color: 'hsl(var(--success))' }}>
                                                             {formatCurrency(transaction.estimatedAgentCommission)}
                                                         </span>
@@ -735,7 +735,7 @@ const TransactionsDashboard = () => {
                                                             { key: 'address', label: 'Property Address' },
                                                             { key: 'status', label: 'Status' },
                                                             { key: 'salesPrice', label: 'Sales Price' },
-                                                            { key: 'agent_net_commission', label: 'Est. Agent Commission' },
+                                                            { key: 'agent_net_commission', label: 'Est. Agent Net Commission' },
                                                             { key: 'brokerage_net_commission', label: 'Est. Brokerage Commission' },
                                                             { key: 'acceptanceDate', label: 'Acceptance Date' },
                                                             { key: 'expectedClose', label: 'Expected Close' },
