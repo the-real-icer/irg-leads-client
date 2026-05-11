@@ -24,6 +24,12 @@ import PrintablePropertySheet from '../../components/Print/PrintablePropertyShee
 // IRG API - HOOKS - INFO - UTILS
 import IrgApi from '../../assets/irgApi';
 
+const slugify = (s) => String(s)
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'property';
+
 const getSafeReturnTo = (rawReturnTo) => {
     if (typeof rawReturnTo !== 'string') return null;
 
@@ -42,6 +48,7 @@ const Address = () => {
     // ________________Component State_________________\\
     const [property, setProperty] = useState(null);
     const [refetchTrigger, setRefetchTrigger] = useState(0);
+    const [isPrintingProperty, setIsPrintingProperty] = useState(false);
 
     const toastProperty = useRef(null);
     const printCleanupRef = useRef(null);
@@ -93,7 +100,9 @@ const Address = () => {
         }
     }, []);
 
-    const handlePrintProperty = () => {
+    // Retained as the 503 fallback during Phase 1A rollout. Removed in Phase 1C
+    // once the Puppeteer endpoint has been live and stable.
+    const legacyHandlePrintProperty = () => {
         if (!property || typeof window === 'undefined') return;
         if (printCleanupRef.current) return;
 
@@ -109,6 +118,41 @@ const Address = () => {
         window.requestAnimationFrame(() => {
             window.print();
         });
+    };
+
+    const handlePrintProperty = async () => {
+        if (!property || isPrintingProperty) return;
+        setIsPrintingProperty(true);
+        try {
+            const response = await IrgApi.post(
+                '/print/property',
+                { address: property.address },
+                {
+                    responseType: 'blob',
+                    headers: { Authorization: `Bearer ${isLoggedIn}` },
+                    timeout: 35_000,
+                },
+            );
+            const url = URL.createObjectURL(response.data);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `${slugify(property.address)}.pdf`;
+            link.click();
+            URL.revokeObjectURL(url);
+        } catch (err) {
+            if (err.response?.status === 503) {
+                legacyHandlePrintProperty();
+                return;
+            }
+            handleToastMessage(
+                'error',
+                'Print failed',
+                'Could not generate the PDF. Please try again.',
+                5000,
+            );
+        } finally {
+            setIsPrintingProperty(false);
+        }
     };
 
     return (
@@ -147,10 +191,10 @@ const Address = () => {
                                 className="property__action-btn property__action-btn--secondary"
                                 onClick={handlePrintProperty}
                                 type="button"
-                                disabled={!property}
+                                disabled={!property || isPrintingProperty}
                             >
-                                <i className="pi pi-print" />
-                                Print Property
+                                <i className={isPrintingProperty ? 'pi pi-spin pi-spinner' : 'pi pi-print'} />
+                                {isPrintingProperty ? 'Generating PDF…' : 'Print Property'}
                             </button>
                         </div>
                         <div className="property__action-bar__right">
