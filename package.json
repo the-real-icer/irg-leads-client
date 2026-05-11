@@ -7,7 +7,7 @@
         "build": "next build --turbopack",
         "start": "next start -p 2000",
         "lint": "eslint",
-        "test": "node --experimental-loader ./test/extensionless-loader.mjs --test components/Print/printFormatters.test.mjs"
+        "test": "node --experimental-loader ./test/extensionless-loader.mjs --test components/Print/printFormatters.test.mjs utils/calculateCommission.test.mjs"
     },
     "type": "module",
     "dependencies": {

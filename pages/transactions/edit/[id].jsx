@@ -74,6 +74,25 @@ const formatCurrency = (value) => {
     return '$' + Number(digits).toLocaleString('en-US');
 };
 
+const parseNonNegativeMoney = (value) => {
+    if (value === null || value === undefined || value === '') return 0;
+
+    const parsed = Number(String(value).replace(/[$,]/g, ''));
+    if (!Number.isFinite(parsed) || parsed < 0) return 0;
+
+    return parsed;
+};
+
+const normalizeNonNegativeMoneyInput = (value) => {
+    if (value === '') return '';
+
+    const parsed = Number(String(value).replace(/[$,]/g, ''));
+    if (!Number.isFinite(parsed)) return '';
+    if (parsed < 0) return '0';
+
+    return value;
+};
+
 // Currency formatter for commission breakdown (handles decimals correctly)
 const formatCommCurrency = (value) => {
     if (!value && value !== 0) return '$0';
@@ -226,6 +245,7 @@ const EditTransaction = () => {
         referralFeeAmt: 0,
         buyersAgentCommissionPct: '',
         estimatedAgentCommission: '',
+        agentLoanRepaymentAmount: '',
         status: 'Pending',
     });
 
@@ -428,6 +448,9 @@ const EditTransaction = () => {
                         referralFeeAmt: txn.referralFeeAmt || 0,
                         buyersAgentCommissionPct: txn.buyersAgentCommissionPct ? String(txn.buyersAgentCommissionPct) : '',
                         estimatedAgentCommission: txn.estimatedAgentCommission ? String(txn.estimatedAgentCommission) : '',
+                        agentLoanRepaymentAmount: txn.agentLoanRepaymentAmount != null
+                            ? String(txn.agentLoanRepaymentAmount)
+                            : '0',
                         status: txn.status || 'Pending',
                     });
 
@@ -790,6 +813,7 @@ const EditTransaction = () => {
                 referralFeePercentage: parseFloat(referralFeePercentage) || 0,
                 commissionSplit: agent?.commissionSplit || 0,
                 clientCredits: totalClientCredits,
+                agentLoanRepaymentAmount: transactionInfo.agentLoanRepaymentAmount,
             }),
         [
             transactionInfo.price,
@@ -798,6 +822,7 @@ const EditTransaction = () => {
             referralFeePercentage,
             agent?.commissionSplit,
             totalClientCredits,
+            transactionInfo.agentLoanRepaymentAmount,
         ],
     );
 
@@ -988,6 +1013,7 @@ const EditTransaction = () => {
             agent_commission_gross: calc.agentCommissionGross,
             brokerage_commission_gross: calc.brokerageCommissionGross,
             client_credits_total: totalClientCredits,
+            agentLoanRepaymentAmount: parseNonNegativeMoney(transactionInfo.agentLoanRepaymentAmount),
             agent_net_commission: calc.agentNetCommission,
             brokerage_net_commission: calc.brokerageNetCommission,
             agent_split_percentage_used: calc.agentSplitPercentageUsed,
@@ -1619,6 +1645,36 @@ const EditTransaction = () => {
                         </div>
                     )}
 
+                    <div className="txn-new__field" style={{ marginTop: '1.5rem', maxWidth: '360px' }}>
+                        <label className="txn-new__label" htmlFor="agent-loan-repayment">
+                            Agent Loan Repayment
+                        </label>
+                        <InputText
+                            id="agent-loan-repayment"
+                            value={transactionInfo.agentLoanRepaymentAmount}
+                            onChange={(e) => {
+                                handleTransactionInfoChange(
+                                    'agentLoanRepaymentAmount',
+                                    normalizeNonNegativeMoneyInput(e.target.value),
+                                );
+                            }}
+                            placeholder="0.00"
+                            style={{ width: '100%' }}
+                            type="number"
+                            min="0"
+                            step="0.01"
+                        />
+                        <p
+                            style={{
+                                fontSize: '0.75rem',
+                                color: 'hsl(var(--foreground-muted))',
+                                margin: '4px 0 0',
+                            }}
+                        >
+                            Deducts a brokerage loan or advance repayment from the agent's net commission.
+                        </p>
+                    </div>
+
                     {/* Commission Breakdown Panel */}
                     {calc && parseFloat(transactionInfo.price) > 0 && parseFloat(transactionInfo.buyersAgentCommissionPct) > 0 && (
                         <div
@@ -1698,6 +1754,13 @@ const EditTransaction = () => {
                                     <BreakdownRow
                                         label="Client Credits"
                                         value={totalClientCredits}
+                                        deduction
+                                    />
+                                )}
+                                {calc.agentLoanRepaymentAmount > 0 && (
+                                    <BreakdownRow
+                                        label="Agent Loan Repayment"
+                                        value={calc.agentLoanRepaymentAmount}
                                         deduction
                                     />
                                 )}

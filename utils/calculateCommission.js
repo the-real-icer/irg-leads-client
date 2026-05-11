@@ -2,6 +2,15 @@ import { TRANSACTION_FEES } from '../constants/transactionFees';
 
 const round2 = (n) => Math.round((n || 0) * 100) / 100;
 
+const normalizeNonNegativeMoney = (value) => {
+    if (value === null || value === undefined || value === '') return 0;
+
+    const parsed = Number(String(value).replace(/[$,]/g, ''));
+    if (!Number.isFinite(parsed) || parsed < 0) return 0;
+
+    return parsed;
+};
+
 /**
  * Full commission calculation chain.
  *
@@ -19,6 +28,7 @@ const round2 = (n) => Math.round((n || 0) * 100) / 100;
  * @param {number} params.referralFeePercentage - e.g. 25 = 25% of total commission
  * @param {number} params.commissionSplit       - agent split e.g. 80 = 80%
  * @param {number} params.clientCredits         - total dollar amount (pre-summed)
+ * @param {number} params.agentLoanRepaymentAmount - brokerage loan/advance repayment
  */
 export const calculateCommission = ({
     salesPrice,
@@ -27,8 +37,10 @@ export const calculateCommission = ({
     referralFeePercentage,
     commissionSplit,
     clientCredits,
+    agentLoanRepaymentAmount,
 }) => {
     const split = commissionSplit || 0;
+    const loanRepayment = normalizeNonNegativeMoney(agentLoanRepaymentAmount);
 
     // Guard — return zeroes if required inputs missing
     if (!salesPrice || !commissionPercentage) {
@@ -42,6 +54,7 @@ export const calculateCommission = ({
             agentNetCommission: 0,
             brokerageNetCommission: 0,
             agentSplitPercentageUsed: split,
+            agentLoanRepaymentAmount: round2(loanRepayment),
         };
     }
 
@@ -73,7 +86,9 @@ export const calculateCommission = ({
 
     // Step 5 — Client Credits (deducted from agent only)
     const credits = clientCredits || 0;
-    const agentNetCommission = agentCommissionGross - credits;
+    // Loan repayment reduces only agent net. Net can go negative when deductions
+    // exceed gross commission; unpaid balance tracking is outside transactions.
+    const agentNetCommission = agentCommissionGross - credits - loanRepayment;
     const brokerageNetCommission = brokerageCommissionGross;
 
     return {
@@ -83,6 +98,7 @@ export const calculateCommission = ({
         totalBrokerageCommission: round2(totalBrokerageCommission),
         agentCommissionGross: round2(agentCommissionGross),
         brokerageCommissionGross: round2(brokerageCommissionGross),
+        agentLoanRepaymentAmount: round2(loanRepayment),
         agentNetCommission: round2(agentNetCommission),
         brokerageNetCommission: round2(brokerageNetCommission),
         agentSplitPercentageUsed: split,
