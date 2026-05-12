@@ -1,5 +1,5 @@
 // React & NextJS
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 
 // Dynamically import PrimeReact components
@@ -23,6 +23,10 @@ const TrafficDashboard = () => {
     const [pageStats, setPageStats] = useState(null);
     const [statsLoading, setStatsLoading] = useState(true);
     const [showIdentifiedOnly, setShowIdentifiedOnly] = useState(false);
+    // Phase 1e — today-stats rollup + row-drawer expand state
+    const [todayStats, setTodayStats] = useState(null);
+    const [todayStatsLoading, setTodayStatsLoading] = useState(true);
+    const [expandedSessionId, setExpandedSessionId] = useState(null);
 
     // __________________Data Fetching______________________\\
     const fetchLiveSessions = useCallback(async () => {
@@ -57,13 +61,36 @@ const TrafficDashboard = () => {
         }
     }, [allowed, isLoggedIn]);
 
-    // Fetch on mount + auto-refresh live sessions every 30s
+    // Phase 1e — today-stats fetcher. Same pattern as fetchLiveSessions:
+    // 30s polling so the "today" rollup ticks up alongside the live view.
+    const fetchTodayStats = useCallback(async () => {
+        if (!allowed) return;
+        try {
+            const res = await IrgApi.get('/tracking/today-stats', {
+                headers: { Authorization: `Bearer ${isLoggedIn}` },
+            });
+            if (res.data.status === 'success') {
+                setTodayStats(res.data.data);
+            }
+        } catch {
+            // Silently fail
+        } finally {
+            setTodayStatsLoading(false);
+        }
+    }, [allowed, isLoggedIn]);
+
+    // Fetch on mount + auto-refresh live sessions AND today-stats every 30s.
+    // page-stats fires once on mount (7-day rollup; doesn't need to refresh).
     useEffect(() => {
         fetchLiveSessions();
         fetchPageStats();
-        const interval = setInterval(fetchLiveSessions, 30000);
+        fetchTodayStats();
+        const interval = setInterval(() => {
+            fetchLiveSessions();
+            fetchTodayStats();
+        }, 30000);
         return () => clearInterval(interval);
-    }, [fetchLiveSessions, fetchPageStats]);
+    }, [fetchLiveSessions, fetchPageStats, fetchTodayStats]);
 
     if (!allowed) {
         return (
@@ -153,27 +180,41 @@ const TrafficDashboard = () => {
                                             <th style={thStyle}>Source</th>
                                             <th style={thStyle}>Device</th>
                                             <th style={thStyle}>Location</th>
+                                            <th style={thStyle}>Engagement</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {liveSessions.map((session) => (
+                                            <React.Fragment key={session.session_id}>
                                             <tr
-                                                key={session.session_id}
                                                 style={{
-                                                    borderBottom: '1px solid hsl(var(--border-subtle))',
-                                                    cursor: session.lead_id ? 'pointer' : 'default',
+                                                    borderBottom: expandedSessionId === session.session_id
+                                                        ? 'none'
+                                                        : '1px solid hsl(var(--border-subtle))',
+                                                    cursor: 'pointer',
                                                     transition: 'background 0.15s ease',
+                                                    background: expandedSessionId === session.session_id
+                                                        ? 'hsl(var(--muted) / 0.4)'
+                                                        : 'transparent',
                                                 }}
                                                 onMouseEnter={(e) => {
-                                                    e.currentTarget.style.background = 'hsl(var(--muted))';
+                                                    if (expandedSessionId !== session.session_id) {
+                                                        e.currentTarget.style.background = 'hsl(var(--muted))';
+                                                    }
                                                 }}
                                                 onMouseLeave={(e) => {
-                                                    e.currentTarget.style.background = 'transparent';
+                                                    if (expandedSessionId !== session.session_id) {
+                                                        e.currentTarget.style.background = 'transparent';
+                                                    }
                                                 }}
                                                 onClick={() => {
-                                                    if (session.lead_id) {
-                                                        window.location.href = `/lead/${session.lead_id}`;
-                                                    }
+                                                    // Phase 1e — click toggles the engagement drawer.
+                                                    // Previously: identified row navigated to /lead/:id.
+                                                    // Now: row toggles drawer; lead navigation moves
+                                                    // to a "View lead profile →" link inside the drawer.
+                                                    setExpandedSessionId(prev =>
+                                                        prev === session.session_id ? null : session.session_id
+                                                    );
                                                 }}
                                             >
                                                 <td style={tdStyle}>
@@ -242,7 +283,18 @@ const TrafficDashboard = () => {
                                                             : '—'}
                                                     </span>
                                                 </td>
+                                                <td style={tdStyle}>
+                                                    <EngagementSummary session={session} />
+                                                </td>
                                             </tr>
+                                            {expandedSessionId === session.session_id && (
+                                                <tr style={{ borderBottom: '1px solid hsl(var(--border-subtle))' }}>
+                                                    <td colSpan={8} style={drawerCellStyle}>
+                                                        <EngagementDrawer session={session} />
+                                                    </td>
+                                                </tr>
+                                            )}
+                                            </React.Fragment>
                                         ))}
                                     </tbody>
                                 </table>
@@ -255,6 +307,69 @@ const TrafficDashboard = () => {
                                     Sessions appear when someone visits the site
                                 </p>
                             </div>
+                        )}
+                    </Card>
+                </div>
+
+                {/* Section 1.5 — Today's Activity (Phase 1e). Two side-by-side
+                     cohorts: all visitors + neighborhood-info subset. Uses the
+                     Tailwind grid-cols pattern from dashboard.jsx:59 (with
+                     inline display:'grid' to avoid the PrimeFlex `grid` class
+                     collision). */}
+                <div style={{ marginBottom: '1.5rem' }}>
+                    <Card title="Today's Activity">
+                        {todayStatsLoading ? (
+                            <div style={{ padding: '2rem', textAlign: 'center', color: 'hsl(var(--foreground-muted))' }}>
+                                <i className="pi pi-spin pi-spinner" style={{ fontSize: '1.5rem' }}></i>
+                            </div>
+                        ) : todayStats ? (
+                            <div
+                                className="grid-cols-1 md:grid-cols-2"
+                                style={{ display: 'grid', gap: '1.5rem' }}
+                            >
+                                {/* All visitors */}
+                                <div>
+                                    <div style={sectionHeaderStyle}>All Visitors Today</div>
+                                    <div
+                                        className="grid-cols-1 md:grid-cols-3"
+                                        style={{ display: 'grid', gap: '0.75rem' }}
+                                    >
+                                        <StatTile label="Visitors" value={todayStats.all.visitor_count} />
+                                        <StatTile
+                                            label="Avg time on page"
+                                            value={formatMs(todayStats.all.avg_time_on_page_ms)}
+                                        />
+                                        <StatTile
+                                            label="Avg pages/session"
+                                            value={(todayStats.all.avg_pages_per_session || 0).toFixed(1)}
+                                        />
+                                    </div>
+                                </div>
+                                {/* Neighborhood-info cohort */}
+                                <div>
+                                    <div style={sectionHeaderStyle}>Neighborhood-Info Visitors Today</div>
+                                    <div
+                                        className="grid-cols-1 md:grid-cols-3"
+                                        style={{ display: 'grid', gap: '0.75rem', marginBottom: '1rem' }}
+                                    >
+                                        <StatTile
+                                            label="Visitors"
+                                            value={todayStats.neighborhood_info.visitor_count}
+                                        />
+                                        <StatTile
+                                            label="Avg time on page"
+                                            value={formatMs(todayStats.neighborhood_info.avg_time_on_page_ms)}
+                                        />
+                                        <StatTile
+                                            label="Dialog open rate"
+                                            value={`${((todayStats.neighborhood_info.dialog_open_rate || 0) * 100).toFixed(1)}%`}
+                                        />
+                                    </div>
+                                    <FunnelView funnel={todayStats.neighborhood_info.dialog_funnel} />
+                                </div>
+                            </div>
+                        ) : (
+                            <p style={emptyTextStyle}>No data yet for today</p>
                         )}
                     </Card>
                 </div>
@@ -685,6 +800,217 @@ const getSourceColor = (source) => {
     return { bg: 'hsl(var(--muted))', text: 'hsl(var(--foreground-muted))' };
 };
 
+// ─── Phase 1e helpers ───────────────────────────────────
+
+// Glanceable summary for the Engagement column. Each segment hidden if no
+// data; em-dash if zero engagement signal. Handles missing fields gracefully
+// via || defaults — older ActiveSession docs predating Phase 1e schema
+// additions still render correctly.
+const EngagementSummary = ({ session }) => {
+    const parts = [];
+    if (session.latest_scroll_milestone > 0) {
+        parts.push(`📜 ${session.latest_scroll_milestone}%`);
+    }
+    if (session.latest_dialog_event) {
+        const stepLabel = formatDialogStep(session.latest_dialog_event, session.latest_dialog_step);
+        if (stepLabel) parts.push(`💬 ${stepLabel}`);
+    }
+    if ((session.sections_viewed || []).length > 0) {
+        parts.push(`🎯 ${session.sections_viewed.length} sections`);
+    }
+    if ((session.form_fields_engaged || []).length > 0) {
+        parts.push(`📝 ${session.form_fields_engaged.length} fields`);
+    }
+    if (parts.length === 0) {
+        return <span style={{ color: 'hsl(var(--muted-foreground))', fontSize: '0.75rem' }}>—</span>;
+    }
+    return (
+        <span style={{ fontSize: '0.75rem', color: 'hsl(var(--foreground))' }}>
+            {parts.join(' · ')}
+        </span>
+    );
+};
+
+// Format a dialog event_type + step into a glanceable label.
+// 'submitted ✓' / 'abandoned (schedule)' / 'closed (contact)' / 'step: intent'
+const formatDialogStep = (event, step) => {
+    if (event === 'lead_dialog_submit') return 'submitted ✓';
+    if (event === 'lead_dialog_abandon') return `abandoned (${step || '?'})`;
+    if (event === 'lead_dialog_close') return `closed (${step || '?'})`;
+    if (step) return `step: ${step}`;
+    return event.replace('lead_dialog_', '');
+};
+
+// Full engagement breakdown shown when a row is expanded. Two columns:
+// scroll/sections on the left, dialog/form on the right. "View lead profile"
+// link surfaces inside the drawer instead of being row-click-driven.
+const EngagementDrawer = ({ session }) => (
+    <div
+        className="grid-cols-1 md:grid-cols-2"
+        style={{ display: 'grid', gap: '1.5rem' }}
+    >
+        <div>
+            <div style={drawerHeaderStyle}>Scroll & Sections</div>
+            <div style={drawerRowStyle}>
+                <span>Scroll depth:</span>
+                <strong>{session.latest_scroll_milestone || 0}%</strong>
+            </div>
+            <div style={drawerRowStyle}>
+                <span>Sections viewed ({(session.sections_viewed || []).length}):</span>
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem', marginTop: '0.25rem' }}>
+                {(session.sections_viewed || []).map((name) => (
+                    <span key={name} style={chipStyle}>{name}</span>
+                ))}
+                {(session.sections_viewed || []).length === 0 && (
+                    <span
+                        style={{
+                            color: 'hsl(var(--muted-foreground))',
+                            fontSize: '0.75rem',
+                            fontStyle: 'italic',
+                        }}
+                    >
+                        none
+                    </span>
+                )}
+            </div>
+        </div>
+        <div>
+            <div style={drawerHeaderStyle}>Dialog & Form</div>
+            <div style={drawerRowStyle}>
+                <span>Last dialog event:</span>
+                <strong>{session.latest_dialog_event || '—'}</strong>
+            </div>
+            <div style={drawerRowStyle}>
+                <span>Dialog step:</span>
+                <strong>{session.latest_dialog_step || '—'}</strong>
+            </div>
+            <div style={drawerRowStyle}>
+                <span>Form fields engaged ({(session.form_fields_engaged || []).length}):</span>
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem', marginTop: '0.25rem' }}>
+                {(session.form_fields_engaged || []).map((name) => (
+                    <span key={name} style={chipStyle}>{name}</span>
+                ))}
+                {(session.form_fields_engaged || []).length === 0 && (
+                    <span
+                        style={{
+                            color: 'hsl(var(--muted-foreground))',
+                            fontSize: '0.75rem',
+                            fontStyle: 'italic',
+                        }}
+                    >
+                        none
+                    </span>
+                )}
+            </div>
+            {session.lead_id && (
+                <a
+                    href={`/lead/${session.lead_id}`}
+                    style={{
+                        display: 'inline-block',
+                        marginTop: '0.75rem',
+                        color: 'hsl(var(--primary))',
+                        fontSize: '0.8125rem',
+                        fontWeight: 600,
+                        textDecoration: 'none',
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    View lead profile →
+                </a>
+            )}
+        </div>
+    </div>
+);
+
+// Reusable stat tile for Today's Activity card. Same shape as the GA4 stat
+// tiles inside Analytics Overview — reuses statCardStyle for consistency.
+const StatTile = ({ label, value }) => (
+    <div style={statCardStyle}>
+        <div
+            style={{
+                fontSize: '0.75rem',
+                color: 'hsl(var(--foreground-muted))',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+            }}
+        >
+            {label}
+        </div>
+        <div
+            style={{
+                fontSize: '1.5rem',
+                fontWeight: '700',
+                color: 'hsl(var(--foreground))',
+                marginTop: '0.25rem',
+            }}
+        >
+            {value}
+        </div>
+    </div>
+);
+
+// 4-stage funnel visualization for the dialog conversion path. Raw event
+// counts come from the dialog_funnel object (Plan §3 documented the v1
+// over-reporting limitation; tracked as FUNNEL-DEDUP-BY-SESSION-1E1).
+const FunnelView = ({ funnel }) => {
+    if (!funnel) return null;
+    const stages = [
+        { label: 'Opens', value: funnel.opens || 0 },
+        { label: '→ Schedule', value: funnel.step_advance_from_intent || 0 },
+        { label: '→ Contact', value: funnel.step_advance_from_schedule || 0 },
+        { label: 'Submits', value: funnel.submits || 0 },
+    ];
+    const abandons = funnel.abandons_by_step || {};
+    const abandonsCount = Object.keys(abandons).length;
+    return (
+        <div>
+            <div style={sectionHeaderStyle}>Dialog Funnel</div>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-end' }}>
+                {stages.map((stage) => (
+                    <div
+                        key={stage.label}
+                        style={{
+                            flex: 1,
+                            textAlign: 'center',
+                            padding: '0.5rem',
+                            background: 'hsl(var(--muted))',
+                            borderRadius: '6px',
+                        }}
+                    >
+                        <div style={{ fontSize: '1.25rem', fontWeight: '700', color: 'hsl(var(--primary))' }}>
+                            {stage.value}
+                        </div>
+                        <div style={{ fontSize: '0.6875rem', color: 'hsl(var(--foreground-muted))' }}>
+                            {stage.label}
+                        </div>
+                    </div>
+                ))}
+            </div>
+            {abandonsCount > 0 && (
+                <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: 'hsl(var(--foreground-muted))' }}>
+                    Abandons by step: {Object.entries(abandons)
+                        .map(([step, count]) => `${step} (${count})`)
+                        .join(' · ')}
+                </div>
+            )}
+        </div>
+    );
+};
+
+// Format milliseconds into a human-readable duration. Returns '0s' for
+// falsy input (the avg_time_on_page_ms aggregation can return 0 or null
+// when there are no page_unload events yet today).
+const formatMs = (ms) => {
+    if (!ms) return '0s';
+    const seconds = Math.round(ms / 1000);
+    if (seconds < 60) return `${seconds}s`;
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return secs > 0 ? `${mins}m ${secs}s` : `${mins}m`;
+};
+
 // ─── Style Constants ────────────────────────────────────
 
 const thStyle = {
@@ -724,6 +1050,38 @@ const emptyTextStyle = {
     color: 'hsl(var(--muted-foreground))',
     margin: 0,
     fontStyle: 'italic',
+};
+
+// Phase 1e — drawer + chip styling for the expanded engagement view.
+const drawerCellStyle = {
+    background: 'hsl(var(--muted) / 0.4)',
+    padding: '1rem 1.5rem',
+};
+
+const drawerHeaderStyle = {
+    fontSize: '0.75rem',
+    fontWeight: '600',
+    color: 'hsl(var(--foreground-muted))',
+    textTransform: 'uppercase',
+    letterSpacing: '0.05em',
+    marginBottom: '0.5rem',
+};
+
+const drawerRowStyle = {
+    display: 'flex',
+    justifyContent: 'space-between',
+    fontSize: '0.8125rem',
+    color: 'hsl(var(--foreground))',
+    padding: '0.25rem 0',
+};
+
+const chipStyle = {
+    fontSize: '0.6875rem',
+    padding: '0.125rem 0.5rem',
+    borderRadius: '12px',
+    background: 'hsl(var(--primary) / 0.1)',
+    color: 'hsl(var(--primary))',
+    border: '1px solid hsl(var(--primary) / 0.2)',
 };
 
 export default TrafficDashboard;
