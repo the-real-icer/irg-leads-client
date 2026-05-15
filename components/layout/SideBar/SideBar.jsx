@@ -26,6 +26,7 @@ const SideBar = ({ mobileOpen }) => {
                         <SideBarLink name="Hotsheet" url="/hotsheet" icon="pi pi-bolt mr-2" />
                         <SideBarLink name="Marketing" url="/marketing" icon="pi pi-image mr-2" />
                         <SideBarLink name="Property Search" url="/search" icon="pi pi-search mr-2" />
+                        <SideBarLink name="Ask Doc" url="/ask-doc" icon="pi pi-comments mr-2" />
                         <SideBarLink
                             name="Schedule Showings"
                             url="/schedule-showings"
