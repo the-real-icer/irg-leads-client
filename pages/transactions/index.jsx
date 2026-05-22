@@ -52,6 +52,8 @@ const getStatusColor = (status) => {
 const getPresetDates = (preset) => {
     const now = new Date();
     switch (preset) {
+        case 'all':
+            return { startDate: '', endDate: '' };
         case 'this-month': {
             const start = new Date(now.getFullYear(), now.getMonth(), 1);
             return { startDate: start.toISOString().split('T')[0], endDate: now.toISOString().split('T')[0] };
@@ -66,6 +68,17 @@ const getPresetDates = (preset) => {
         }
         default:
             return { startDate: '', endDate: '' };
+    }
+};
+
+const getDatePresetLabel = (preset) => {
+    switch (preset) {
+        case 'all': return 'All Time';
+        case 'this-month': return 'This Month';
+        case 'ytd': return 'YTD';
+        case 'last-12': return 'Last 12 Months';
+        case 'custom': return 'Custom';
+        default: return 'All Time';
     }
 };
 
@@ -180,7 +193,7 @@ const TransactionsDashboard = () => {
     const [brokerageLoading, setBrokerageLoading] = useState(false);
     const [agents, setAgents] = useState([]);
     const [agentFilter, setAgentFilter] = useState('');
-    const [datePreset, setDatePreset] = useState('ytd');
+    const [datePreset, setDatePreset] = useState('all');
     const [customStartDate, setCustomStartDate] = useState('');
     const [customEndDate, setCustomEndDate] = useState('');
     const [sortConfig, setSortConfig] = useState({ key: 'acceptanceDate', direction: 'desc' });
@@ -333,6 +346,18 @@ const TransactionsDashboard = () => {
             direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc',
         }));
     };
+
+    const selectedAgentName = useMemo(() => {
+        if (!agentFilter) return 'All Agents';
+        return agents.find((a) => a._id === agentFilter)?.name || 'Selected Agent';
+    }, [agentFilter, agents]);
+
+    const brokerageResultLabel = useMemo(() => {
+        const count = sortedBrokerageTransactions.length;
+        const noun = count === 1 ? 'transaction' : 'transactions';
+        const agentScope = agentFilter ? ` for ${selectedAgentName}` : '';
+        return `Showing ${count} ${noun}${agentScope} · ${getDatePresetLabel(datePreset)}`;
+    }, [agentFilter, datePreset, selectedAgentName, sortedBrokerageTransactions.length]);
 
     const getSortIndicator = (key) => {
         if (sortConfig.key !== key) return '';
@@ -630,6 +655,7 @@ const TransactionsDashboard = () => {
                                         Date Range:
                                     </span>
                                     {[
+                                        { key: 'all', label: 'All Time' },
                                         { key: 'this-month', label: 'This Month' },
                                         { key: 'ytd', label: 'YTD' },
                                         { key: 'last-12', label: 'Last 12 Months' },
@@ -693,7 +719,14 @@ const TransactionsDashboard = () => {
                                     borderRadius: '12px',
                                 }}>
                                     {/* Agent Filter */}
-                                    <div style={{ marginBottom: '1rem' }}>
+                                    <div style={{
+                                        display: 'flex',
+                                        flexWrap: 'wrap',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-between',
+                                        gap: '0.75rem',
+                                        marginBottom: '1rem',
+                                    }}>
                                         <select
                                             value={agentFilter}
                                             onChange={(e) => setAgentFilter(e.target.value)}
@@ -712,6 +745,12 @@ const TransactionsDashboard = () => {
                                                 <option key={a._id} value={a._id}>{a.name}</option>
                                             ))}
                                         </select>
+                                        <span style={{
+                                            fontSize: '0.875rem',
+                                            color: 'hsl(var(--muted-foreground))',
+                                        }}>
+                                            {brokerageResultLabel}
+                                        </span>
                                     </div>
 
                                     {/* Transactions Table */}
