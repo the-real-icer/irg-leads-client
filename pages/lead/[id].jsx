@@ -494,6 +494,8 @@ const Lead = () => {
         return `$${Math.round(average).toLocaleString()}`;
     };
 
+    const getFavoritedHomeProperty = (home) => home?.property_viewed || home?.property_favorited;
+
     // Format last visit time
     const formatLastVisit = (lastVisit) => {
         if (!lastVisit) return 'Never';
@@ -1918,12 +1920,11 @@ const Lead = () => {
                     maximizable
                 >
                     <div className="dialog-properties-grid">
-                        {lead?.favorited_homes?.filter((home) => home?.property_favorited).length >
-                        0 ? (
+                        {lead?.favorited_homes?.filter((home) => getFavoritedHomeProperty(home)).length > 0 ? (
                             lead.favorited_homes
-                                .filter((home) => home?.property_favorited)
+                                .filter((home) => getFavoritedHomeProperty(home))
                                 .map((home) => (
-                                    <PrpCard key={home._id} property={home.property_favorited} />
+                                    <PrpCard key={home._id} property={getFavoritedHomeProperty(home)} />
                                 ))
                         ) : (
                             <div className="empty-state">
