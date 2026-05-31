@@ -3,11 +3,21 @@ import { useRouter } from 'next/router';
 import { usePropertyFallbackImage } from '../../../utils/propertyImageFallback';
 import ikUrl from '../../../utils/imageKit';
 
+const LARGE_IMAGE_TRANSFORM = 'tr=w-2000,q-90,f-auto';
+
+const withLargeImageTransform = (url) => {
+    if (!url) return url;
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}${LARGE_IMAGE_TRANSFORM}`;
+};
+
 // ── Build image array from property data ──
 const buildImages = (property) => {
     if (property.listing_pictures && property.listing_pictures.length > 0) {
         return property.listing_pictures.map((pic) => ({
-            original: ikUrl(pic.media_url.replace(/http:/, 'https:').concat('?preset=X-Large')),
+            original: ikUrl(withLargeImageTransform(
+                pic.media_url.replace(/http:/, 'https:').concat('?preset=X-Large'),
+            )),
             thumbnail: ikUrl(pic.media_url.replace(/http:/, 'https:').concat('?preset=Small')),
             originalAlt: property.address,
         }));
@@ -23,13 +33,18 @@ const buildImages = (property) => {
             .replace(/http:/, 'https:');
 
         const images = [
-            { original: ikUrl(cleanURL), thumbnail: ikUrl(thumbURL), originalAlt: property.address },
+            {
+                original: ikUrl(withLargeImageTransform(cleanURL)),
+                thumbnail: ikUrl(thumbURL),
+                originalAlt: property.address,
+            },
         ];
 
         for (let i = 0; i < (property.pic_count || 0); i++) {
             const j = i + 1;
+            const original = cleanURL.replace(/\/0\//, `/${j}/`).replace(/.JPG/, `-${j}.JPG`);
             images.push({
-                original: ikUrl(cleanURL.replace(/\/0\//, `/${j}/`).replace(/.JPG/, `-${j}.JPG`)),
+                original: ikUrl(withLargeImageTransform(original)),
                 thumbnail: ikUrl(thumbURL.replace(/\/0\//, `/${j}/`).replace(/.JPG/, `-${j}.JPG`)),
                 originalAlt: `${property.address} - ${j + 1}`,
             });
@@ -124,6 +139,15 @@ const PropertyGallery = ({ property }) => {
     // ── Fancybox: open gallery programmatically ──
     const openGallery = useCallback(async (startIndex = 0) => {
         const Fancybox = fancyboxRef.current || (await import('@fancyapps/ui')).Fancybox;
+        const mobile = window.matchMedia('(max-width: 1024px)').matches;
+
+        images.forEach((image, i) => {
+            if (i !== startIndex) {
+                const img = new window.Image();
+                img.src = image.original;
+            }
+        });
+
         Fancybox.show(
             images.map((img) => ({
                 src: img.original,
@@ -135,16 +159,22 @@ const PropertyGallery = ({ property }) => {
                 animated: true,
                 showClass: 'f-fadeSlowIn',
                 hideClass: 'f-fadeSlowOut',
-                Carousel: { transition: 'fade', friction: 0.88, preload: 2 },
-                Toolbar: {
-                    display: {
-                        left: ['infobar'],
-                        middle: [],
-                        right: ['zoom', 'fullscreen', 'close'],
+                placeFocusBack: true,
+                Carousel: {
+                    transition: 'fade',
+                    friction: 0.88,
+                    preload: 3,
+                    Navigation: !mobile,
+                    Images: { zoom: true, Panzoom: { maxScale: 2 } },
+                    Thumbs: { type: 'classic', minCount: 2 },
+                    Toolbar: {
+                        display: {
+                            left: ['counter'],
+                            middle: [],
+                            right: mobile ? ['close'] : ['zoomIn', 'fullscreen', 'close'],
+                        },
                     },
                 },
-                Images: { zoom: true, Panzoom: { maxScale: 2 } },
-                Thumbs: { type: 'classic', minCount: 2 },
                 closeButton: false,
                 backdropClick: 'close',
                 keyboard: {
@@ -159,32 +189,43 @@ const PropertyGallery = ({ property }) => {
                     ready: (fancybox) => {
                         const container = fancybox.container;
                         if (!container) return;
-                        // Fix Panzoom inline styles that cap images at natural pixel dimensions
-                        container.querySelectorAll('.f-panzoom__wrapper').forEach((el) => {
-                            el.style.maxWidth = '100%';
-                            el.style.maxHeight = '100%';
-                        });
-                        container.querySelectorAll('.f-panzoom__viewport').forEach((el) => {
-                            el.style.width = '100%';
-                            el.style.height = '100%';
-                        });
-                        // Watch for Panzoom re-applying pixel dimension caps on render frames
+
+                        const applyFullscreenImageSizing = () => {
+                            container.querySelectorAll('.f-panzoom__wrapper').forEach((el) => {
+                                el.style.width = '100%';
+                                el.style.height = '100%';
+                                el.style.maxWidth = '100%';
+                                el.style.maxHeight = '100%';
+                            });
+                            container.querySelectorAll('.f-panzoom__viewport').forEach((el) => {
+                                el.style.width = '100%';
+                                el.style.height = '100%';
+                            });
+                            container.querySelectorAll('.f-panzoom__content').forEach((el) => {
+                                el.style.maxWidth = '100%';
+                                el.style.maxHeight = '100%';
+                                if (el.tagName === 'IMG') {
+                                    el.style.width = '100%';
+                                    el.style.height = '100%';
+                                    el.style.objectFit = 'contain';
+                                }
+                            });
+                        };
+
+                        applyFullscreenImageSizing();
+
                         const observer = new MutationObserver((mutations) => {
-                            for (const mutation of mutations) {
-                                if (mutation.attributeName !== 'style') continue;
+                            mutations.forEach((mutation) => {
+                                if (mutation.attributeName !== 'style') return;
                                 const el = mutation.target;
-                                if (el.classList.contains('f-panzoom__wrapper') && el.style.maxWidth !== '100%') {
-                                    el.style.maxWidth = '100%';
-                                    el.style.maxHeight = '100%';
+                                if (
+                                    el.classList.contains('f-panzoom__wrapper')
+                                    || el.classList.contains('f-panzoom__viewport')
+                                    || el.classList.contains('f-panzoom__content')
+                                ) {
+                                    applyFullscreenImageSizing();
                                 }
-                                if (el.classList.contains('f-panzoom__viewport')) {
-                                    const w = parseFloat(el.style.width);
-                                    if (w > 0 && w < container.offsetWidth * 0.8) {
-                                        el.style.width = '100%';
-                                        el.style.height = '100%';
-                                    }
-                                }
-                            }
+                            });
                         });
                         observer.observe(container, {
                             attributes: true,
@@ -208,12 +249,12 @@ const PropertyGallery = ({ property }) => {
 
         const observer = new IntersectionObserver(
             (entries) => {
-                for (const entry of entries) {
+                entries.forEach((entry) => {
                     if (entry.isIntersecting) {
                         const idx = Number(entry.target.dataset.index);
                         if (!Number.isNaN(idx)) setActiveSlide(idx);
                     }
-                }
+                });
             },
             { root: carousel, threshold: 0.5 }
         );
@@ -275,7 +316,11 @@ const PropertyGallery = ({ property }) => {
                     {statusInfo.text}
                 </div>
 
-                <div className={`property-gallery__grid property-gallery__grid--desktop${desktopSide.length < 4 ? ` property-gallery__grid--cols-${desktopSide.length}` : ''}`}>
+                <div
+                    className={`property-gallery__grid property-gallery__grid--desktop${
+                        desktopSide.length < 4 ? ` property-gallery__grid--cols-${desktopSide.length}` : ''
+                    }`}
+                >
                     <div
                         className="property-gallery__hero"
                         onClick={() => openGallery(0)}
@@ -299,7 +344,9 @@ const PropertyGallery = ({ property }) => {
                             key={img.original}
                             className="property-gallery__cell"
                             onClick={() => openGallery(findImageIndex(img))}
-                            onKeyDown={(e) => handleGalleryKeyDown(e, () => openGallery(findImageIndex(img)))}
+                            onKeyDown={(e) => (
+                                handleGalleryKeyDown(e, () => openGallery(findImageIndex(img)))
+                            )}
                             role="button"
                             tabIndex={0}
                         >
@@ -334,7 +381,11 @@ const PropertyGallery = ({ property }) => {
                     {statusInfo.text}
                 </div>
 
-                <div className={`property-gallery__grid property-gallery__grid--laptop${laptopSide.length < 2 ? ' property-gallery__grid--laptop-1' : ''}`}>
+                <div
+                    className={`property-gallery__grid property-gallery__grid--laptop${
+                        laptopSide.length < 2 ? ' property-gallery__grid--laptop-1' : ''
+                    }`}
+                >
                     <div
                         className="property-gallery__hero"
                         onClick={() => openGallery(0)}
@@ -358,7 +409,9 @@ const PropertyGallery = ({ property }) => {
                             key={img.original}
                             className="property-gallery__cell"
                             onClick={() => openGallery(findImageIndex(img))}
-                            onKeyDown={(e) => handleGalleryKeyDown(e, () => openGallery(findImageIndex(img)))}
+                            onKeyDown={(e) => (
+                                handleGalleryKeyDown(e, () => openGallery(findImageIndex(img)))
+                            )}
                             role="button"
                             tabIndex={0}
                         >

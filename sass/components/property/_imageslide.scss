@@ -4,13 +4,23 @@
 
 // ── Container (responsive visibility) ──
 .property-gallery {
-    max-width: 1200px;
+    width: 1600px;
+    max-width: calc(100vw - 48px);
     margin: 0 auto;
     padding: 0.75rem 0;
     position: relative;
 
-    @media (max-width: 1600px) { max-width: 900px; }
-    @media (max-width: 1300px) { max-width: 700px; }
+    @media (max-width: 1800px) { width: 1400px; }
+    @media (max-width: 1600px) { width: 1200px; }
+    @media (max-width: 1400px) { width: 1000px; }
+    @media (max-width: 1200px) { width: 900px; }
+    @media (max-width: 1000px) { width: 750px; }
+    @media (max-width: 900px) { width: 700px; }
+    @media (max-width: 800px) { width: 600px; }
+    @media (max-width: 700px) {
+        width: 100%;
+        max-width: 100%;
+    }
 
     // Desktop variant: visible 1280px+
     &--desktop {
@@ -191,7 +201,8 @@
 
 // ── No Photo Placeholder ──
 .property-gallery__placeholder {
-    max-width: 1200px;
+    width: 1600px;
+    max-width: calc(100vw - 48px);
     margin: 0 auto;
     padding: 2rem 0;
     display: flex;
@@ -203,8 +214,17 @@
     color: hsl(var(--foreground-muted));
     font-size: 1.125rem;
 
-    @media (max-width: 1600px) { max-width: 900px; }
-    @media (max-width: 1300px) { max-width: 700px; }
+    @media (max-width: 1800px) { width: 1400px; }
+    @media (max-width: 1600px) { width: 1200px; }
+    @media (max-width: 1400px) { width: 1000px; }
+    @media (max-width: 1200px) { width: 900px; }
+    @media (max-width: 1000px) { width: 750px; }
+    @media (max-width: 900px) { width: 700px; }
+    @media (max-width: 800px) { width: 600px; }
+    @media (max-width: 700px) {
+        width: 100%;
+        max-width: 100%;
+    }
 }
 
 // ── Mobile Scroll-Snap Carousel ──
@@ -264,7 +284,28 @@
 .fancybox__slide img.f-panzoom__content {
     max-height: 100%;
     max-width: 100%;
+    width: 100%;
+    height: 100%;
     object-fit: contain;
+}
+
+.fancybox__slide .f-panzoom__wrapper {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.fancybox__slide .f-panzoom,
+.fancybox__slide .f-panzoom__viewport {
+    width: 100%;
+    height: 100%;
+}
+
+.fancybox__slide .f-panzoom__content {
+    max-width: 100%;
+    max-height: 100%;
 }
 
 .fancybox__toolbar {
@@ -287,7 +328,7 @@
     color: #ffffff;
 }
 
-.fancybox__nav .carousel__button {
+.f-button.is-arrow {
     background: rgba(0, 0, 0, 0.5);
     border-radius: 50%;
     width: 48px;
@@ -297,8 +338,14 @@
     border: 1px solid rgba(255, 255, 255, 0.15);
     transition: background 150ms ease;
 }
-.fancybox__nav .carousel__button:hover {
+.f-button.is-arrow:hover {
     background: rgba(0, 0, 0, 0.8);
+}
+
+@media (max-width: 1024px) {
+    .f-button.is-arrow {
+        display: none !important;
+    }
 }
 
 .fancybox__infobar {
@@ -328,6 +375,83 @@
 .fancybox__thumb::after {
     border-width: 2px;
     border-radius: 4px;
+}
+
+@media (min-width: 1280px) {
+    .fancybox__container {
+        --f-toolbar-padding: 4px 8px;
+        --f-counter-padding: 0 8px;
+        --f-arrow-pos: 16px;
+        --f-thumb-width: 88px;
+        --f-thumb-height: 68px;
+        --f-thumbs-padding-y: 6px;
+        --f-thumbs-padding-x: 10px;
+    }
+
+    .fancybox__container .f-carousel__toolbar {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 30;
+    }
+
+    .fancybox__thumbs {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 25;
+        background: linear-gradient(
+            to top,
+            rgba(0, 0, 0, 0.72) 0%,
+            rgba(0, 0, 0, 0.36) 60%,
+            rgba(0, 0, 0, 0) 100%
+        );
+        backdrop-filter: blur(8px);
+    }
+
+    .fancybox__slide img.f-panzoom__content {
+        max-width: min(96vw, 2200px);
+        max-height: calc(100vh - 24px);
+    }
+}
+
+@media (min-width: 1025px) and (max-width: 1279px) {
+    .fancybox__container {
+        --f-toolbar-padding: 6px 8px;
+        --f-thumb-width: 72px;
+        --f-thumb-height: 58px;
+        --f-thumbs-padding-y: 4px;
+        --f-arrow-pos: 18px;
+    }
+
+    .fancybox__container .f-carousel__toolbar {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 30;
+    }
+
+    .fancybox__thumbs {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 25;
+        background: linear-gradient(
+            to top,
+            rgba(0, 0, 0, 0.68) 0%,
+            rgba(0, 0, 0, 0.28) 60%,
+            rgba(0, 0, 0, 0) 100%
+        );
+    }
+
+    .fancybox__slide img.f-panzoom__content {
+        max-width: 94vw;
+        max-height: calc(100vh - 28px);
+    }
 }
 
 @media (max-width: 768px) {
