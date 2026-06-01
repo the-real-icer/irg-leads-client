@@ -84,31 +84,47 @@ DetailRow.defaultProps = {
     longText: false,
 };
 
-const NoPhotoBlock = () => (
+const NoPhotoBlock = ({ className }) => (
     <div
-        className={
-            'flex h-full min-h-[120px] items-center justify-center rounded-[10px] '
-            + 'border border-[#d1d5db] bg-[#f3f4f6] text-[11px] font-semibold '
-            + 'uppercase tracking-[0.12em] text-[#6b7280]'
-        }
+        className={[
+            'flex items-center justify-center rounded-[10px] border border-[#d1d5db]',
+            'bg-[#f3f4f6] text-[11px] font-semibold uppercase tracking-[0.12em] text-[#6b7280]',
+            className,
+        ]
+            .filter(Boolean)
+            .join(' ')}
     >
         No photo available
     </div>
 );
 
-const PhotoTile = ({ src, alt, primary }) => {
+NoPhotoBlock.propTypes = {
+    className: PropTypes.string,
+};
+
+NoPhotoBlock.defaultProps = {
+    className: '',
+};
+
+// Fixed photo heights so images CROP (object-cover) instead of scaling the page.
+// hero = bounded ~3.75in band; thumb = small secondary tile. Without fixed heights
+// the full-resolution ?tr=w-1600 sources would expand to whole pages.
+const PHOTO_VARIANT_SIZE = {
+    hero: 'h-[360px]',
+    thumb: 'h-[120px]',
+};
+
+const PhotoTile = ({ src, alt, variant }) => {
     const [failed, setFailed] = useState(false);
-    if (!src || failed) return <NoPhotoBlock />;
+    const sizeClass = PHOTO_VARIANT_SIZE[variant] || PHOTO_VARIANT_SIZE.thumb;
+    if (!src || failed) return <NoPhotoBlock className={sizeClass} />;
 
     return (
         <img
             src={src}
             alt={alt}
             onError={() => setFailed(true)}
-            className={[
-                'print-image h-full w-full rounded-[10px] border border-[#d1d5db] object-cover',
-                primary ? 'min-h-[260px]' : 'min-h-[125px]',
-            ].join(' ')}
+            className={`print-image w-full ${sizeClass} rounded-[10px] border border-[#d1d5db] object-cover`}
         />
     );
 };
@@ -116,12 +132,12 @@ const PhotoTile = ({ src, alt, primary }) => {
 PhotoTile.propTypes = {
     src: PropTypes.string,
     alt: PropTypes.string.isRequired,
-    primary: PropTypes.bool,
+    variant: PropTypes.oneOf(['hero', 'thumb']),
 };
 
 PhotoTile.defaultProps = {
     src: '',
-    primary: false,
+    variant: 'thumb',
 };
 
 const Section = ({ title, children, className }) => (
@@ -260,11 +276,11 @@ const PrintablePropertySheet = ({
                 </div>
             </header>
 
-            <div className="mt-[12px] grid grid-cols-[1.5fr_1fr] gap-[10px]">
-                <PhotoTile src={photos[0]} alt={addressLine} primary />
-                <div className="grid grid-rows-2 gap-[10px]">
-                    <PhotoTile src={photos[1]} alt={`${addressLine} secondary photo`} />
-                    <PhotoTile src={photos[2]} alt={`${addressLine} additional photo`} />
+            <div className="mt-[12px] flex flex-col gap-[10px]">
+                <PhotoTile src={photos[0]} alt={addressLine} variant="hero" />
+                <div className="grid-cols-2 gap-[10px]" style={{ display: 'grid' }}>
+                    <PhotoTile src={photos[1]} alt={`${addressLine} secondary photo`} variant="thumb" />
+                    <PhotoTile src={photos[2]} alt={`${addressLine} additional photo`} variant="thumb" />
                 </div>
             </div>
 
