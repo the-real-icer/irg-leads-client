@@ -38,6 +38,15 @@ const PrintStyles = () => (
                     font-family: Lato, Arial, sans-serif;
                     font-size: 12px;
                     line-height: 1.45;
+                    /* Force the packet's intended backgrounds (navy cover band,
+                       tinted cards, status pills) to render even when the user's
+                       print dialog has "Background graphics" off. print-color-adjust
+                       is inherited, so this covers every descendant. The fixed light
+                       hex palette is intentional — NOT the app's dark-aware semantic
+                       tokens — so the packet always prints light regardless of CRM
+                       dark mode. */
+                    print-color-adjust: exact;
+                    -webkit-print-color-adjust: exact;
                 }
 
                 .print-page {
