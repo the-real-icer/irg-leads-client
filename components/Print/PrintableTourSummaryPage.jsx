@@ -185,8 +185,8 @@ const PrintableTourSummaryPage = ({
                     Tour Notes
                 </h3>
                 <div className="mt-[10px] grid grid-cols-2 gap-[10px]">
-                    <div className="h-[54px] rounded-[8px] border border-dashed border-[#9ca3af]" />
-                    <div className="h-[54px] rounded-[8px] border border-dashed border-[#9ca3af]" />
+                    <div className="h-[90px] rounded-[8px] border border-dashed border-[#9ca3af]" />
+                    <div className="h-[90px] rounded-[8px] border border-dashed border-[#9ca3af]" />
                 </div>
             </div>
         </section>

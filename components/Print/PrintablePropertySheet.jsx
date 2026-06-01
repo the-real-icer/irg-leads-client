@@ -386,9 +386,11 @@ const PrintablePropertySheet = ({
                     <div className="text-[9px] font-semibold uppercase tracking-[0.1em] text-[#6b7280]">
                         Client Notes
                     </div>
-                    <div className="mt-[8px] grid grid-cols-2 gap-[8px]">
-                        <div className="h-[34px] border-b border-[#d1d5db]" />
-                        <div className="h-[34px] border-b border-[#d1d5db]" />
+                    <div className="mt-[12px] space-y-[26px]">
+                        <div className="h-[26px] border-b border-[#d1d5db]" />
+                        <div className="h-[26px] border-b border-[#d1d5db]" />
+                        <div className="h-[26px] border-b border-[#d1d5db]" />
+                        <div className="h-[26px] border-b border-[#d1d5db]" />
                     </div>
                 </div>
             </div>
