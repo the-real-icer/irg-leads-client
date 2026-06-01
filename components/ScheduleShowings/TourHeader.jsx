@@ -87,10 +87,11 @@ const TourHeader = ({
                         </button>
                     </div>
                     {canPrint && (
-                        <div className="text-[11px] text-foreground/60">
+                        <div className="text-[11px] text-foreground/60 min-[900px]:text-right">
                             {hasUnsavedPrintState
                                 ? 'Uses current unsaved tour state. Save as PDF from the browser print dialog.'
                                 : 'Save as PDF from the browser print dialog.'}
+                            {' For a clean PDF, uncheck “Headers and footers” in the print dialog.'}
                         </div>
                     )}
                 </div>
