@@ -18,6 +18,7 @@ import {
     hasValidCoords,
     isAlreadyInTour,
     normalizeMlsNumber,
+    stopForPrint,
     stopFromSuggestResult,
 } from '../../components/ScheduleShowings/tourHelpers';
 import IrgApi from '../../assets/irgApi';
@@ -74,11 +75,24 @@ const ScheduleShowings = () => {
     const [editingStop, setEditingStop] = useState(null);
     const [printGeneratedAt, setPrintGeneratedAt] = useState(() => new Date());
 
+    // Print packet: the editor's `stops` are slim (map/list state). For the
+    // printed packet we hydrate full property detail per stop (high-res hero +
+    // all photos + listing details) into `printStops`. `preparingPrint` drives
+    // the brief "Preparing packet…" indicator while detail fetches resolve.
+    const [printStops, setPrintStops] = useState(null);
+    const [preparingPrint, setPreparingPrint] = useState(false);
+
     // Guard against stale tour loads when the user clicks another tour
     // while a load is in flight.
     const loadingTourIdRef = useRef(null);
     const activeLoadTokenRef = useRef(0);
     const printCleanupRef = useRef(null);
+    // mls_number -> full property detail. Cached so reprinting (or editing a
+    // note/time) rebuilds the packet without refetching unchanged properties.
+    const printDetailCacheRef = useRef(new Map());
+    // Set true after a hydration so the print effect fires once the hydrated
+    // packet has rendered.
+    const pendingPrintRef = useRef(false);
 
     // Snapshot of the last-saved tour for dirty comparison.
     const lastSavedSnapshotRef = useRef(EMPTY_SNAPSHOT);
@@ -505,14 +519,12 @@ const ScheduleShowings = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [tourId, isLoggedIn, loadingActiveTour, fetchSavedTours]);
 
-    const handlePrintTour = useCallback(() => {
-        if (loadingActiveTour || stops.length === 0 || typeof window === 'undefined') return;
+    // Open the browser print dialog for the (already-rendered) packet. The
+    // packet is mounted in a body-level portal; this class lets print CSS hide
+    // the CRM shell without affecting the on-screen layout before/after print.
+    const triggerBrowserPrint = useCallback(() => {
+        if (typeof window === 'undefined') return;
         if (printCleanupRef.current) return;
-        setPrintGeneratedAt(new Date());
-
-        // The printable packet is mounted in a body-level portal. This
-        // class lets print CSS hide the CRM shell without affecting the
-        // normal screen layout before or after the browser print dialog.
         const body = window.document.body;
         const cleanup = () => {
             body.classList.remove('printing-tour-packet');
@@ -525,7 +537,71 @@ const ScheduleShowings = () => {
         window.requestAnimationFrame(() => {
             window.print();
         });
-    }, [loadingActiveTour, stops.length]);
+    }, []);
+
+    // Fire the print dialog once the hydrated packet has rendered. Using an
+    // effect (rather than printing inline) guarantees React has committed the
+    // full-detail `printStops` into the portal before window.print() runs.
+    useEffect(() => {
+        if (pendingPrintRef.current && Array.isArray(printStops)) {
+            pendingPrintRef.current = false;
+            triggerBrowserPrint();
+        }
+    }, [printStops, triggerBrowserPrint]);
+
+    const handlePrintTour = useCallback(async () => {
+        if (loadingActiveTour || stops.length === 0 || typeof window === 'undefined') return;
+        if (printCleanupRef.current || preparingPrint) return;
+        setPrintGeneratedAt(new Date());
+
+        // Hydrate full property detail per stop (high-res hero + all photos +
+        // listing details). Detail is cached per mls_number, so reprinting or
+        // editing a note/time rebuilds the packet without refetching. Only
+        // properties not already cached trigger a network call.
+        const cache = printDetailCacheRef.current;
+        const needsFetch = stops.some((s) => {
+            const mls = normalizeMlsNumber(s.mls_number);
+            return mls && !cache.has(mls);
+        });
+
+        if (needsFetch) {
+            setPreparingPrint(true);
+            showToast('info', 'Preparing packet…', 'Print');
+        }
+
+        try {
+            const hydrated = await Promise.all(stops.map(async (s) => {
+                const mls = normalizeMlsNumber(s.mls_number);
+                if (!mls) return s; // no MLS number → keep the slim stop as-is
+                if (!cache.has(mls)) {
+                    try {
+                        const res = await IrgApi.get(
+                            `/mlsproperties/mls-number/${encodeURIComponent(mls)}`,
+                            { headers: authHeaders },
+                        );
+                        const raw = res?.data?.data?.result || null;
+                        if (raw) cache.set(mls, raw);
+                    } catch {
+                        // Resilient: a property removed from MLS since the tour
+                        // was saved falls back to the slim stop below.
+                    }
+                }
+                const detail = cache.get(mls);
+                return detail ? stopForPrint(detail, s) : s;
+            }));
+
+            pendingPrintRef.current = true;
+            setPrintStops(hydrated); // print effect fires after this renders
+        } catch (err) {
+            // eslint-disable-next-line no-console
+            console.error('[schedule-showings] print hydration failed', err);
+            pendingPrintRef.current = false;
+            showToast('error', 'Could not prepare the packet. Please try again.', 'Print Failed');
+        } finally {
+            setPreparingPrint(false);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [loadingActiveTour, stops, preparingPrint, isLoggedIn, triggerBrowserPrint]);
 
     // --- Render ---------------------------------------------------------
     return (
@@ -555,7 +631,7 @@ const ScheduleShowings = () => {
                     onSave={handleSave}
                     onNewTour={handleNewTour}
                     onPrintTour={handlePrintTour}
-                    canPrint={stops.length > 0 && !loadingActiveTour}
+                    canPrint={stops.length > 0 && !loadingActiveTour && !preparingPrint}
                     hasUnsavedPrintState={hasUnsavedPrintState}
                     disabled={loadingActiveTour}
                 />
@@ -595,7 +671,7 @@ const ScheduleShowings = () => {
                     client={client}
                     agent={agent}
                     scheduledDate={scheduledDate}
-                    stops={stops}
+                    stops={printStops || stops}
                     generatedAt={printGeneratedAt}
                     hasUnsavedChanges={hasUnsavedPrintState}
                 />

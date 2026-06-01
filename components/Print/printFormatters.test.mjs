@@ -142,9 +142,40 @@ test('getPrintablePropertyImages returns ImageKit-compatible property photo list
             ],
         }),
         [
-            'https://ik.imagekit.io/jwx2v3mb8ae/https://photos.example.com/one.jpg?preset=X-Large',
+            'https://ik.imagekit.io/jwx2v3mb8ae/https://photos.example.com/one.jpg?tr=w-1600,q-80,f-auto',
             'https://ik.imagekit.io/jwx2v3mb8ae/https://photos.example.com/two.jpg?preset=X-Large',
         ],
+    );
+});
+
+test('getPrintablePropertyImages renders the hero at print resolution and tiles via preset', () => {
+    const out = getPrintablePropertyImages({
+        listing_pictures: [
+            { media_url: 'https://photos.example.com/a.jpg' },
+            { media_url: 'https://photos.example.com/b.jpg' },
+            { media_url: 'https://photos.example.com/c.jpg' },
+        ],
+    });
+    assert.equal(out.length, 3);
+    assert.ok(out[0].endsWith('a.jpg?tr=w-1600,q-80,f-auto'), 'hero uses the width transform');
+    assert.ok(out[1].endsWith('b.jpg?preset=X-Large'), 'second tile keeps the preset');
+    assert.ok(out[2].endsWith('c.jpg?preset=X-Large'), 'third tile keeps the preset');
+});
+
+test('getPrintablePropertyImages appends with & when the source already has a query', () => {
+    const out = getPrintablePropertyImages({
+        listing_pictures: [
+            { media_url: 'https://photos.example.com/one.jpg?v=2' },
+            { media_url: 'https://photos.example.com/two.jpg?w=8&h=6' },
+        ],
+    });
+    assert.equal(
+        out[0],
+        'https://ik.imagekit.io/jwx2v3mb8ae/https://photos.example.com/one.jpg?v=2&tr=w-1600,q-80,f-auto',
+    );
+    assert.equal(
+        out[1],
+        'https://ik.imagekit.io/jwx2v3mb8ae/https://photos.example.com/two.jpg?w=8&h=6&preset=X-Large',
     );
 });
 

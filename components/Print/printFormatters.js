@@ -1,6 +1,22 @@
 import ikUrl from '../../utils/imageKit';
 import { FALLBACK_IMAGE_LIGHT } from '../../utils/propertyImageFallback';
 
+// Print resolution. The hero is rendered large (~4.5in wide on Letter) so it needs
+// real pixels, not a thumbnail preset — request an explicit width transform. The
+// smaller secondary tiles keep the named X-Large preset.
+const HERO_IMAGE_PARAMS = 'tr=w-1600,q-80,f-auto';
+const TILE_IMAGE_PARAMS = 'preset=X-Large';
+
+// Append an ImageKit query (transform/preset) to a source URL, then route through
+// ikUrl(). Hardened so a source that already carries a query string (`?…`) gets `&`
+// instead of a second `?` (which would be a malformed double-query URL).
+const ikImage = (sourceUrl, params) => {
+    const normalized = String(sourceUrl).replace(/http:/, 'https:');
+    if (!params) return ikUrl(normalized);
+    const separator = normalized.includes('?') ? '&' : '?';
+    return ikUrl(`${normalized}${separator}${params}`);
+};
+
 export const formatPrintDate = (value) => {
     if (!value) return '';
     const date = value instanceof Date ? value : new Date(value);
@@ -121,11 +137,11 @@ export const getPrimaryPropertyImage = (property) => {
     const firstPicture = pictures.length > 0 ? pictures[0] : null;
     const sourceUrl = firstPicture?.media_url || firstPicture?.large_url || firstPicture?.thumb_webp;
     if (sourceUrl) {
-        return ikUrl(String(sourceUrl).replace(/http:/, 'https:').concat('?preset=X-Large'));
+        return ikImage(sourceUrl, TILE_IMAGE_PARAMS);
     }
 
     if (Array.isArray(property.listing_pics) && property.listing_pics.length > 0) {
-        return ikUrl(String(property.listing_pics[0]).replace(/http:/, 'https:'));
+        return ikImage(property.listing_pics[0], '');
     }
 
     return FALLBACK_IMAGE_LIGHT;
@@ -139,16 +155,18 @@ export const getPrintablePropertyImages = (property) => {
     if (property.thumbnail) images.push(property.thumbnail);
 
     const pictures = Array.isArray(property.listing_pictures) ? property.listing_pictures : [];
-    pictures.forEach((picture) => {
+    pictures.forEach((picture, index) => {
         const sourceUrl = picture?.media_url || picture?.large_url || picture?.thumb_webp;
         if (sourceUrl) {
-            images.push(ikUrl(String(sourceUrl).replace(/http:/, 'https:').concat('?preset=X-Large')));
+            // First photo is the hero tile (rendered large) → high-res transform.
+            // Remaining photos fill the smaller secondary tiles → keep the preset.
+            images.push(ikImage(sourceUrl, index === 0 ? HERO_IMAGE_PARAMS : TILE_IMAGE_PARAMS));
         }
     });
 
     if (Array.isArray(property.listing_pics)) {
         property.listing_pics.forEach((url) => {
-            if (url) images.push(ikUrl(String(url).replace(/http:/, 'https:')));
+            if (url) images.push(ikImage(url, ''));
         });
     } else if (property.listing_pics) {
         const cleanUrl = String(property.listing_pics)

@@ -150,3 +150,29 @@ export const stopFromSuggestResult = (result) => {
         status: 'pending',
     };
 };
+
+// Build a PRINT-ONLY stop from a full MLS property detail record (the
+// `/mlsproperties/mls-number/:mls` response carries the complete
+// `listing_pictures` array plus every field PrintablePropertySheet renders).
+// Unlike `stopFromSuggestResult` — which deliberately slims the stop for the
+// map/list/editor state — this keeps the full detail so the printed packet shows
+// a high-res hero, the 2nd/3rd photos, and the Additional Details / Listing Info
+// sections. Used ONLY by the print packet hydration; never stored in editor state.
+//
+// `baseStop` is the slim editor stop, whose per-stop tour fields
+// (status / note / scheduled_time) must win over anything on the detail record.
+export const stopForPrint = (rawDetail, baseStop) => {
+    if (!rawDetail) return baseStop || null;
+    return {
+        ...rawDetail,
+        mls_number: normalizeMlsNumber(rawDetail.mls_number || baseStop?.mls_number),
+        // `rawDetail.status` is the MLS *listing* status (Active / Pending / ...),
+        // which collides with the per-stop tour status. Override AFTER the spread
+        // so the editor's tour status wins (same collision noted in
+        // stopFromSuggestResult above).
+        status: baseStop?.status || 'pending',
+        note: baseStop?.note || '',
+        scheduled_time: baseStop?.scheduled_time || null,
+        mapUnavailable: !hasValidCoords(rawDetail),
+    };
+};
