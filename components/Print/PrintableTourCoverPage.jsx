@@ -15,27 +15,42 @@ const PrintableTourCoverPage = ({
     hasUnsavedChanges,
 }) => {
     const clientName = formatClientName(client);
+    const scheduleLabel = scheduledDate ? formatPrintDate(scheduledDate) : 'Date not set';
+    const title = name || 'Showing Tour';
 
     return (
-        <section className="print-page flex min-h-[9.8in] flex-col justify-between p-[28px]">
-            <div>
-                <div className="text-[13px] font-semibold uppercase tracking-[0.18em] text-[#111827]">
-                    Ice Realty Group
+        <section
+            className={
+                'print-page flex min-h-[9.8in] flex-col justify-between overflow-hidden '
+                + 'rounded-[18px] border border-[#d1d5db] bg-[#f8fafc] p-[0]'
+            }
+        >
+            <div className="bg-[#111827] px-[30px] py-[24px] text-white">
+                <div className="flex items-center justify-between gap-[24px]">
+                    <img
+                        src="/IRG-Main-Logo.png"
+                        alt="Ice Realty Group"
+                        className="h-[38px] w-auto object-contain print-image"
+                    />
+                    <div className="text-right text-[10px] font-semibold uppercase tracking-[0.16em] text-[#d1d5db]">
+                        Private Client Packet
+                    </div>
                 </div>
-                <div className="mt-[8px] h-[3px] w-[72px] bg-[#111827]" />
             </div>
 
-            <div>
-                <div className="text-[12px] uppercase tracking-[0.12em] text-[#6b7280]">
-                    Private showing tour packet
+            <div className="px-[30px] py-[34px]">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#6b7280]">
+                    Showing Tour
                 </div>
-                <h1 className="m-0 mt-[12px] max-w-[680px] text-[42px] font-semibold leading-tight text-[#111827]">
-                    {name || 'Showing Tour'}
+                <h1 className="m-0 mt-[10px] max-w-[680px] text-[40px] font-semibold leading-[1.08] text-[#111827]">
+                    {title}
                 </h1>
-                <div className="mt-[24px] grid max-w-[520px] grid-cols-2 gap-[12px]">
+                <div className="mt-[12px] h-[4px] w-[88px] rounded-full bg-[#0f766e]" />
+
+                <div className="mt-[30px] grid max-w-[620px] grid-cols-2 gap-[12px]">
                     {clientName && (
-                        <div className="rounded-[10px] border border-[#d1d5db] p-[12px]">
-                            <div className="text-[9px] uppercase tracking-[0.08em] text-[#6b7280]">
+                        <div className="rounded-[12px] border border-[#d1d5db] bg-white p-[14px]">
+                            <div className="text-[9px] font-semibold uppercase tracking-[0.1em] text-[#6b7280]">
                                 Client
                             </div>
                             <div className="mt-[4px] text-[14px] font-semibold text-[#111827]">
@@ -43,26 +58,24 @@ const PrintableTourCoverPage = ({
                             </div>
                         </div>
                     )}
-                    {scheduledDate && (
-                        <div className="rounded-[10px] border border-[#d1d5db] p-[12px]">
-                            <div className="text-[9px] uppercase tracking-[0.08em] text-[#6b7280]">
-                                Scheduled Date
-                            </div>
-                            <div className="mt-[4px] text-[14px] font-semibold text-[#111827]">
-                                {formatPrintDate(scheduledDate)}
-                            </div>
+                    <div className="rounded-[12px] border border-[#d1d5db] bg-white p-[14px]">
+                        <div className="text-[9px] font-semibold uppercase tracking-[0.1em] text-[#6b7280]">
+                            Scheduled Date
                         </div>
-                    )}
-                    <div className="rounded-[10px] border border-[#d1d5db] p-[12px]">
-                        <div className="text-[9px] uppercase tracking-[0.08em] text-[#6b7280]">
+                        <div className="mt-[4px] text-[14px] font-semibold text-[#111827]">
+                            {scheduleLabel}
+                        </div>
+                    </div>
+                    <div className="rounded-[12px] border border-[#d1d5db] bg-white p-[14px]">
+                        <div className="text-[9px] font-semibold uppercase tracking-[0.1em] text-[#6b7280]">
                             Properties
                         </div>
                         <div className="mt-[4px] text-[14px] font-semibold text-[#111827]">
                             {stopCount}
                         </div>
                     </div>
-                    <div className="rounded-[10px] border border-[#d1d5db] p-[12px]">
-                        <div className="text-[9px] uppercase tracking-[0.08em] text-[#6b7280]">
+                    <div className="rounded-[12px] border border-[#d1d5db] bg-white p-[14px]">
+                        <div className="text-[9px] font-semibold uppercase tracking-[0.1em] text-[#6b7280]">
                             Generated
                         </div>
                         <div className="mt-[4px] text-[14px] font-semibold text-[#111827]">
@@ -73,7 +86,7 @@ const PrintableTourCoverPage = ({
                 {hasUnsavedChanges && (
                     <div
                         className={
-                            'mt-[18px] max-w-[520px] rounded-[10px] border border-[#f59e0b] '
+                            'mt-[18px] max-w-[620px] rounded-[12px] border border-[#f59e0b] '
                             + 'bg-[#fffbeb] p-[12px] text-[12px] text-[#92400e]'
                         }
                     >
@@ -82,8 +95,16 @@ const PrintableTourCoverPage = ({
                 )}
             </div>
 
-            <div className="text-[10px] uppercase tracking-[0.14em] text-[#6b7280]">
-                Prepared for private client review
+            <div className="border-t border-[#d1d5db] bg-white px-[30px] py-[18px]">
+                <div
+                    className={
+                        'flex items-center justify-between gap-[20px] text-[10px] '
+                        + 'uppercase tracking-[0.14em] text-[#6b7280]'
+                    }
+                >
+                    <span>Prepared for private client review</span>
+                    <span>Ice Realty Group</span>
+                </div>
             </div>
         </section>
     );

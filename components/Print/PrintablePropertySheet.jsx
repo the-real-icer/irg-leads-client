@@ -139,6 +139,29 @@ const Section = ({ title, children, className }) => (
     </div>
 );
 
+const StatusPill = ({ label }) => {
+    if (!label) return null;
+    return (
+        <span
+            className={
+                'inline-flex items-center rounded-full border border-[#0f766e] '
+                + 'bg-[#ecfdf5] px-[9px] py-[3px] text-[9px] font-semibold '
+                + 'uppercase tracking-[0.08em] text-[#0f766e]'
+            }
+        >
+            {label}
+        </span>
+    );
+};
+
+StatusPill.propTypes = {
+    label: PropTypes.string,
+};
+
+StatusPill.defaultProps = {
+    label: '',
+};
+
 Section.propTypes = {
     title: PropTypes.string.isRequired,
     children: PropTypes.node.isRequired,
@@ -168,6 +191,9 @@ const PrintablePropertySheet = ({
     const beds = formatNumber(property?.bedrooms);
     const baths = formatNumber(property?.bathrooms);
     const sqft = formatNumber(property?.sqft_raw || property?.sqft);
+    const bedroomLabel = beds ? `${beds} bd` : '';
+    const bathroomLabel = baths ? `${baths} ba` : '';
+    const sqftLabel = sqft ? `${sqft} sqft` : '';
     const propertyType = property?.property_sub_type || property?.property_type;
     const hoaFee = formatHoaFee(property);
     const listingAgentName = getFirstValue(property, [
@@ -213,10 +239,6 @@ const PrintablePropertySheet = ({
         { label: 'Listing Agent', value: listingAgentName },
         { label: 'Listing Contact', value: listingAgentPhone || listingOffice },
         { label: 'Listing Agent Email', value: listingAgentEmail },
-        showingStatus ? { label: 'Tour Status', value: statusMeta.label } : null,
-        timeLabel ? { label: 'Scheduled Time', value: timeLabel } : null,
-        note ? { label: 'Tour Note', value: note, longText: true } : null,
-        mapUnavailable ? { label: 'Map', value: 'Coordinates unavailable' } : null,
         { label: 'Showing Instructions', value: showingInstructions, longText: true },
         { label: 'Private Remarks', value: privateRemarks, longText: true },
     ].filter(Boolean).filter((row) => row.value);
@@ -227,10 +249,13 @@ const PrintablePropertySheet = ({
                 <img
                     src="/IRG-Main-Logo.png"
                     alt="Ice Realty Group"
-                    className="h-[32px] w-auto object-contain"
+                    className="h-[32px] w-auto object-contain print-image"
                 />
-                <div className="text-right text-[10px] uppercase tracking-[0.14em] text-[#6b7280]">
-                    {stopNumber ? `Showing Stop ${stopNumber}` : 'Property Listing Sheet'}
+                <div className="flex items-center gap-[8px] text-right">
+                    <StatusPill label={showingStatus ? statusMeta.label : ''} />
+                    <div className="text-[10px] uppercase tracking-[0.14em] text-[#6b7280]">
+                        {stopNumber ? `Showing Stop ${stopNumber}` : 'Property Listing Sheet'}
+                    </div>
                 </div>
             </header>
 
@@ -242,7 +267,12 @@ const PrintablePropertySheet = ({
                 </div>
             </div>
 
-            <section className="print-avoid-break mt-[12px] rounded-[12px] border border-[#d1d5db] p-[14px]">
+            <section
+                className={
+                    'print-avoid-break mt-[12px] rounded-[14px] border border-[#d1d5db] '
+                    + 'bg-[#f8fafc] p-[14px]'
+                }
+            >
                 <div className="flex items-start justify-between gap-[18px]">
                     <div className="min-w-0">
                         <h2 className="m-0 text-[24px] font-semibold leading-tight text-[#111827]">
@@ -257,6 +287,18 @@ const PrintablePropertySheet = ({
                     <div className="shrink-0 text-right text-[23px] font-semibold text-[#111827]">
                         {price || 'Price not available'}
                     </div>
+                </div>
+                <div
+                    className={
+                        'mt-[8px] flex flex-wrap gap-x-[12px] gap-y-[3px] '
+                        + 'text-[11px] font-semibold text-[#374151]'
+                    }
+                >
+                    {[bedroomLabel, bathroomLabel, sqftLabel, propertyType]
+                        .filter(Boolean)
+                        .map((item) => (
+                            <span key={item}>{item}</span>
+                        ))}
                 </div>
                 <div className="mt-[12px] grid grid-cols-4 gap-[8px]">
                     <Stat label="Beds" value={beds} />
@@ -276,7 +318,48 @@ const PrintablePropertySheet = ({
                 </Section>
             )}
 
-            {(accessRows.length > 0 || hasTourDetails) && (
+            {hasTourDetails && (
+                <Section title="Showing Plan" className="mt-[10px]">
+                    <div className="grid grid-cols-[1fr_1fr_1fr] gap-[8px]">
+                        <div className="rounded-[10px] bg-[#f8fafc] px-[10px] py-[8px]">
+                            <div className="text-[9px] uppercase tracking-[0.08em] text-[#6b7280]">
+                                Time
+                            </div>
+                            <div className="mt-[2px] text-[12px] font-semibold text-[#111827]">
+                                {timeLabel || 'Not set'}
+                            </div>
+                        </div>
+                        <div className="rounded-[10px] bg-[#f8fafc] px-[10px] py-[8px]">
+                            <div className="text-[9px] uppercase tracking-[0.08em] text-[#6b7280]">
+                                Status
+                            </div>
+                            <div className="mt-[2px] text-[12px] font-semibold text-[#111827]">
+                                {showingStatus ? statusMeta.label : 'Pending'}
+                            </div>
+                        </div>
+                        <div className="rounded-[10px] bg-[#f8fafc] px-[10px] py-[8px]">
+                            <div className="text-[9px] uppercase tracking-[0.08em] text-[#6b7280]">
+                                Map
+                            </div>
+                            <div className="mt-[2px] text-[12px] font-semibold text-[#111827]">
+                                {mapUnavailable ? 'Needs review' : 'Available'}
+                            </div>
+                        </div>
+                    </div>
+                    {note && (
+                        <div className="mt-[8px] rounded-[10px] border border-[#e5e7eb] bg-white px-[10px] py-[8px]">
+                            <div className="text-[9px] uppercase tracking-[0.08em] text-[#6b7280]">
+                                Tour Note
+                            </div>
+                            <div className="mt-[2px] text-[11px] leading-[1.45] text-[#374151]">
+                                {note}
+                            </div>
+                        </div>
+                    )}
+                </Section>
+            )}
+
+            {accessRows.length > 0 && (
                 <Section title="Agent / Access / Listing Info" className="mt-[10px]">
                     <div className="grid grid-cols-2 gap-x-[20px]">
                         {accessRows.map((row) => (
@@ -294,9 +377,21 @@ const PrintablePropertySheet = ({
             {hasAgentDetails && (
                 <PrintableAgentCard
                     agent={agentContact}
-                    className="mt-auto"
+                    className="mt-[10px]"
                 />
             )}
+
+            <div className="print-avoid-break mt-auto pt-[10px]">
+                <div className="rounded-[12px] border border-dashed border-[#9ca3af] p-[10px]">
+                    <div className="text-[9px] font-semibold uppercase tracking-[0.1em] text-[#6b7280]">
+                        Client Notes
+                    </div>
+                    <div className="mt-[8px] grid grid-cols-2 gap-[8px]">
+                        <div className="h-[34px] border-b border-[#d1d5db]" />
+                        <div className="h-[34px] border-b border-[#d1d5db]" />
+                    </div>
+                </div>
+            </div>
         </section>
     );
 };

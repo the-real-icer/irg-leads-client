@@ -23,6 +23,8 @@ const PrintableTourSummaryPage = ({
 }) => {
     const clientName = formatClientName(client);
     const hasAgentDetails = hasPrintableAgentDetails(agent);
+    const stopsWithTimes = stops.filter((stop) => formatStopTime(stop.scheduled_time)).length;
+    const stopsWithoutMaps = stops.filter((stop) => !hasPrintableCoords(stop)).length;
     const handleImageError = (event) => {
         const image = event.currentTarget;
         if (image.src !== FALLBACK_IMAGE_LIGHT) {
@@ -35,16 +37,16 @@ const PrintableTourSummaryPage = ({
             <div
                 className={[
                     hasAgentDetails ? 'grid grid-cols-[1fr_220px] gap-[18px]' : '',
-                    'border-b border-[#d1d5db] pb-[12px]',
+                    'rounded-[14px] border border-[#d1d5db] bg-[#f8fafc] p-[16px]',
                 ]
                     .filter(Boolean)
                     .join(' ')}
             >
                 <div>
-                    <div className="text-[10px] uppercase tracking-[0.1em] text-[#6b7280]">
+                    <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#6b7280]">
                         Tour Summary
                     </div>
-                    <h2 className="m-0 mt-[4px] text-[28px] font-semibold text-[#111827]">
+                    <h2 className="m-0 mt-[4px] text-[26px] font-semibold text-[#111827]">
                         {name || 'Showing Tour'}
                     </h2>
                     <div
@@ -56,6 +58,32 @@ const PrintableTourSummaryPage = ({
                         {clientName && <span>Client: {clientName}</span>}
                         {scheduledDate && <span>Date: {formatPrintDate(scheduledDate)}</span>}
                         <span>{stops.length} properties</span>
+                    </div>
+                    <div className="mt-[12px] grid max-w-[460px] grid-cols-3 gap-[8px]">
+                        <div className="rounded-[10px] border border-[#d1d5db] bg-white px-[10px] py-[8px]">
+                            <div className="text-[9px] uppercase tracking-[0.08em] text-[#6b7280]">
+                                Timed Stops
+                            </div>
+                            <div className="text-[15px] font-semibold text-[#111827]">
+                                {stopsWithTimes}
+                            </div>
+                        </div>
+                        <div className="rounded-[10px] border border-[#d1d5db] bg-white px-[10px] py-[8px]">
+                            <div className="text-[9px] uppercase tracking-[0.08em] text-[#6b7280]">
+                                Needs Map
+                            </div>
+                            <div className="text-[15px] font-semibold text-[#111827]">
+                                {stopsWithoutMaps}
+                            </div>
+                        </div>
+                        <div className="rounded-[10px] border border-[#d1d5db] bg-white px-[10px] py-[8px]">
+                            <div className="text-[9px] uppercase tracking-[0.08em] text-[#6b7280]">
+                                Packet Pages
+                            </div>
+                            <div className="text-[15px] font-semibold text-[#111827]">
+                                {stops.length + 2}
+                            </div>
+                        </div>
                     </div>
                 </div>
                 {hasAgentDetails && <PrintableAgentCard agent={agent} compact />}
@@ -75,7 +103,7 @@ const PrintableTourSummaryPage = ({
                                 className={
                                     'print-avoid-break grid grid-cols-[34px_64px_1fr_auto] '
                                     + 'items-center gap-[10px] rounded-[10px] border '
-                                    + 'border-[#d1d5db] p-[8px]'
+                                    + 'border-[#d1d5db] bg-white p-[8px]'
                                 }
                             >
                                 <div
@@ -94,17 +122,25 @@ const PrintableTourSummaryPage = ({
                                     className="print-image h-[48px] w-[64px] rounded-[6px] object-cover"
                                 />
                                 <div>
-                                    <div className="text-[13px] font-semibold text-[#111827]">
-                                        {formatAddressLine(stop)}
-                                    </div>
-                                    <div className="text-[11px] text-[#6b7280]">
-                                        {[
-                                            formatCityStateZip(stop),
-                                            formatPrice(stop),
-                                            formatBedsBathsSqft(stop),
-                                        ]
-                                            .filter(Boolean)
-                                            .join(' | ')}
+                                    <div className="flex items-start justify-between gap-[12px]">
+                                        <div className="min-w-0">
+                                            <div className="text-[13px] font-semibold text-[#111827]">
+                                                {formatAddressLine(stop)}
+                                            </div>
+                                            <div className="text-[11px] text-[#6b7280]">
+                                                {[
+                                                    formatCityStateZip(stop),
+                                                    formatBedsBathsSqft(stop),
+                                                ]
+                                                    .filter(Boolean)
+                                                    .join(' | ')}
+                                            </div>
+                                        </div>
+                                        {formatPrice(stop) && (
+                                            <div className="shrink-0 text-[12px] font-semibold text-[#111827]">
+                                                {formatPrice(stop)}
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="mt-[4px] flex flex-wrap gap-[6px] text-[10px] text-[#4b5563]">
                                         <span>{statusMeta.label}</span>
@@ -123,7 +159,7 @@ const PrintableTourSummaryPage = ({
 
             <div className="print-avoid-break mt-[18px] rounded-[12px] border border-[#d1d5db] p-[14px]">
                 <h3 className="m-0 text-[14px] font-semibold text-[#111827]">
-                    Print-Safe Map Reference
+                    Route Reference
                 </h3>
                 <p className="mt-[6px] text-[11px] text-[#4b5563]">
                     The interactive map remains available in the CRM. This packet keeps the canonical
@@ -142,6 +178,16 @@ const PrintableTourSummaryPage = ({
                         </li>
                     ))}
                 </ol>
+            </div>
+
+            <div className="print-avoid-break mt-[14px] rounded-[12px] border border-[#d1d5db] p-[14px]">
+                <h3 className="m-0 text-[14px] font-semibold text-[#111827]">
+                    Tour Notes
+                </h3>
+                <div className="mt-[10px] grid grid-cols-2 gap-[10px]">
+                    <div className="h-[54px] rounded-[8px] border border-dashed border-[#9ca3af]" />
+                    <div className="h-[54px] rounded-[8px] border border-dashed border-[#9ca3af]" />
+                </div>
             </div>
         </section>
     );

@@ -74,8 +74,8 @@ green-300: #AACE8A ← muted green
 
 ## Typography
 
-**Font:** Lato for everything — headings and body. No mixing fonts.
-`font-sans` and `font-heading` both resolve to Lato.
+**Font:** Inter for everything — headings and body. No mixing fonts.
+`font-sans` and `font-heading` both resolve to Inter (loaded via `next/font/google` in `pages/_app.jsx` → `var(--font-inter)`).
 `font-mono` → JetBrains Mono (code/data only)
 
 ### Type Scale
@@ -289,7 +289,7 @@ Mobile-first always. Test at 375px, 768px, 900px, 1280px.
 2. **Dark mode is free** when tokens are used correctly — no extra `dark:` classes needed
 3. **Match existing card pattern** — `bg-surface rounded-[16px] border border-border shadow-sm`
 4. **Use the 900px breakpoint** for content/sidebar layouts, not `md:`
-5. **Lato everywhere** — don't introduce other fonts
+5. **Inter everywhere** — don't introduce other fonts
 6. **Named shadows only** — `shadow-card`, `shadow-modal`, not `shadow-[0_4px_...]`
 7. **Named z-index only** — `z-modal`, `z-dropdown`, not `z-[1050]`
 8. **Check status badge pattern** before building any lead/property status indicator
