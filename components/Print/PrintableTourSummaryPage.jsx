@@ -35,8 +35,9 @@ const PrintableTourSummaryPage = ({
     return (
         <section className="print-page p-[18px]">
             <div
+                style={hasAgentDetails ? { display: 'grid' } : undefined}
                 className={[
-                    hasAgentDetails ? 'grid grid-cols-[1fr_220px] gap-[18px]' : '',
+                    hasAgentDetails ? 'grid-cols-[1fr_220px] gap-[18px]' : '',
                     'rounded-[14px] border border-[#d1d5db] bg-[#f8fafc] p-[16px]',
                 ]
                     .filter(Boolean)
@@ -46,12 +47,12 @@ const PrintableTourSummaryPage = ({
                     <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#6b7280]">
                         Tour Summary
                     </div>
-                    <h2 className="m-0 mt-[4px] text-[26px] font-semibold text-[#111827]">
+                    <h2 className="m-0 mt-[4px] text-[26px] font-semibold leading-[1.15] text-[#111827]">
                         {name || 'Showing Tour'}
                     </h2>
                     <div
                         className={
-                            'mt-[8px] flex flex-wrap gap-x-[18px] gap-y-[4px] '
+                            'mt-[10px] flex flex-wrap gap-x-[18px] gap-y-[4px] '
                             + 'text-[12px] text-[#4b5563]'
                         }
                     >
@@ -59,7 +60,7 @@ const PrintableTourSummaryPage = ({
                         {scheduledDate && <span>Date: {formatPrintDate(scheduledDate)}</span>}
                         <span>{stops.length} properties</span>
                     </div>
-                    <div className="mt-[12px] grid max-w-[460px] grid-cols-3 gap-[8px]">
+                    <div className="mt-[12px] max-w-[460px] grid-cols-3 gap-[8px]" style={{ display: 'grid' }}>
                         <div className="rounded-[10px] border border-[#d1d5db] bg-white px-[10px] py-[8px]">
                             <div className="text-[9px] uppercase tracking-[0.08em] text-[#6b7280]">
                                 Timed Stops
@@ -100,8 +101,9 @@ const PrintableTourSummaryPage = ({
                         return (
                             <div
                                 key={stop.mls_number || `${index}-${stop.address}`}
+                                style={{ display: 'grid' }}
                                 className={
-                                    'print-avoid-break grid grid-cols-[34px_64px_1fr_auto] '
+                                    'print-avoid-break grid-cols-[34px_64px_1fr_auto] '
                                     + 'items-center gap-[10px] rounded-[10px] border '
                                     + 'border-[#d1d5db] bg-white p-[8px]'
                                 }
@@ -166,8 +168,9 @@ const PrintableTourSummaryPage = ({
                     stop order as the print-safe route reference without requiring a static maps API.
                 </p>
                 <ol
+                    style={{ display: 'grid' }}
                     className={
-                        'mt-[10px] grid grid-cols-2 gap-x-[22px] gap-y-[5px] '
+                        'mt-[10px] grid-cols-2 gap-x-[22px] gap-y-[5px] '
                         + 'pl-[18px] text-[11px] text-[#374151]'
                     }
                 >
@@ -184,7 +187,7 @@ const PrintableTourSummaryPage = ({
                 <h3 className="m-0 text-[14px] font-semibold text-[#111827]">
                     Tour Notes
                 </h3>
-                <div className="mt-[10px] grid grid-cols-2 gap-[10px]">
+                <div className="mt-[10px] grid-cols-2 gap-[10px]" style={{ display: 'grid' }}>
                     <div className="h-[90px] rounded-[8px] border border-dashed border-[#9ca3af]" />
                     <div className="h-[90px] rounded-[8px] border border-dashed border-[#9ca3af]" />
                 </div>

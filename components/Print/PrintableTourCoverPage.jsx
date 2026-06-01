@@ -47,7 +47,7 @@ const PrintableTourCoverPage = ({
                 </h1>
                 <div className="mt-[12px] h-[4px] w-[88px] rounded-full bg-[#0f766e]" />
 
-                <div className="mt-[30px] grid max-w-[620px] grid-cols-2 gap-[12px]">
+                <div className="mt-[30px] max-w-[620px] grid-cols-2 gap-[12px]" style={{ display: 'grid' }}>
                     {clientName && (
                         <div className="rounded-[12px] border border-[#d1d5db] bg-white p-[14px]">
                             <div className="text-[9px] font-semibold uppercase tracking-[0.1em] text-[#6b7280]">

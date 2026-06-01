@@ -52,8 +52,9 @@ const DetailRow = ({ label, value, longText }) => {
     if (!value) return null;
     return (
         <div
+            style={{ display: 'grid' }}
             className={[
-                'print-avoid-break grid gap-[10px] border-b border-[#e5e7eb] py-[7px]',
+                'print-avoid-break gap-[10px] border-b border-[#e5e7eb] py-[7px]',
                 longText ? 'grid-cols-[128px_1fr]' : 'grid-cols-[128px_1fr]',
             ].join(' ')}
         >
@@ -132,7 +133,7 @@ const Section = ({ title, children, className }) => (
             .filter(Boolean)
             .join(' ')}
     >
-        <h3 className="m-0 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#111827]">
+        <h3 className="m-0 text-[10px] font-semibold uppercase leading-[1.2] tracking-[0.14em] text-[#111827]">
             {title}
         </h3>
         <div className="mt-[7px]">{children}</div>
@@ -300,7 +301,7 @@ const PrintablePropertySheet = ({
                             <span key={item}>{item}</span>
                         ))}
                 </div>
-                <div className="mt-[12px] grid grid-cols-4 gap-[8px]">
+                <div className="mt-[12px] grid-cols-4 gap-[8px]" style={{ display: 'grid' }}>
                     <Stat label="Beds" value={beds} />
                     <Stat label="Baths" value={baths} />
                     <Stat label="Sq Ft" value={sqft} />
@@ -310,7 +311,7 @@ const PrintablePropertySheet = ({
 
             {detailRows.length > 0 && (
                 <Section title="Additional Details" className="mt-[10px]">
-                    <div className="grid grid-cols-2 gap-x-[20px]">
+                    <div className="grid-cols-2 gap-x-[20px]" style={{ display: 'grid' }}>
                         {detailRows.map((row) => (
                             <DetailRow key={row.label} label={row.label} value={row.value} />
                         ))}
@@ -320,7 +321,7 @@ const PrintablePropertySheet = ({
 
             {hasTourDetails && (
                 <Section title="Showing Plan" className="mt-[10px]">
-                    <div className="grid grid-cols-[1fr_1fr_1fr] gap-[8px]">
+                    <div className="grid-cols-[1fr_1fr_1fr] gap-[8px]" style={{ display: 'grid' }}>
                         <div className="rounded-[10px] bg-[#f8fafc] px-[10px] py-[8px]">
                             <div className="text-[9px] uppercase tracking-[0.08em] text-[#6b7280]">
                                 Time
@@ -361,7 +362,7 @@ const PrintablePropertySheet = ({
 
             {accessRows.length > 0 && (
                 <Section title="Agent / Access / Listing Info" className="mt-[10px]">
-                    <div className="grid grid-cols-2 gap-x-[20px]">
+                    <div className="grid-cols-2 gap-x-[20px]" style={{ display: 'grid' }}>
                         {accessRows.map((row) => (
                             <DetailRow
                                 key={row.label}
