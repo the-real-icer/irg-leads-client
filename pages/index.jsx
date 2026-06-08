@@ -125,10 +125,10 @@ const Index = () => {
     const showLoading = isProcessing || (status === 'authenticated' && !hasProcessed);
 
     return (
-        <>
+        <div data-testid="root-container">
             <MainHead title="Login" />
-            <div className="login__page">
-                <div className="login__page__form">
+            <div className="login__page" data-testid="login-page">
+                <div className="login__page__form" data-testid="login-card">
                     <img
                         src="/IRG-Main-Logo.png"
                         alt="Ice Realty Group Logo"
@@ -204,7 +204,7 @@ const Index = () => {
                     </div>
                 </div>
             </div>
-        </>
+        </div>
     );
 };
 
