@@ -61,6 +61,7 @@ import LeadInteractionTabs from '../../components/lead/LeadInteractionTabs';
 import LeadRemindersCard from '../../components/lead/LeadRemindersCard';
 import LeadStatsGrid from '../../components/lead/LeadStatsGrid';
 import LeadAttributionCard from '../../components/lead/LeadAttributionCard';
+import QuarterlyMarketAnalysisCard from '../../components/lead/QuarterlyMarketAnalysisCard';
 import getLeadDisplayName, { getLeadInitials } from '../../utils/getLeadDisplayName';
 
 // Filter Value Options (for Edit E-Alert dialog)
@@ -1518,6 +1519,11 @@ const Lead = () => {
                 />
 
                 <LeadAttributionCard lead={lead} isAdmin={agent?.role === 'admin'} />
+                <QuarterlyMarketAnalysisCard
+                    lead={lead}
+                    token={isLoggedIn}
+                    isAdmin={agent?.role === 'admin'}
+                />
 
                 {/* Reminders Section */}
                 <LeadRemindersCard
