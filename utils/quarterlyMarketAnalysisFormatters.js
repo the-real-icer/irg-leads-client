@@ -24,6 +24,10 @@ const cleanText = (value) => (
 
 const cleanAddressPart = (value) => cleanText(value).replace(/\s+/g, ' ');
 
+const firstValue = (...values) => (
+    values.find((value) => value !== undefined && value !== null && value !== '')
+);
+
 const firstText = (...values) => {
     const found = values.find((value) => cleanText(value));
     return cleanText(found);
@@ -53,6 +57,11 @@ const getNested = (source, paths) => (
         .map((path) => path.split('.').reduce((current, part) => current?.[part], source))
         .find((value) => value !== undefined && value !== null && value !== '')
 );
+
+const toNumber = (value, fallback = 0) => {
+    const numericValue = Number(value);
+    return Number.isFinite(numericValue) ? numericValue : fallback;
+};
 
 const getLeadAddressSource = (lead) => {
     const address = asObject(lead?.address);
@@ -302,6 +311,137 @@ export const isQmaEmailSent = (analysis) => {
     return Boolean(getQmaSentAt(analysis) || ['sent', 'delivered', 'emailed'].includes(status));
 };
 
+export const isQmaAnalysisFailed = (analysis) => {
+    if (!analysis) return false;
+    return ['failed', 'error', 'rejected'].includes(getQmaAnalysisStatus(analysis).toLowerCase());
+};
+
+export const getQmaSubjectAddressFingerprint = (record) => (
+    firstText(
+        record?.subjectAddressFingerprint,
+        record?.subject_address_fingerprint,
+        record?.currentSubjectAddressFingerprint,
+        record?.current_subject_address_fingerprint,
+        record?.subjectAddress?.fingerprint,
+        record?.subject_address?.fingerprint,
+    )
+);
+
+export const getQmaCurrentSubjectAddressFingerprint = (source) => (
+    firstText(
+        source?.currentSubjectAddressFingerprint,
+        source?.current_subject_address_fingerprint,
+        source?.subjectAddressFingerprint,
+        source?.subject_address_fingerprint,
+        source?.subscription?.currentSubjectAddressFingerprint,
+        source?.subscription?.current_subject_address_fingerprint,
+        source?.subscription?.subjectAddressFingerprint,
+        source?.subscription?.subject_address_fingerprint,
+    )
+);
+
+export const isQmaAnalysisCurrentSubjectAddress = (analysis, currentAddressSource = null) => {
+    if (!analysis) return false;
+
+    const explicitValue = firstValue(
+        analysis.isCurrentSubjectAddress,
+        analysis.is_current_subject_address,
+    );
+
+    if (explicitValue !== undefined) {
+        return toBoolean(explicitValue, true);
+    }
+
+    const analysisFingerprint = getQmaSubjectAddressFingerprint(analysis);
+    const currentFingerprint = getQmaCurrentSubjectAddressFingerprint(currentAddressSource);
+
+    if (analysisFingerprint && currentFingerprint) {
+        return analysisFingerprint === currentFingerprint;
+    }
+
+    return true;
+};
+
+export const getQmaPrimaryAnalysis = (state) => {
+    if (state?.latestCurrentAddressAnalysis) return state.latestCurrentAddressAnalysis;
+    if (getQmaCurrentSubjectAddressFingerprint(state)) return null;
+    return state?.latestAnalysis || null;
+};
+
+const getQmaAnalysisSubjectAddressSource = (analysis) => (
+    analysis?.subjectAddress
+    || analysis?.subject_address
+    || analysis?.subjectAddressUsed
+    || analysis?.subject_address_used
+    || analysis?.addressUsed
+    || analysis?.address_used
+    || null
+);
+
+export const getQmaAnalysisSubjectAddress = (analysis) => {
+    const subjectAddress = getQmaAnalysisSubjectAddressSource(analysis);
+    const full = buildQmaFullAddress(subjectAddress);
+
+    if (typeof subjectAddress === 'string') {
+        return {
+            full,
+            street: '',
+            city: '',
+            state: '',
+            zip: '',
+            source: '',
+        };
+    }
+
+    const normalized = normalizeQmaAddress(subjectAddress);
+    return {
+        ...normalized,
+        full: full || normalized.full,
+    };
+};
+
+export const getQmaAnalysisSubjectAddressLabel = (analysis, fallback = EMPTY_VALUE) => {
+    const address = getQmaAnalysisSubjectAddress(analysis);
+    return buildQmaFullAddress(address) || fallback;
+};
+
+export const getQmaAnalysisErrorDetails = (analysis) => {
+    const error = asObject(
+        analysis?.error
+        || analysis?.failure
+        || analysis?.lastError
+        || analysis?.last_error
+        || analysis?.generationError
+        || analysis?.generation_error,
+    );
+    const retryable = firstValue(
+        error.retryable,
+        error.isRetryable,
+        error.is_retryable,
+        analysis?.retryable,
+        analysis?.errorRetryable,
+        analysis?.error_retryable,
+    );
+
+    return {
+        code: firstText(
+            error.code,
+            error.errorCode,
+            error.error_code,
+            analysis?.errorCode,
+            analysis?.error_code,
+        ),
+        message: firstText(
+            error.message,
+            error.errorMessage,
+            error.error_message,
+            analysis?.errorMessage,
+            analysis?.error_message,
+        ),
+        retryable: retryable === undefined ? null : toBoolean(retryable, false),
+    };
+};
+
 export const extractQmaAnalyses = (payload) => {
     const root = payload?.data ?? payload ?? {};
     return asArray(
@@ -325,7 +465,12 @@ export const buildDefaultQmaState = (lead) => {
         subscriptionId: '',
         defaultSubjectAddress: subjectAddress,
         subjectAddress,
+        subjectAddressFingerprint: '',
+        subjectAddressUpdatedAt: null,
+        currentSubjectAddressFingerprint: '',
         latestAnalysis: null,
+        latestCurrentAddressAnalysis: null,
+        previousAddressAnalysisCount: 0,
         history: [],
         nextScheduledAt: null,
         leadHasEmail: Boolean(cleanText(lead?.email)),
@@ -356,6 +501,34 @@ export const normalizeQmaSubscriptionPayload = (payload, lead) => {
         || root.latest
         || history[0]
         || null;
+    const latestCurrentAddressAnalysis =
+        root.latestCurrentAddressAnalysis
+        || root.latest_current_address_analysis
+        || root.currentAddressAnalysis
+        || root.current_address_analysis
+        || null;
+    const subjectAddressFingerprint = firstText(
+        subscription?.subjectAddressFingerprint,
+        subscription?.subject_address_fingerprint,
+        subscription?.subjectAddress?.fingerprint,
+        subscription?.subject_address?.fingerprint,
+        root.subjectAddressFingerprint,
+        root.subject_address_fingerprint,
+    );
+    const currentSubjectAddressFingerprint = firstText(
+        root.currentSubjectAddressFingerprint,
+        root.current_subject_address_fingerprint,
+        subscription?.currentSubjectAddressFingerprint,
+        subscription?.current_subject_address_fingerprint,
+        subjectAddressFingerprint,
+    );
+    const previousAddressAnalysisCount = toNumber(
+        root.previousAddressAnalysisCount
+        ?? root.previous_address_analysis_count
+        ?? subscription?.previousAddressAnalysisCount
+        ?? subscription?.previous_address_analysis_count
+        ?? 0,
+    );
 
     const activeValue =
         root.active
@@ -380,7 +553,17 @@ export const normalizeQmaSubscriptionPayload = (payload, lead) => {
         subscriptionId: getQmaRecordId(subscription),
         defaultSubjectAddress,
         subjectAddress,
+        subjectAddressFingerprint,
+        subjectAddressUpdatedAt:
+            subscription?.subjectAddressUpdatedAt
+            || subscription?.subject_address_updated_at
+            || root.subjectAddressUpdatedAt
+            || root.subject_address_updated_at
+            || null,
+        currentSubjectAddressFingerprint,
         latestAnalysis,
+        latestCurrentAddressAnalysis,
+        previousAddressAnalysisCount,
         history,
         nextScheduledAt:
             root.nextScheduledAt

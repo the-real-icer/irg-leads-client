@@ -20,17 +20,22 @@ import {
     formatQmaNumber,
     formatQmaStatus,
     getQmaAnalysisComps,
+    getQmaAnalysisErrorDetails,
     getQmaAnalysisStatus,
     getQmaAnalysisSummary,
+    getQmaAnalysisSubjectAddressLabel,
     getQmaDataWarnings,
     getQmaDisclaimer,
     getQmaDocMetadataRows,
     getQmaEmailStatus,
     getQmaGeneratedAt,
+    getQmaPrimaryAnalysis,
     getQmaQuarterLabel,
     getQmaRecordId,
     getQmaSentAt,
     hasQmaAddress,
+    isQmaAnalysisCurrentSubjectAddress,
+    isQmaAnalysisFailed,
     isQmaAnalysisGenerated,
     isQmaEmailSent,
     mergeQmaHistory,
@@ -106,6 +111,8 @@ const mutedEmptyStateClassName =
 const metadataRowsClassName =
     'flex flex-wrap gap-x-[16px] gap-y-[6px] break-words text-[12px] '
     + 'text-foreground-muted';
+const diagnosticsGridClassName =
+    'm-0 grid gap-[10px] text-[13px] text-foreground-muted min-[640px]:grid-cols-3';
 const detailsButtonClassName =
     'whitespace-nowrap rounded-[8px] px-[9px] py-[6px] text-[13px] font-semibold text-primary '
     + 'transition-colors hover:bg-primary/10 focus:outline-none focus:ring-2 focus:ring-ring';
@@ -126,6 +133,12 @@ const tableQuarterCellClassName = `${tableCellClassName} font-semibold`;
 const tableMutedCellClassName = `${tableCellClassName} text-foreground-muted`;
 const tableCellRightClassName = `${tableCellClassName} text-right`;
 const addressPreviewPlaceholder = 'Enter a complete subject address.';
+const currentAddressFailureWarning =
+    'The latest analysis for this address failed. Update the subject address if needed, then retry the test analysis.';
+const previousAddressAnalysisWarning =
+    'This analysis was generated for a previous subject address.';
+const addressChangedWarning =
+    'This address has changed. Generate a new test analysis for the current address.';
 
 const toneClassNames = {
     success: 'border-success/30 bg-success/10 text-success',
@@ -185,6 +198,7 @@ const getAddressSource = (addressForm, addressDirty) => {
 const getDisplayAnalyses = (qmaState) => {
     const seen = new Set();
     const combined = [
+        qmaState?.latestCurrentAddressAnalysis,
         qmaState?.latestAnalysis,
         ...(Array.isArray(qmaState?.history) ? qmaState.history : []),
     ].filter(Boolean);
@@ -195,6 +209,20 @@ const getDisplayAnalyses = (qmaState) => {
         seen.add(key);
         return true;
     });
+};
+
+const getAddressStateBadge = (analysis, qmaState) => {
+    const isCurrent = isQmaAnalysisCurrentSubjectAddress(analysis, qmaState);
+
+    return {
+        label: isCurrent ? 'Current address' : 'Previous address',
+        tone: isCurrent ? 'primary' : 'warning',
+    };
+};
+
+const formatRetryableValue = (value) => {
+    if (value === null) return 'Unknown';
+    return value ? 'true' : 'false';
 };
 
 const StatusPill = ({ label, tone = 'muted' }) => (
@@ -245,7 +273,7 @@ const InlineAlert = ({ children, tone = 'warning' }) => {
     );
 };
 
-const AnalysisDetailsModal = ({ analysis, detailsError, loading, onClose }) => {
+const AnalysisDetailsModal = ({ analysis, currentAddressSource, detailsError, loading, onClose }) => {
     if (!analysis) return null;
 
     const summary = getQmaAnalysisSummary(analysis);
@@ -253,6 +281,12 @@ const AnalysisDetailsModal = ({ analysis, detailsError, loading, onClose }) => {
     const warnings = getQmaDataWarnings(analysis);
     const disclaimer = getQmaDisclaimer(analysis);
     const metadataRows = getQmaDocMetadataRows(analysis);
+    const subjectAddressLabel = getQmaAnalysisSubjectAddressLabel(analysis, 'Subject address unavailable');
+    const isCurrentAddressAnalysis = isQmaAnalysisCurrentSubjectAddress(analysis, currentAddressSource);
+    const errorDetails = getQmaAnalysisErrorDetails(analysis);
+    const showFailureDiagnostics =
+        isQmaAnalysisFailed(analysis)
+        || Boolean(errorDetails.code || errorDetails.message || errorDetails.retryable !== null);
 
     return (
         <div className={modalShellClassName}>
@@ -316,6 +350,56 @@ const AnalysisDetailsModal = ({ analysis, detailsError, loading, onClose }) => {
                         />
                         <DateMetric label="Generated" value={formatQmaDateTime(getQmaGeneratedAt(analysis))} />
                     </div>
+
+                    <section className="mt-[20px]">
+                        <h4 className="m-0 text-[15px] font-bold text-foreground">Subject Address Used</h4>
+                        {!isCurrentAddressAnalysis && (
+                            <div className="mt-[10px]">
+                                <InlineAlert tone="warning">
+                                    {previousAddressAnalysisWarning}
+                                </InlineAlert>
+                            </div>
+                        )}
+                        <div className="mt-[10px] rounded-[12px] border border-border bg-muted p-[14px]">
+                            <p className="m-0 break-words text-[14px] font-semibold text-foreground">
+                                {subjectAddressLabel}
+                            </p>
+                        </div>
+                    </section>
+
+                    {showFailureDiagnostics && (
+                        <section className="mt-[22px]">
+                            <h4 className="m-0 text-[15px] font-bold text-foreground">Failed Diagnostics</h4>
+                            <div className="mt-[10px] rounded-[12px] border border-border bg-muted p-[14px]">
+                                <dl className={diagnosticsGridClassName}>
+                                    <div className="min-w-0">
+                                        <dt className="font-semibold text-foreground">error.code</dt>
+                                        <dd className="m-0 mt-[3px] break-words">
+                                            {errorDetails.code || 'Not provided'}
+                                        </dd>
+                                    </div>
+                                    <div className="min-w-0 min-[640px]:col-span-2">
+                                        <dt className="font-semibold text-foreground">error.message</dt>
+                                        <dd className="m-0 mt-[3px] break-words">
+                                            {errorDetails.message || 'Not provided'}
+                                        </dd>
+                                    </div>
+                                    <div className="min-w-0">
+                                        <dt className="font-semibold text-foreground">error.retryable</dt>
+                                        <dd className="m-0 mt-[3px]">
+                                            {formatRetryableValue(errorDetails.retryable)}
+                                        </dd>
+                                    </div>
+                                    <div className="min-w-0 min-[640px]:col-span-2">
+                                        <dt className="font-semibold text-foreground">dataWarnings</dt>
+                                        <dd className="m-0 mt-[3px] break-words">
+                                            {warnings.length > 0 ? warnings.join('; ') : 'None'}
+                                        </dd>
+                                    </div>
+                                </dl>
+                            </div>
+                        </section>
+                    )}
 
                     <section className="mt-[20px]">
                         <h4 className="m-0 text-[15px] font-bold text-foreground">Summary</h4>
@@ -417,7 +501,7 @@ const QuarterlyMarketAnalysisCard = ({ lead, token, isAdmin = false }) => {
     const [loadingDetailsId, setLoadingDetailsId] = useState('');
 
     const loadQmaState = useCallback(async ({ quiet = false } = {}) => {
-        if (!leadId || !token) return;
+        if (!leadId || !token) return null;
 
         if (!quiet) setLoading(true);
         setError('');
@@ -442,16 +526,18 @@ const QuarterlyMarketAnalysisCard = ({ lead, token, isAdmin = false }) => {
             setQmaState(nextState);
             setAddressForm(nextState.subjectAddress);
             setAddressDirty(false);
+            return nextState;
         } catch (apiError) {
             if (apiError?.response?.status === 404) {
                 const defaultState = buildDefaultQmaState(lead);
                 setQmaState(defaultState);
                 setAddressForm(defaultState.subjectAddress);
                 setAddressDirty(false);
-                return;
+                return defaultState;
             }
 
             setError(normalizeQmaApiError(apiError, 'Quarterly Market Analysis state is unavailable.').message);
+            return null;
         } finally {
             if (!quiet) setLoading(false);
         }
@@ -471,10 +557,10 @@ const QuarterlyMarketAnalysisCard = ({ lead, token, isAdmin = false }) => {
     }, [lead, leadId, loadQmaState, token]);
 
     const subscriptionStatus = getSubscriptionStatus(qmaState);
-    const latestAnalysis = qmaState.latestAnalysis;
-    const latestAnalysisStatus = getQmaAnalysisStatus(latestAnalysis);
-    const latestEmailStatus = getQmaEmailStatus(latestAnalysis);
     const analyses = useMemo(() => getDisplayAnalyses(qmaState), [qmaState]);
+    const currentAnalysis = getQmaPrimaryAnalysis(qmaState);
+    const currentAnalysisStatus = getQmaAnalysisStatus(currentAnalysis);
+    const currentEmailStatus = getQmaEmailStatus(currentAnalysis);
     const hasLeadEmail = qmaState.leadHasEmail === true;
     const globallyUnsubscribed = qmaState.leadGloballyUnsubscribed === true;
     const emailBlocker = getEmailBlocker({ hasEmail: hasLeadEmail, globallyUnsubscribed });
@@ -483,12 +569,23 @@ const QuarterlyMarketAnalysisCard = ({ lead, token, isAdmin = false }) => {
     const addressMissing = !hasQmaAddress(addressForm);
     const hasSubscription = Boolean(qmaState.subscriptionId);
     const actionInFlight = Boolean(action);
-    const latestAnalysisId = getQmaRecordId(latestAnalysis);
+    const currentAnalysisId = getQmaRecordId(currentAnalysis);
+    const isCurrentAnalysisFailed = isQmaAnalysisFailed(currentAnalysis);
+    const hasPreviousAddressHistory =
+        qmaState.previousAddressAnalysisCount > 0
+        || analyses.some((analysis) => !isQmaAnalysisCurrentSubjectAddress(analysis, qmaState));
+    const showAddressChangedWarning =
+        hasSubscription
+        && !currentAnalysis
+        && hasPreviousAddressHistory
+        && Boolean(qmaState.currentSubjectAddressFingerprint || qmaState.subjectAddressFingerprint);
+    const generateButtonLabel = isCurrentAnalysisFailed ? 'Retry test analysis' : 'Generate test analysis';
     const showSendTestEmail =
         isAdmin
-        && latestAnalysis
-        && isQmaAnalysisGenerated(latestAnalysis)
-        && !isQmaEmailSent(latestAnalysis);
+        && currentAnalysis
+        && isQmaAnalysisCurrentSubjectAddress(currentAnalysis, qmaState)
+        && isQmaAnalysisGenerated(currentAnalysis)
+        && !isQmaEmailSent(currentAnalysis);
 
     const handleAddressChange = (field, value) => {
         setAddressDirty(true);
@@ -513,6 +610,11 @@ const QuarterlyMarketAnalysisCard = ({ lead, token, isAdmin = false }) => {
             getAddressSource(addressForm, addressDirty),
         )
     );
+
+    const canRetryCurrentAnalysis = (state) => {
+        const analysis = getQmaPrimaryAnalysis(state);
+        return isQmaAnalysisFailed(analysis) && isQmaAnalysisCurrentSubjectAddress(analysis, state);
+    };
 
     const handleSaveAddress = async () => {
         if (addressMissing) {
@@ -614,14 +716,21 @@ const QuarterlyMarketAnalysisCard = ({ lead, token, isAdmin = false }) => {
         setNotice('');
 
         try {
+            let triggerState = qmaState;
             if (addressDirty) {
                 await updateQmaSubscription(
                     qmaState.subscriptionId,
                     { subjectAddress: buildCurrentSubjectAddress() },
                     token,
                 );
+                triggerState = await loadQmaState({ quiet: true });
             }
-            await manualTriggerQma(qmaState.subscriptionId, {}, token);
+            const shouldRetry = triggerState ? canRetryCurrentAnalysis(triggerState) : false;
+            await manualTriggerQma(
+                qmaState.subscriptionId,
+                shouldRetry ? { retry: true } : {},
+                token,
+            );
             setNotice('Manual test analysis request completed.');
             await loadQmaState({ quiet: true });
         } catch (apiError) {
@@ -637,7 +746,7 @@ const QuarterlyMarketAnalysisCard = ({ lead, token, isAdmin = false }) => {
             return;
         }
 
-        if (!latestAnalysisId) {
+        if (!currentAnalysisId || !showSendTestEmail) {
             setError('Generate an analysis before sending a QMA email.');
             return;
         }
@@ -647,7 +756,7 @@ const QuarterlyMarketAnalysisCard = ({ lead, token, isAdmin = false }) => {
         setNotice('');
 
         try {
-            await sendQmaEmail(latestAnalysisId, {}, token);
+            await sendQmaEmail(currentAnalysisId, {}, token);
             setNotice('Manual test email request completed.');
             await loadQmaState({ quiet: true });
         } catch (apiError) {
@@ -673,7 +782,8 @@ const QuarterlyMarketAnalysisCard = ({ lead, token, isAdmin = false }) => {
         setLoadingDetailsId(analysisId);
         try {
             const payload = await getQmaAnalysis(analysisId, token);
-            setSelectedAnalysis(payload?.analysis || payload?.record || payload);
+            const fullAnalysis = payload?.analysis || payload?.record || payload;
+            setSelectedAnalysis({ ...analysis, ...fullAnalysis });
         } catch (apiError) {
             setDetailsError(normalizeQmaApiError(apiError, 'Unable to load analysis details.').message);
         } finally {
@@ -732,6 +842,16 @@ const QuarterlyMarketAnalysisCard = ({ lead, token, isAdmin = false }) => {
                 )}
                 {error && <InlineAlert tone="danger">{error}</InlineAlert>}
                 {notice && <InlineAlert tone="primary">{notice}</InlineAlert>}
+                {isCurrentAnalysisFailed && (
+                    <InlineAlert tone="danger">
+                        {currentAddressFailureWarning}
+                    </InlineAlert>
+                )}
+                {showAddressChangedWarning && (
+                    <InlineAlert tone="warning">
+                        {addressChangedWarning}
+                    </InlineAlert>
+                )}
 
                 <div className="grid gap-[12px] min-[900px]:grid-cols-3">
                     <StatusMetric
@@ -740,26 +860,26 @@ const QuarterlyMarketAnalysisCard = ({ lead, token, isAdmin = false }) => {
                         tone={subscriptionStatus.tone}
                     />
                     <StatusMetric
-                        label="Latest analysis status"
-                        value={formatQmaStatus(latestAnalysisStatus, 'No analysis')}
-                        tone={getAnalysisTone(latestAnalysisStatus)}
+                        label="Current analysis status"
+                        value={formatQmaStatus(currentAnalysisStatus, 'No analysis')}
+                        tone={getAnalysisTone(currentAnalysisStatus)}
                     />
                     <StatusMetric
-                        label="Latest email status"
-                        value={formatQmaStatus(latestEmailStatus, 'Not sent')}
-                        tone={getEmailTone(latestEmailStatus)}
+                        label="Current email status"
+                        value={formatQmaStatus(currentEmailStatus, 'Not sent')}
+                        tone={getEmailTone(currentEmailStatus)}
                     />
                     <DateMetric
                         label="Next scheduled date"
                         value={formatQmaDateTime(qmaState.nextScheduledAt, 'Not scheduled')}
                     />
                     <DateMetric
-                        label="Last generated date"
-                        value={formatQmaDateTime(getQmaGeneratedAt(latestAnalysis), 'Not generated')}
+                        label="Current generated date"
+                        value={formatQmaDateTime(getQmaGeneratedAt(currentAnalysis), 'Not generated')}
                     />
                     <DateMetric
-                        label="Last sent date"
-                        value={formatQmaDateTime(getQmaSentAt(latestAnalysis), 'Not sent')}
+                        label="Current sent date"
+                        value={formatQmaDateTime(getQmaSentAt(currentAnalysis), 'Not sent')}
                     />
                 </div>
 
@@ -903,7 +1023,7 @@ const QuarterlyMarketAnalysisCard = ({ lead, token, isAdmin = false }) => {
                                         } text-[13px]`}
                                         aria-hidden="true"
                                     />
-                                    Generate test analysis
+                                    {generateButtonLabel}
                                 </button>
                             )}
                             {showSendTestEmail && (
@@ -911,7 +1031,7 @@ const QuarterlyMarketAnalysisCard = ({ lead, token, isAdmin = false }) => {
                                     type="button"
                                     className={outlineButtonClassName}
                                     onClick={handleSendTestEmail}
-                                    disabled={actionInFlight || Boolean(emailBlocker) || !latestAnalysisId || !token}
+                                    disabled={actionInFlight || Boolean(emailBlocker) || !currentAnalysisId || !token}
                                 >
                                     <i
                                         className={`pi ${
@@ -939,10 +1059,11 @@ const QuarterlyMarketAnalysisCard = ({ lead, token, isAdmin = false }) => {
 
                     {analyses.length > 0 ? (
                         <div className="max-w-full overflow-x-auto rounded-[12px] border border-border">
-                            <table className="w-full min-w-[720px] border-collapse bg-surface text-left text-[13px]">
+                            <table className="w-full min-w-[820px] border-collapse bg-surface text-left text-[13px]">
                                 <thead className="bg-muted text-[11px] uppercase tracking-wide text-foreground-muted">
                                     <tr>
                                         <th className={tableHeaderCellClassName}>Quarter</th>
+                                        <th className={tableHeaderCellClassName}>Address</th>
                                         <th className={tableHeaderCellClassName}>Analysis Status</th>
                                         <th className={tableHeaderCellClassName}>Generated</th>
                                         <th className={tableHeaderCellClassName}>Email Status</th>
@@ -956,11 +1077,18 @@ const QuarterlyMarketAnalysisCard = ({ lead, token, isAdmin = false }) => {
                                         const analysisId = getQmaRecordId(analysis) || String(index);
                                         const rowAnalysisStatus = getQmaAnalysisStatus(analysis);
                                         const rowEmailStatus = getQmaEmailStatus(analysis);
+                                        const addressBadge = getAddressStateBadge(analysis, qmaState);
 
                                         return (
                                             <tr key={analysisId} className="text-foreground">
                                                 <td className={tableQuarterCellClassName}>
                                                     {getQmaQuarterLabel(analysis)}
+                                                </td>
+                                                <td className={tableCellClassName}>
+                                                    <StatusPill
+                                                        label={addressBadge.label}
+                                                        tone={addressBadge.tone}
+                                                    />
                                                 </td>
                                                 <td className={tableCellClassName}>
                                                     <StatusPill
@@ -1011,6 +1139,7 @@ const QuarterlyMarketAnalysisCard = ({ lead, token, isAdmin = false }) => {
 
             <AnalysisDetailsModal
                 analysis={selectedAnalysis}
+                currentAddressSource={qmaState}
                 detailsError={detailsError}
                 loading={Boolean(loadingDetailsId)}
                 onClose={() => {
