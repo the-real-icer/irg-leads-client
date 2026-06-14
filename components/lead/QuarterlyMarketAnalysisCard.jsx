@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
     enableQmaSubscription,
@@ -139,6 +139,13 @@ const previousAddressAnalysisWarning =
     'This analysis was generated for a previous subject address.';
 const addressChangedWarning =
     'This address has changed. Generate a new test analysis for the current address.';
+const generationCheckWorkingMessage =
+    'Doc may still be working. Checking for the latest analysis';
+const generationCheckTimeoutMessage =
+    'Doc is taking longer than expected. Refresh this card in a minute.';
+const generationCheckPollIntervalMs = 5000;
+const generationCheckTimeoutMs = 180000;
+const generationInProgressStatuses = new Set(['running', 'pending', 'queued', 'generating']);
 
 const toneClassNames = {
     success: 'border-success/30 bg-success/10 text-success',
@@ -225,6 +232,158 @@ const formatRetryableValue = (value) => {
     return value ? 'true' : 'false';
 };
 
+const wait = (durationMs) => new Promise((resolve) => {
+    setTimeout(resolve, durationMs);
+});
+
+const cleanErrorText = (value) => (
+    value === undefined || value === null ? '' : String(value).trim()
+);
+
+const hasStructuredQmaErrorBody = (apiError) => {
+    const data = apiError?.response?.data;
+    if (!data || typeof data !== 'object' || Array.isArray(data)) return false;
+
+    const nestedError = data.error;
+
+    return Boolean(
+        cleanErrorText(data.code)
+        || cleanErrorText(data.errorCode)
+        || cleanErrorText(data.error_code)
+        || cleanErrorText(data.message)
+        || cleanErrorText(data.errorMessage)
+        || cleanErrorText(data.error_message)
+        || (typeof nestedError === 'string' && cleanErrorText(nestedError))
+        || (
+            nestedError
+            && typeof nestedError === 'object'
+            && !Array.isArray(nestedError)
+            && (
+                cleanErrorText(nestedError.code)
+                || cleanErrorText(nestedError.errorCode)
+                || cleanErrorText(nestedError.error_code)
+                || cleanErrorText(nestedError.message)
+                || cleanErrorText(nestedError.errorMessage)
+                || cleanErrorText(nestedError.error_message)
+            )
+        )
+    );
+};
+
+const hasResponseBody = (apiError) => {
+    const data = apiError?.response?.data;
+    if (data === undefined || data === null) return false;
+    if (typeof data === 'string') return Boolean(data.trim());
+    return true;
+};
+
+const isIndeterminateManualTriggerError = (apiError, normalizedError) => {
+    if (hasStructuredQmaErrorBody(apiError)) return false;
+
+    const status = apiError?.response?.status;
+    const code = cleanErrorText(apiError?.code).toUpperCase();
+    const message = cleanErrorText(
+        apiError?.message
+        || apiError?.response?.statusText
+        || normalizedError?.message,
+    );
+    const noResponse = !apiError?.response;
+    const noStructuredBody = !hasResponseBody(apiError);
+
+    if (noResponse) return true;
+    if ([408, 502, 503, 504].includes(status)) return true;
+    if (status >= 500 && noStructuredBody) return true;
+    if (['ECONNABORTED', 'ERR_NETWORK', 'ETIMEDOUT'].includes(code)) return true;
+    if (normalizedError?.kind === 'unavailable' && noStructuredBody) return true;
+
+    return /network error|failed to fetch|load failed|cors|err_failed|timeout|timed out|gateway timeout/i
+        .test(message);
+};
+
+const getQmaAnalysisActivityTime = (analysis) => {
+    const candidates = [
+        analysis?.updatedAt,
+        analysis?.updated_at,
+        analysis?.statusUpdatedAt,
+        analysis?.status_updated_at,
+        analysis?.completedAt,
+        analysis?.completed_at,
+        analysis?.failedAt,
+        analysis?.failed_at,
+        getQmaGeneratedAt(analysis),
+        getQmaSentAt(analysis),
+        analysis?.startedAt,
+        analysis?.started_at,
+        analysis?.createdAt,
+        analysis?.created_at,
+    ];
+
+    const timestamp = candidates
+        .map((value) => {
+            if (!value) return 0;
+            const parsed = new Date(value).getTime();
+            return Number.isNaN(parsed) ? 0 : parsed;
+        })
+        .find((value) => value > 0);
+
+    return timestamp || 0;
+};
+
+const getGenerationPollingAnalysis = (state) => {
+    const analysis = state?.latestCurrentAddressAnalysis || getQmaPrimaryAnalysis(state);
+    if (!analysis || !isQmaAnalysisCurrentSubjectAddress(analysis, state)) return null;
+    return analysis;
+};
+
+const getGenerationPollingSignature = (analysis) => {
+    if (!analysis) return '';
+
+    const errorDetails = getQmaAnalysisErrorDetails(analysis);
+
+    return [
+        getQmaRecordId(analysis),
+        getQmaAnalysisStatus(analysis),
+        getQmaEmailStatus(analysis),
+        getQmaGeneratedAt(analysis),
+        getQmaSentAt(analysis),
+        getQmaAnalysisActivityTime(analysis),
+        errorDetails.code,
+        errorDetails.message,
+        formatRetryableValue(errorDetails.retryable),
+    ].join('|');
+};
+
+const isGenerationInProgress = (analysis) => (
+    generationInProgressStatuses.has(getQmaAnalysisStatus(analysis).toLowerCase())
+);
+
+const hasGenerationPollingResult = ({
+    analysis,
+    baselineAnalysis,
+    baselineSignature,
+    requestStartedAt,
+}) => {
+    if (!analysis) return false;
+
+    const isGenerated = isQmaAnalysisGenerated(analysis);
+    const isFailed = isQmaAnalysisFailed(analysis);
+    const isSent = isQmaEmailSent(analysis);
+    const isRunning = isGenerationInProgress(analysis);
+    if (!isGenerated && !isFailed && !isSent && !isRunning) return false;
+
+    const baselineId = getQmaRecordId(baselineAnalysis);
+    const analysisId = getQmaRecordId(analysis);
+    const sameRecord = baselineId && analysisId && baselineId === analysisId;
+    const signatureChanged = getGenerationPollingSignature(analysis) !== baselineSignature;
+    const activityTime = getQmaAnalysisActivityTime(analysis);
+    const updatedAfterRequest = Boolean(activityTime && activityTime >= requestStartedAt - 1000);
+
+    if (!sameRecord) return true;
+    if (signatureChanged || updatedAfterRequest) return true;
+
+    return (isGenerated || isSent) && !isQmaAnalysisFailed(baselineAnalysis);
+};
+
 const StatusPill = ({ label, tone = 'muted' }) => (
     <span
         className={`inline-flex items-center rounded-full border px-[9px] py-[3px] text-[12px] font-semibold ${
@@ -255,8 +414,14 @@ const DateMetric = ({ label, value }) => (
     </div>
 );
 
+const getAlertIcon = (tone) => {
+    if (tone === 'danger') return 'pi-times-circle';
+    if (tone === 'primary') return 'pi-info-circle';
+    return 'pi-exclamation-triangle';
+};
+
 const InlineAlert = ({ children, tone = 'warning' }) => {
-    const icon = tone === 'danger' ? 'pi-times-circle' : 'pi-exclamation-triangle';
+    const icon = getAlertIcon(tone);
 
     return (
         <div
@@ -499,12 +664,16 @@ const QuarterlyMarketAnalysisCard = ({ lead, token, isAdmin = false }) => {
     const [selectedAnalysis, setSelectedAnalysis] = useState(null);
     const [detailsError, setDetailsError] = useState('');
     const [loadingDetailsId, setLoadingDetailsId] = useState('');
+    const [isCheckingGeneration, setIsCheckingGeneration] = useState(false);
+    const [generationCheckMessage, setGenerationCheckMessage] = useState('');
+    const [generationRequestStartedAt, setGenerationRequestStartedAt] = useState(null);
+    const generationCheckIdRef = useRef(0);
 
-    const loadQmaState = useCallback(async ({ quiet = false } = {}) => {
+    const loadQmaState = useCallback(async ({ quiet = false, suppressError = false } = {}) => {
         if (!leadId || !token) return null;
 
         if (!quiet) setLoading(true);
-        setError('');
+        if (!suppressError) setError('');
 
         try {
             const payload = await getQmaSubscription(leadId, token);
@@ -536,20 +705,85 @@ const QuarterlyMarketAnalysisCard = ({ lead, token, isAdmin = false }) => {
                 return defaultState;
             }
 
-            setError(normalizeQmaApiError(apiError, 'Quarterly Market Analysis state is unavailable.').message);
+            if (!suppressError) {
+                setError(normalizeQmaApiError(apiError, 'Quarterly Market Analysis state is unavailable.').message);
+            }
             return null;
         } finally {
             if (!quiet) setLoading(false);
         }
     }, [lead, leadId, token]);
 
+    const checkGenerationResult = useCallback(async ({ baselineState, requestStartedAt }) => {
+        const checkId = generationCheckIdRef.current + 1;
+        generationCheckIdRef.current = checkId;
+
+        const baselineAnalysis = getGenerationPollingAnalysis(baselineState);
+        const baselineSignature = getGenerationPollingSignature(baselineAnalysis);
+        const startedAt = requestStartedAt || Date.now();
+        const isActiveCheck = () => generationCheckIdRef.current === checkId;
+
+        setIsCheckingGeneration(true);
+        setGenerationRequestStartedAt(startedAt);
+        setGenerationCheckMessage(generationCheckWorkingMessage);
+        setNotice('');
+        setError('');
+
+        try {
+            while (isActiveCheck() && Date.now() - startedAt <= generationCheckTimeoutMs) {
+                // Polling must stay sequential so each GET observes the latest persisted QMA state.
+                // eslint-disable-next-line no-await-in-loop
+                const nextState = await loadQmaState({ quiet: true, suppressError: true });
+
+                if (!isActiveCheck()) return null;
+
+                const analysis = getGenerationPollingAnalysis(nextState);
+                const hasResult = hasGenerationPollingResult({
+                    analysis,
+                    baselineAnalysis,
+                    baselineSignature,
+                    requestStartedAt: startedAt,
+                });
+
+                if (hasResult && !isGenerationInProgress(analysis)) {
+                    setGenerationCheckMessage('');
+                    if (isQmaAnalysisGenerated(analysis) || isQmaEmailSent(analysis)) {
+                        setNotice('Manual test analysis request completed.');
+                    }
+                    return nextState;
+                }
+
+                const elapsedMs = Date.now() - startedAt;
+                const remainingMs = generationCheckTimeoutMs - elapsedMs;
+                if (remainingMs <= 0) break;
+                // eslint-disable-next-line no-await-in-loop
+                await wait(Math.min(generationCheckPollIntervalMs, remainingMs));
+            }
+
+            if (isActiveCheck()) {
+                setGenerationCheckMessage(generationCheckTimeoutMessage);
+            }
+
+            return null;
+        } finally {
+            if (isActiveCheck()) {
+                setIsCheckingGeneration(false);
+                setGenerationRequestStartedAt(null);
+            }
+        }
+    }, [loadQmaState]);
+
     useEffect(() => {
+        generationCheckIdRef.current += 1;
         const defaultState = buildDefaultQmaState(lead);
         setQmaState(defaultState);
         setAddressForm(defaultState.subjectAddress);
         setAddressDirty(false);
         setNotice('');
         setError('');
+        setIsCheckingGeneration(false);
+        setGenerationCheckMessage('');
+        setGenerationRequestStartedAt(null);
 
         if (leadId && token) {
             loadQmaState();
@@ -568,7 +802,8 @@ const QuarterlyMarketAnalysisCard = ({ lead, token, isAdmin = false }) => {
     const hasAddressPreview = Boolean(addressPreview);
     const addressMissing = !hasQmaAddress(addressForm);
     const hasSubscription = Boolean(qmaState.subscriptionId);
-    const actionInFlight = Boolean(action);
+    const generationCheckActive = isCheckingGeneration && Boolean(generationRequestStartedAt);
+    const actionInFlight = Boolean(action) || generationCheckActive;
     const currentAnalysisId = getQmaRecordId(currentAnalysis);
     const isCurrentAnalysisFailed = isQmaAnalysisFailed(currentAnalysis);
     const hasPreviousAddressHistory =
@@ -590,6 +825,7 @@ const QuarterlyMarketAnalysisCard = ({ lead, token, isAdmin = false }) => {
     const handleAddressChange = (field, value) => {
         setAddressDirty(true);
         setNotice('');
+        setGenerationCheckMessage('');
         setAddressForm((current) => {
             const nextAddress = {
                 ...current,
@@ -624,6 +860,7 @@ const QuarterlyMarketAnalysisCard = ({ lead, token, isAdmin = false }) => {
 
         setError('');
         setNotice('');
+        setGenerationCheckMessage('');
 
         if (!hasSubscription) {
             setNotice('This address will be used when the QMA subscription is enabled.');
@@ -660,6 +897,7 @@ const QuarterlyMarketAnalysisCard = ({ lead, token, isAdmin = false }) => {
         setAction('enable');
         setError('');
         setNotice('');
+        setGenerationCheckMessage('');
 
         try {
             if (hasSubscription) {
@@ -691,6 +929,7 @@ const QuarterlyMarketAnalysisCard = ({ lead, token, isAdmin = false }) => {
         setAction('disable');
         setError('');
         setNotice('');
+        setGenerationCheckMessage('');
 
         try {
             await updateQmaSubscription(qmaState.subscriptionId, { active: false }, token);
@@ -714,9 +953,12 @@ const QuarterlyMarketAnalysisCard = ({ lead, token, isAdmin = false }) => {
         setAction('generate');
         setError('');
         setNotice('');
+        setGenerationCheckMessage('');
+
+        let triggerState = qmaState;
+        let manualTriggerStartedAt = Date.now();
 
         try {
-            let triggerState = qmaState;
             if (addressDirty) {
                 await updateQmaSubscription(
                     qmaState.subscriptionId,
@@ -726,6 +968,7 @@ const QuarterlyMarketAnalysisCard = ({ lead, token, isAdmin = false }) => {
                 triggerState = await loadQmaState({ quiet: true });
             }
             const shouldRetry = triggerState ? canRetryCurrentAnalysis(triggerState) : false;
+            manualTriggerStartedAt = Date.now();
             await manualTriggerQma(
                 qmaState.subscriptionId,
                 shouldRetry ? { retry: true } : {},
@@ -734,7 +977,17 @@ const QuarterlyMarketAnalysisCard = ({ lead, token, isAdmin = false }) => {
             setNotice('Manual test analysis request completed.');
             await loadQmaState({ quiet: true });
         } catch (apiError) {
-            setError(normalizeQmaApiError(apiError, 'Unable to generate the test analysis.').message);
+            const normalizedError = normalizeQmaApiError(apiError, 'Unable to generate the test analysis.');
+            if (isIndeterminateManualTriggerError(apiError, normalizedError)) {
+                setAction('');
+                await checkGenerationResult({
+                    baselineState: triggerState || qmaState,
+                    requestStartedAt: manualTriggerStartedAt,
+                });
+                return;
+            }
+
+            setError(normalizedError.message);
         } finally {
             setAction('');
         }
@@ -754,6 +1007,7 @@ const QuarterlyMarketAnalysisCard = ({ lead, token, isAdmin = false }) => {
         setAction('send-email');
         setError('');
         setNotice('');
+        setGenerationCheckMessage('');
 
         try {
             await sendQmaEmail(currentAnalysisId, {}, token);
@@ -823,7 +1077,10 @@ const QuarterlyMarketAnalysisCard = ({ lead, token, isAdmin = false }) => {
                     <button
                         type="button"
                         className={outlineButtonClassName}
-                        onClick={() => loadQmaState()}
+                        onClick={() => {
+                            setGenerationCheckMessage('');
+                            loadQmaState();
+                        }}
                         disabled={loading || actionInFlight || !token}
                     >
                         <i
@@ -842,7 +1099,17 @@ const QuarterlyMarketAnalysisCard = ({ lead, token, isAdmin = false }) => {
                 )}
                 {error && <InlineAlert tone="danger">{error}</InlineAlert>}
                 {notice && <InlineAlert tone="primary">{notice}</InlineAlert>}
-                {isCurrentAnalysisFailed && (
+                {generationCheckMessage && (
+                    <InlineAlert tone="primary">
+                        <span className="inline-flex items-center gap-[8px]">
+                            {generationCheckActive && (
+                                <i className="pi pi-spin pi-spinner text-[13px]" aria-hidden="true" />
+                            )}
+                            <span>{generationCheckMessage}</span>
+                        </span>
+                    </InlineAlert>
+                )}
+                {isCurrentAnalysisFailed && !generationCheckActive && (
                     <InlineAlert tone="danger">
                         {currentAddressFailureWarning}
                     </InlineAlert>
@@ -1019,7 +1286,9 @@ const QuarterlyMarketAnalysisCard = ({ lead, token, isAdmin = false }) => {
                                 >
                                     <i
                                         className={`pi ${
-                                            action === 'generate' ? 'pi-spin pi-spinner' : 'pi-cog'
+                                            action === 'generate' || generationCheckActive
+                                                ? 'pi-spin pi-spinner'
+                                                : 'pi-cog'
                                         } text-[13px]`}
                                         aria-hidden="true"
                                     />
