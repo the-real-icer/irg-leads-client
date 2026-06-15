@@ -943,7 +943,10 @@ const Lead = () => {
         setEditEAlertTarget(alert);
         setEditEAlertName(alert.searchName || '');
         setEditEAlertFrequency(alert.searchFrequency || 'Instantly');
-        setEditEAlertAreas(alert.areas || (alert.areaName ? [{ areaName: alert.areaName, areaType: alert.areaType }] : []));
+        setEditEAlertAreas(
+            alert.areas ||
+                (alert.areaName ? [{ areaName: alert.areaName, areaType: alert.areaType }] : []),
+        );
         setEditEAlertAreaSearch('');
         const sf = alert.searchFilter || {};
         setEditEAlertMinPrice(sf.minPriceFilter ? String(sf.minPriceFilter) : '');
@@ -1093,9 +1096,21 @@ const Lead = () => {
 
     const getDripTypeBadgeColor = (type) => {
         const colors = {
-            Buyer: { bg: 'hsl(var(--primary) / 0.12)', color: 'hsl(var(--primary))', border: 'hsl(var(--primary) / 0.35)' },
-            Seller: { bg: 'hsl(var(--success) / 0.12)', color: 'hsl(var(--success))', border: 'hsl(var(--success) / 0.35)' },
-            Both: { bg: 'hsl(var(--secondary) / 0.12)', color: 'hsl(var(--secondary))', border: 'hsl(var(--secondary) / 0.35)' },
+            Buyer: {
+                bg: 'hsl(var(--primary) / 0.12)',
+                color: 'hsl(var(--primary))',
+                border: 'hsl(var(--primary) / 0.35)',
+            },
+            Seller: {
+                bg: 'hsl(var(--success) / 0.12)',
+                color: 'hsl(var(--success))',
+                border: 'hsl(var(--success) / 0.35)',
+            },
+            Both: {
+                bg: 'hsl(var(--secondary) / 0.12)',
+                color: 'hsl(var(--secondary))',
+                border: 'hsl(var(--secondary) / 0.35)',
+            },
         };
         return colors[type] || colors.Both;
     };
@@ -1222,7 +1237,15 @@ const Lead = () => {
     if (leadLoading && !lead?.first_name) {
         return (
             <MainLayout title="Lead">
-                <div className="lead-profile-page" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+                <div
+                    className="lead-profile-page"
+                    style={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        minHeight: '50vh',
+                    }}
+                >
                     <i className="pi pi-spin pi-spinner" style={{ fontSize: '2rem' }} />
                 </div>
             </MainLayout>
@@ -1232,8 +1255,21 @@ const Lead = () => {
     if (leadNotFound) {
         return (
             <MainLayout title="Lead Not Found">
-                <div className="lead-profile-page" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '50vh', gap: '1rem' }}>
-                    <i className="pi pi-user-minus" style={{ fontSize: '3rem', color: 'hsl(var(--foreground-muted))' }} />
+                <div
+                    className="lead-profile-page"
+                    style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        minHeight: '50vh',
+                        gap: '1rem',
+                    }}
+                >
+                    <i
+                        className="pi pi-user-minus"
+                        style={{ fontSize: '3rem', color: 'hsl(var(--foreground-muted))' }}
+                    />
                     <h2 style={{ margin: 0, color: 'hsl(var(--foreground))' }}>Lead Not Found</h2>
                     <p style={{ color: 'hsl(var(--foreground-muted))', margin: 0 }}>
                         This lead may have been removed or you may not have access.
@@ -1289,10 +1325,19 @@ const Lead = () => {
                                         <h2 className="lead-profile-name">
                                             {getLeadDisplayName(lead)}
                                         </h2>
-                                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                        <div
+                                            style={{
+                                                display: 'flex',
+                                                gap: '0.5rem',
+                                                alignItems: 'center',
+                                            }}
+                                        >
                                             <div className="lead-status-pill" ref={statusRef}>
                                                 <button
-                                                    className={`lead-status-pill__trigger status-${lead?.backend_profile?.lead_category}`}
+                                                    className={[
+                                                        'lead-status-pill__trigger',
+                                                        `status-${lead?.backend_profile?.lead_category}`,
+                                                    ].join(' ')}
                                                     onClick={() => setStatusOpen((prev) => !prev)}
                                                     type="button"
                                                 >
@@ -1303,23 +1348,37 @@ const Lead = () => {
                                                     <div className="lead-status-pill__dropdown animate-slide-down">
                                                         {STATUS_OPTIONS.map((opt) => {
                                                             const isActive =
-                                                                lead?.backend_profile?.lead_category === opt.value;
+                                                                lead?.backend_profile
+                                                                    ?.lead_category === opt.value;
                                                             return (
                                                                 <button
                                                                     key={opt.value}
-                                                                    className={`lead-status-pill__option${isActive ? ' lead-status-pill__option--active' : ''}`}
-                                                                    onClick={() => updateStatus(opt.value)}
+                                                                    className={[
+                                                                        'lead-status-pill__option',
+                                                                        isActive
+                                                                            ? 'lead-status-pill__option--active'
+                                                                            : '',
+                                                                    ].join(' ')}
+                                                                    onClick={() =>
+                                                                        updateStatus(opt.value)
+                                                                    }
                                                                     type="button"
                                                                 >
                                                                     <span
                                                                         className="lead-status-pill__dot"
                                                                         style={{
-                                                                            backgroundColor: `hsl(var(--status-${opt.value}))`,
+                                                                            backgroundColor:
+                                                                                `hsl(var(--status-${opt.value}))`,
                                                                         }}
                                                                     />
                                                                     {opt.label}
                                                                     {isActive && (
-                                                                        <i className="pi pi-check lead-status-pill__check" />
+                                                                        <i
+                                                                            className={[
+                                                                                'pi pi-check',
+                                                                                'lead-status-pill__check',
+                                                                            ].join(' ')}
+                                                                        />
                                                                     )}
                                                                 </button>
                                                             );
@@ -1336,7 +1395,7 @@ const Lead = () => {
                                                         color: 'hsl(var(--warning-foreground))',
                                                         fontWeight: '600',
                                                         padding: '0.25rem 0.75rem',
-                                                        fontSize: '0.875rem'
+                                                        fontSize: '0.875rem',
                                                     }}
                                                 />
                                             )}
@@ -1353,7 +1412,13 @@ const Lead = () => {
                                         </div>
                                     </div>
                                     <div className="lead-profile-meta">
-                                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                        <span
+                                            style={{
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '4px',
+                                            }}
+                                        >
                                             <strong>Lead Type:</strong>{' '}
                                             {editingLeadType ? (
                                                 <Dropdown
@@ -1362,7 +1427,10 @@ const Lead = () => {
                                                     onChange={(e) => updateLeadType(e.value)}
                                                     placeholder="Select type..."
                                                     onHide={() => setEditingLeadType(false)}
-                                                    style={{ minWidth: '140px', fontSize: '0.875rem' }}
+                                                    style={{
+                                                        minWidth: '140px',
+                                                        fontSize: '0.875rem',
+                                                    }}
                                                 />
                                             ) : (
                                                 <button
@@ -1370,7 +1438,8 @@ const Lead = () => {
                                                     onClick={() => setEditingLeadType(true)}
                                                     style={{
                                                         cursor: 'pointer',
-                                                        borderBottom: '1px dashed hsl(var(--foreground-muted) / 0.4)',
+                                                        borderBottom:
+                                                            '1px dashed hsl(var(--foreground-muted) / 0.4)',
                                                         paddingBottom: '1px',
                                                         background: 'transparent',
                                                         borderTop: 'none',
@@ -1379,8 +1448,10 @@ const Lead = () => {
                                                     }}
                                                     title="Click to edit lead type"
                                                 >
-                                                    {savingLeadType ? 'Saving...' : (lead?.backend_profile?.lead_type || 'Not set')}
-                                                    {' '}
+                                                    {savingLeadType
+                                                        ? 'Saving...'
+                                                        : lead?.backend_profile?.lead_type ||
+                                                          'Not set'}{' '}
                                                     <i
                                                         className="pi pi-pencil"
                                                         style={{ fontSize: '0.7rem', opacity: 0.5 }}
@@ -1400,13 +1471,23 @@ const Lead = () => {
                                                 ? formatDate(lead.date_created)
                                                 : 'N/A'}
                                         </span>
-                                        {(lead?.user_location?.city || lead?.user_location?.state || lead?.address?.city || lead?.address?.state) && (
+                                        {(lead?.user_location?.city ||
+                                            lead?.user_location?.state ||
+                                            lead?.address?.city ||
+                                            lead?.address?.state) && (
                                             <>
                                                 <span className="meta-divider">•</span>
                                                 <span>
-                                                    <i className="pi pi-map-marker" style={{ marginRight: '4px' }} />
-                                                    {[lead.user_location?.city || lead.address?.city,
-                                                      lead.user_location?.state || lead.address?.state]
+                                                    <i
+                                                        className="pi pi-map-marker"
+                                                        style={{ marginRight: '4px' }}
+                                                    />
+                                                    {[
+                                                        lead.user_location?.city ||
+                                                            lead.address?.city,
+                                                        lead.user_location?.state ||
+                                                            lead.address?.state,
+                                                    ]
                                                         .filter(Boolean)
                                                         .join(', ')}
                                                 </span>
@@ -1454,7 +1535,10 @@ const Lead = () => {
                     isLoggedIn={isLoggedIn}
                     onAddOpen={() => setAddCoBuyerOpen(true)}
                     onAddClose={() => setAddCoBuyerOpen(false)}
-                    onLinked={(newCoBuyers) => { setCoBuyers(newCoBuyers); setAddCoBuyerOpen(false); }}
+                    onLinked={(newCoBuyers) => {
+                        setCoBuyers(newCoBuyers);
+                        setAddCoBuyerOpen(false);
+                    }}
                     onUnlink={handleUnlinkCoBuyer}
                     onNavigateToLead={(coBuyerId) => router.push(`/lead/${coBuyerId}`)}
                 />
@@ -1477,27 +1561,32 @@ const Lead = () => {
                             &#9888;
                         </span>
                         <div>
-                            <p style={{
-                                fontSize: '13px',
-                                fontWeight: '600',
-                                color: 'hsl(var(--danger))',
-                                margin: 0,
-                            }}>
+                            <p
+                                style={{
+                                    fontSize: '13px',
+                                    fontWeight: '600',
+                                    color: 'hsl(var(--danger))',
+                                    margin: 0,
+                                }}
+                            >
                                 Unsubscribed from all emails
                             </p>
-                            <p style={{
-                                fontSize: '12px',
-                                color: 'hsl(var(--danger) / 0.8)',
-                                margin: 0,
-                            }}>
+                            <p
+                                style={{
+                                    fontSize: '12px',
+                                    color: 'hsl(var(--danger) / 0.8)',
+                                    margin: 0,
+                                }}
+                            >
                                 This lead opted out on{' '}
                                 {lead.email_preferences.unsubscribed_at
-                                    ? new Date(lead.email_preferences.unsubscribed_at)
-                                        .toLocaleDateString('en-US', {
-                                            month: 'long',
-                                            day: 'numeric',
-                                            year: 'numeric',
-                                        })
+                                    ? new Date(
+                                          lead.email_preferences.unsubscribed_at,
+                                      ).toLocaleDateString('en-US', {
+                                          month: 'long',
+                                          day: 'numeric',
+                                          year: 'numeric',
+                                      })
                                     : 'an unknown date'}
                                 . Do not send marketing emails.
                             </p>
@@ -1548,29 +1637,43 @@ const Lead = () => {
                 />
 
                 {/* Agent Saved Searches Section */}
-                <div className="lead-agent-saved-searches" style={{ marginTop: '2rem', marginBottom: '2rem' }}>
+                <div
+                    className="lead-agent-saved-searches"
+                    style={{ marginTop: '2rem', marginBottom: '2rem' }}
+                >
                     <Card>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                            <h3 style={{
-                                fontSize: '1.25rem',
-                                fontWeight: '700',
-                                color: 'hsl(var(--foreground))',
-                                margin: 0
-                            }}>
+                        <div
+                            style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                marginBottom: '1rem',
+                            }}
+                        >
+                            <h3
+                                style={{
+                                    fontSize: '1.25rem',
+                                    fontWeight: '700',
+                                    color: 'hsl(var(--foreground))',
+                                    margin: 0,
+                                }}
+                            >
                                 Agent Saved Searches
                                 {lead?.email_preferences?.e_alerts === false && (
-                                    <span style={{
-                                        fontSize: '10px',
-                                        fontWeight: '600',
-                                        textTransform: 'uppercase',
-                                        letterSpacing: '0.05em',
-                                        padding: '2px 8px',
-                                        borderRadius: '9999px',
-                                        backgroundColor: 'hsl(var(--danger) / 0.1)',
-                                        color: 'hsl(var(--danger))',
-                                        marginLeft: '8px',
-                                        verticalAlign: 'middle',
-                                    }}>
+                                    <span
+                                        style={{
+                                            fontSize: '10px',
+                                            fontWeight: '600',
+                                            textTransform: 'uppercase',
+                                            letterSpacing: '0.05em',
+                                            padding: '2px 8px',
+                                            borderRadius: '9999px',
+                                            backgroundColor: 'hsl(var(--danger) / 0.1)',
+                                            color: 'hsl(var(--danger))',
+                                            marginLeft: '8px',
+                                            verticalAlign: 'middle',
+                                        }}
+                                    >
                                         Opted Out
                                     </span>
                                 )}
@@ -1587,11 +1690,20 @@ const Lead = () => {
                         {lead?.e_alerts?.length > 0 ? (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                 {lead.e_alerts.map((alert) => {
-                                    const area = alert.areas?.[0]?.areaName || alert.areaName || '\u2014';
-                                    const minPrice = formatPriceShort(alert.searchFilter?.minPriceFilter);
-                                    const maxPrice = formatPriceShort(alert.searchFilter?.maxPriceFilter);
-                                    const beds = alert.searchFilter?.minBedsFilter ? `${alert.searchFilter.minBedsFilter}+` : 'Any';
-                                    const baths = alert.searchFilter?.minBathsFilter ? `${alert.searchFilter.minBathsFilter}+` : 'Any';
+                                    const area =
+                                        alert.areas?.[0]?.areaName || alert.areaName || '\u2014';
+                                    const minPrice = formatPriceShort(
+                                        alert.searchFilter?.minPriceFilter,
+                                    );
+                                    const maxPrice = formatPriceShort(
+                                        alert.searchFilter?.maxPriceFilter,
+                                    );
+                                    const beds = alert.searchFilter?.minBedsFilter
+                                        ? `${alert.searchFilter.minBedsFilter}+`
+                                        : 'Any';
+                                    const baths = alert.searchFilter?.minBathsFilter
+                                        ? `${alert.searchFilter.minBathsFilter}+`
+                                        : 'Any';
 
                                     return (
                                         <div
@@ -1603,25 +1715,41 @@ const Lead = () => {
                                                 borderRadius: '8px',
                                             }}
                                         >
-                                            <div style={{
-                                                display: 'flex',
-                                                justifyContent: 'space-between',
-                                                alignItems: 'start',
-                                                marginBottom: '0.5rem'
-                                            }}>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                    <span style={{ fontWeight: '700', fontSize: '1rem', color: 'hsl(var(--foreground))' }}>
+                                            <div
+                                                style={{
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'start',
+                                                    marginBottom: '0.5rem',
+                                                }}
+                                            >
+                                                <div
+                                                    style={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '0.5rem',
+                                                    }}
+                                                >
+                                                    <span
+                                                        style={{
+                                                            fontWeight: '700',
+                                                            fontSize: '1rem',
+                                                            color: 'hsl(var(--foreground))',
+                                                        }}
+                                                    >
                                                         {alert.searchName || 'Unnamed Search'}
                                                     </span>
-                                                    <span style={{
-                                                        backgroundColor: '#e0f7fa',
-                                                        color: '#00838f',
-                                                        border: '1px solid #4dd0e1',
-                                                        padding: '0.15rem 0.5rem',
-                                                        borderRadius: '12px',
-                                                        fontSize: '0.7rem',
-                                                        fontWeight: '600',
-                                                    }}>
+                                                    <span
+                                                        style={{
+                                                            backgroundColor: '#e0f7fa',
+                                                            color: '#00838f',
+                                                            border: '1px solid #4dd0e1',
+                                                            padding: '0.15rem 0.5rem',
+                                                            borderRadius: '12px',
+                                                            fontSize: '0.7rem',
+                                                            fontWeight: '600',
+                                                        }}
+                                                    >
                                                         {alert.searchFrequency || 'Instantly'}
                                                     </span>
                                                 </div>
@@ -1642,9 +1770,25 @@ const Lead = () => {
                                                     />
                                                 </div>
                                             </div>
-                                            <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', fontSize: '0.85rem', color: 'hsl(var(--foreground-muted))' }}>
-                                                <span><i className="pi pi-map-marker" style={{ marginRight: '0.3rem' }}></i>{area}</span>
-                                                <span>{minPrice} – {maxPrice}</span>
+                                            <div
+                                                style={{
+                                                    display: 'flex',
+                                                    gap: '1.5rem',
+                                                    flexWrap: 'wrap',
+                                                    fontSize: '0.85rem',
+                                                    color: 'hsl(var(--foreground-muted))',
+                                                }}
+                                            >
+                                                <span>
+                                                    <i
+                                                        className="pi pi-map-marker"
+                                                        style={{ marginRight: '0.3rem' }}
+                                                    ></i>
+                                                    {area}
+                                                </span>
+                                                <span>
+                                                    {minPrice} – {maxPrice}
+                                                </span>
                                                 <span>{beds} beds</span>
                                                 <span>{baths} baths</span>
                                             </div>
@@ -1653,16 +1797,30 @@ const Lead = () => {
                                 })}
                             </div>
                         ) : (
-                            <div style={{
-                                textAlign: 'center',
-                                padding: '2rem',
-                                color: 'hsl(var(--foreground-muted))',
-                                backgroundColor: 'hsl(var(--muted))',
-                                borderRadius: '8px'
-                            }}>
-                                <i className="pi pi-search" style={{ fontSize: '2.5rem', display: 'block', marginBottom: '1rem', opacity: 0.5 }}></i>
-                                <p style={{ fontSize: '1rem', marginBottom: '0.5rem' }}>No agent searches created yet</p>
-                                <p style={{ fontSize: '0.9rem' }}>Go to Property Search to create an e-alert for this lead</p>
+                            <div
+                                style={{
+                                    textAlign: 'center',
+                                    padding: '2rem',
+                                    color: 'hsl(var(--foreground-muted))',
+                                    backgroundColor: 'hsl(var(--muted))',
+                                    borderRadius: '8px',
+                                }}
+                            >
+                                <i
+                                    className="pi pi-search"
+                                    style={{
+                                        fontSize: '2.5rem',
+                                        display: 'block',
+                                        marginBottom: '1rem',
+                                        opacity: 0.5,
+                                    }}
+                                ></i>
+                                <p style={{ fontSize: '1rem', marginBottom: '0.5rem' }}>
+                                    No agent searches created yet
+                                </p>
+                                <p style={{ fontSize: '0.9rem' }}>
+                                    Go to Property Search to create an e-alert for this lead
+                                </p>
                             </div>
                         )}
                     </Card>
@@ -1682,22 +1840,29 @@ const Lead = () => {
                 />
 
                 {/* Activity Actions Section */}
-                <div className="lead-activity-actions" style={{ marginTop: '2rem', marginBottom: '2rem' }}>
+                <div
+                    className="lead-activity-actions"
+                    style={{ marginTop: '2rem', marginBottom: '2rem' }}
+                >
                     <Card>
                         <div style={{ marginBottom: '1.5rem' }}>
-                            <h3 style={{
-                                fontSize: '1.25rem',
-                                fontWeight: '700',
-                                color: 'hsl(var(--foreground))',
-                                marginBottom: '1rem'
-                            }}>
+                            <h3
+                                style={{
+                                    fontSize: '1.25rem',
+                                    fontWeight: '700',
+                                    color: 'hsl(var(--foreground))',
+                                    marginBottom: '1rem',
+                                }}
+                            >
                                 Activity Actions
                             </h3>
-                            <div style={{
-                                display: 'flex',
-                                gap: '1rem',
-                                flexWrap: 'wrap'
-                            }}>
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    gap: '1rem',
+                                    flexWrap: 'wrap',
+                                }}
+                            >
                                 <Button
                                     label="Log A Call"
                                     icon="pi pi-phone"
@@ -1706,7 +1871,7 @@ const Lead = () => {
                                     style={{
                                         padding: '0.75rem 1.5rem',
                                         fontSize: '1rem',
-                                        fontWeight: '600'
+                                        fontWeight: '600',
                                     }}
                                 />
                                 <Button
@@ -1717,7 +1882,7 @@ const Lead = () => {
                                     style={{
                                         padding: '0.75rem 1.5rem',
                                         fontSize: '1rem',
-                                        fontWeight: '600'
+                                        fontWeight: '600',
                                     }}
                                 />
                                 <Button
@@ -1728,7 +1893,7 @@ const Lead = () => {
                                     style={{
                                         padding: '0.75rem 1.5rem',
                                         fontSize: '1rem',
-                                        fontWeight: '600'
+                                        fontWeight: '600',
                                     }}
                                 />
                                 <Button
@@ -1740,7 +1905,7 @@ const Lead = () => {
                                     style={{
                                         padding: '0.75rem 1.5rem',
                                         fontSize: '1rem',
-                                        fontWeight: '600'
+                                        fontWeight: '600',
                                     }}
                                     tooltip="Add this lead to your Google Contacts"
                                     tooltipOptions={{ position: 'bottom' }}
@@ -1750,135 +1915,189 @@ const Lead = () => {
 
                         {/* Notes and Calls History — only show when loading or has activity */}
                         {(loadingEmails || getAllActivity().length > 0) && (
-                        <div style={{
-                            borderTop: '1px solid hsl(var(--border))',
-                            paddingTop: '1.5rem'
-                        }}>
-                            <h4 style={{
-                                fontSize: '1.1rem',
-                                fontWeight: '700',
-                                color: 'hsl(var(--foreground))',
-                                marginBottom: '1rem'
-                            }}>
-                                Activity
-                            </h4>
-                            <div>
-                                {loadingEmails && getAllActivity().length === 0 ? (
-                                    <div style={{
-                                        textAlign: 'center',
-                                        padding: '3rem',
-                                        color: 'hsl(var(--foreground-muted))'
-                                    }}>
-                                        <i className="pi pi-spin pi-spinner" style={{ fontSize: '2rem', display: 'block', marginBottom: '1rem' }}></i>
-                                        <p style={{ fontSize: '0.9rem' }}>Loading activity...</p>
-                                    </div>
-                                ) : getAllActivity().length > 0 ? (
-                                    <div style={{
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        gap: '1rem'
-                                    }}>
-                                        {getAllActivity().map((action, index) => {
-                                            const isReceived = action.type === 'email_received';
-                                            const isEmail = action.type === 'email' || isReceived;
-                                            const isCall = action.type === 'call';
+                            <div
+                                style={{
+                                    borderTop: '1px solid hsl(var(--border))',
+                                    paddingTop: '1.5rem',
+                                }}
+                            >
+                                <h4
+                                    style={{
+                                        fontSize: '1.1rem',
+                                        fontWeight: '700',
+                                        color: 'hsl(var(--foreground))',
+                                        marginBottom: '1rem',
+                                    }}
+                                >
+                                    Activity
+                                </h4>
+                                <div>
+                                    {loadingEmails && getAllActivity().length === 0 ? (
+                                        <div
+                                            style={{
+                                                textAlign: 'center',
+                                                padding: '3rem',
+                                                color: 'hsl(var(--foreground-muted))',
+                                            }}
+                                        >
+                                            <i
+                                                className="pi pi-spin pi-spinner"
+                                                style={{
+                                                    fontSize: '2rem',
+                                                    display: 'block',
+                                                    marginBottom: '1rem',
+                                                }}
+                                            ></i>
+                                            <p style={{ fontSize: '0.9rem' }}>
+                                                Loading activity...
+                                            </p>
+                                        </div>
+                                    ) : getAllActivity().length > 0 ? (
+                                        <div
+                                            style={{
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                gap: '1rem',
+                                            }}
+                                        >
+                                            {getAllActivity().map((action, index) => {
+                                                const isReceived = action.type === 'email_received';
+                                                const isEmail =
+                                                    action.type === 'email' || isReceived;
+                                                const isCall = action.type === 'call';
 
-                                            let bgColor = 'hsl(var(--primary) / 0.08)';
-                                            let borderColor = 'hsl(var(--primary))';
-                                            let iconClass = 'pi-file-edit';
-                                            let iconColor = 'hsl(var(--primary))';
-                                            let label = action.type;
+                                                let bgColor = 'hsl(var(--primary) / 0.08)';
+                                                let borderColor = 'hsl(var(--primary))';
+                                                let iconClass = 'pi-file-edit';
+                                                let iconColor = 'hsl(var(--primary))';
+                                                let label = action.type;
 
-                                            if (isCall) {
-                                                bgColor = 'hsl(var(--success) / 0.08)'; borderColor = 'hsl(var(--success))'; iconClass = 'pi-phone'; iconColor = 'hsl(var(--success))';
-                                            } else if (isReceived) {
-                                                bgColor = 'hsl(var(--warning) / 0.08)'; borderColor = 'hsl(var(--warning))'; iconClass = 'pi-inbox'; iconColor = 'hsl(var(--warning))'; label = 'Email Received';
-                                            } else if (isEmail) {
-                                                bgColor = 'hsl(var(--danger) / 0.08)'; borderColor = 'hsl(var(--danger))'; iconClass = 'pi-send'; iconColor = 'hsl(var(--danger))'; label = 'Email Sent';
-                                            }
+                                                if (isCall) {
+                                                    bgColor = 'hsl(var(--success) / 0.08)';
+                                                    borderColor = 'hsl(var(--success))';
+                                                    iconClass = 'pi-phone';
+                                                    iconColor = 'hsl(var(--success))';
+                                                } else if (isReceived) {
+                                                    bgColor = 'hsl(var(--warning) / 0.08)';
+                                                    borderColor = 'hsl(var(--warning))';
+                                                    iconClass = 'pi-inbox';
+                                                    iconColor = 'hsl(var(--warning))';
+                                                    label = 'Email Received';
+                                                } else if (isEmail) {
+                                                    bgColor = 'hsl(var(--danger) / 0.08)';
+                                                    borderColor = 'hsl(var(--danger))';
+                                                    iconClass = 'pi-send';
+                                                    iconColor = 'hsl(var(--danger))';
+                                                    label = 'Email Sent';
+                                                }
 
-                                            return (
-                                                <div
-                                                    key={action.id || action._id || index}
-                                                    style={{
-                                                        padding: '1rem',
-                                                        backgroundColor: bgColor,
-                                                        borderLeft: `4px solid ${borderColor}`,
-                                                        borderRadius: '8px',
-                                                        boxShadow: '0 1px 3px hsl(var(--shadow-color) / 0.1)'
-                                                    }}
-                                                >
-                                                    <div style={{
-                                                        display: 'flex',
-                                                        justifyContent: 'space-between',
-                                                        alignItems: 'start',
-                                                        marginBottom: '0.5rem'
-                                                    }}>
-                                                        <div style={{
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            gap: '0.5rem'
-                                                        }}>
-                                                            <i
-                                                                className={`pi ${iconClass}`}
-                                                                style={{ fontSize: '1.1rem', color: iconColor }}
-                                                            ></i>
-                                                            <span style={{
-                                                                fontWeight: '700',
-                                                                fontSize: '0.95rem',
-                                                                color: 'hsl(var(--foreground))',
-                                                            }}>
-                                                                {label}
-                                                            </span>
-                                                            {isEmail && action.subject && (
-                                                                <span style={{
-                                                                    fontSize: '0.85rem',
-                                                                    color: 'hsl(var(--foreground-muted))',
-                                                                    fontWeight: '400',
-                                                                }}>
-                                                                    — {action.subject}
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                        <span style={{
-                                                            fontSize: '0.85rem',
-                                                            color: 'hsl(var(--foreground-muted))',
-                                                            whiteSpace: 'nowrap',
-                                                            marginLeft: '0.5rem'
-                                                        }}>
-                                                            {action.date_created
-                                                                ? `${formatDate(action.date_created)} at ${new Date(action.date_created).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`
-                                                                : 'Recent'}
-                                                        </span>
-                                                    </div>
-                                                    {isEmail ? (
+                                                return (
+                                                    <div
+                                                        key={action.id || action._id || index}
+                                                        style={{
+                                                            padding: '1rem',
+                                                            backgroundColor: bgColor,
+                                                            borderLeft: `4px solid ${borderColor}`,
+                                                            borderRadius: '8px',
+                                                            boxShadow:
+                                                                '0 1px 3px hsl(var(--shadow-color) / 0.1)',
+                                                        }}
+                                                    >
                                                         <div
                                                             style={{
-                                                                fontSize: '0.95rem',
-                                                                color: 'hsl(var(--foreground-muted))',
-                                                                lineHeight: '1.6',
-                                                                maxHeight: '200px',
-                                                                overflow: 'hidden',
+                                                                display: 'flex',
+                                                                justifyContent: 'space-between',
+                                                                alignItems: 'start',
+                                                                marginBottom: '0.5rem',
                                                             }}
-                                                            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(action.value) }}
-                                                        />
-                                                    ) : (
-                                                        <div style={{
-                                                            fontSize: '0.95rem',
-                                                            color: 'hsl(var(--foreground-muted))',
-                                                            lineHeight: '1.6',
-                                                            whiteSpace: 'pre-wrap'
-                                                        }}>
-                                                            {action.value}
+                                                        >
+                                                            <div
+                                                                style={{
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    gap: '0.5rem',
+                                                                }}
+                                                            >
+                                                                <i
+                                                                    className={`pi ${iconClass}`}
+                                                                    style={{
+                                                                        fontSize: '1.1rem',
+                                                                        color: iconColor,
+                                                                    }}
+                                                                ></i>
+                                                                <span
+                                                                    style={{
+                                                                        fontWeight: '700',
+                                                                        fontSize: '0.95rem',
+                                                                        color: 'hsl(var(--foreground))',
+                                                                    }}
+                                                                >
+                                                                    {label}
+                                                                </span>
+                                                                {isEmail && action.subject && (
+                                                                    <span
+                                                                        style={{
+                                                                            fontSize: '0.85rem',
+                                                                            color: 'hsl(var(--foreground-muted))',
+                                                                            fontWeight: '400',
+                                                                        }}
+                                                                    >
+                                                                        — {action.subject}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <span
+                                                                style={{
+                                                                    fontSize: '0.85rem',
+                                                                    color: 'hsl(var(--foreground-muted))',
+                                                                    whiteSpace: 'nowrap',
+                                                                    marginLeft: '0.5rem',
+                                                                }}
+                                                            >
+                                                                {action.date_created
+                                                                    ? `${formatDate(action.date_created)} at ${new Date(
+                                                                          action.date_created,
+                                                                      ).toLocaleTimeString('en-US', {
+                                                                          hour: 'numeric',
+                                                                          minute: '2-digit',
+                                                                      })}`
+                                                                    : 'Recent'}
+                                                            </span>
                                                         </div>
-                                                    )}
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                ) : null}
+                                                        {isEmail ? (
+                                                            <div
+                                                                style={{
+                                                                    fontSize: '0.95rem',
+                                                                    color: 'hsl(var(--foreground-muted))',
+                                                                    lineHeight: '1.6',
+                                                                    maxHeight: '200px',
+                                                                    overflow: 'hidden',
+                                                                }}
+                                                                dangerouslySetInnerHTML={{
+                                                                    __html: DOMPurify.sanitize(
+                                                                        action.value,
+                                                                    ),
+                                                                }}
+                                                            />
+                                                        ) : (
+                                                            <div
+                                                                style={{
+                                                                    fontSize: '0.95rem',
+                                                                    color: 'hsl(var(--foreground-muted))',
+                                                                    lineHeight: '1.6',
+                                                                    whiteSpace: 'pre-wrap',
+                                                                }}
+                                                            >
+                                                                {action.value}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    ) : null}
+                                </div>
                             </div>
-                        </div>
                         )}
                     </Card>
                 </div>
@@ -1926,11 +2145,15 @@ const Lead = () => {
                     maximizable
                 >
                     <div className="dialog-properties-grid">
-                        {lead?.favorited_homes?.filter((home) => getFavoritedHomeProperty(home)).length > 0 ? (
+                        {lead?.favorited_homes?.filter((home) => getFavoritedHomeProperty(home))
+                            .length > 0 ? (
                             lead.favorited_homes
                                 .filter((home) => getFavoritedHomeProperty(home))
                                 .map((home) => (
-                                    <PrpCard key={home._id} property={getFavoritedHomeProperty(home)} />
+                                    <PrpCard
+                                        key={home._id}
+                                        property={getFavoritedHomeProperty(home)}
+                                    />
                                 ))
                         ) : (
                             <div className="empty-state">
@@ -2045,7 +2268,7 @@ const Lead = () => {
                                 display: 'block',
                                 marginBottom: '0.5rem',
                                 fontWeight: '600',
-                                color: 'hsl(var(--foreground-muted))'
+                                color: 'hsl(var(--foreground-muted))',
                             }}
                         >
                             Call Notes
@@ -2058,8 +2281,15 @@ const Lead = () => {
                             placeholder="Enter notes about this call..."
                             style={{ width: '100%', fontFamily: 'inherit' }}
                         />
-                        <small style={{ display: 'block', marginTop: '0.5rem', color: 'hsl(var(--foreground-muted))' }}>
-                            Document key points from your conversation with {getLeadDisplayName(lead)}
+                        <small
+                            style={{
+                                display: 'block',
+                                marginTop: '0.5rem',
+                                color: 'hsl(var(--foreground-muted))',
+                            }}
+                        >
+                            Document key points from your conversation with{' '}
+                            {getLeadDisplayName(lead)}
                         </small>
                     </div>
                 </Dialog>
@@ -2101,7 +2331,7 @@ const Lead = () => {
                                 display: 'block',
                                 marginBottom: '0.5rem',
                                 fontWeight: '600',
-                                color: 'hsl(var(--foreground-muted))'
+                                color: 'hsl(var(--foreground-muted))',
                             }}
                         >
                             Note Content
@@ -2114,8 +2344,15 @@ const Lead = () => {
                             placeholder="Enter your note about this lead..."
                             style={{ width: '100%', fontFamily: 'inherit' }}
                         />
-                        <small style={{ display: 'block', marginTop: '0.5rem', color: 'hsl(var(--foreground-muted))' }}>
-                            Add important information or observations about {getLeadDisplayName(lead)}
+                        <small
+                            style={{
+                                display: 'block',
+                                marginTop: '0.5rem',
+                                color: 'hsl(var(--foreground-muted))',
+                            }}
+                        >
+                            Add important information or observations about{' '}
+                            {getLeadDisplayName(lead)}
                         </small>
                     </div>
                 </Dialog>
@@ -2161,7 +2398,7 @@ const Lead = () => {
                                     display: 'block',
                                     marginBottom: '0.5rem',
                                     fontWeight: '600',
-                                    color: 'hsl(var(--foreground-muted))'
+                                    color: 'hsl(var(--foreground-muted))',
                                 }}
                             >
                                 To
@@ -2173,7 +2410,7 @@ const Lead = () => {
                                 style={{
                                     width: '100%',
                                     backgroundColor: 'hsl(var(--muted))',
-                                    cursor: 'not-allowed'
+                                    cursor: 'not-allowed',
                                 }}
                             />
                         </div>
@@ -2186,7 +2423,7 @@ const Lead = () => {
                                     display: 'block',
                                     marginBottom: '0.5rem',
                                     fontWeight: '600',
-                                    color: 'hsl(var(--foreground-muted))'
+                                    color: 'hsl(var(--foreground-muted))',
                                 }}
                             >
                                 Subject
@@ -2208,7 +2445,7 @@ const Lead = () => {
                                     display: 'block',
                                     marginBottom: '0.5rem',
                                     fontWeight: '600',
-                                    color: 'hsl(var(--foreground-muted))'
+                                    color: 'hsl(var(--foreground-muted))',
                                 }}
                             >
                                 Message
@@ -2227,8 +2464,15 @@ const Lead = () => {
                                     }}
                                 />
                             </div>
-                            <small style={{ display: 'block', marginTop: '0.5rem', color: 'hsl(var(--foreground-muted))' }}>
-                                This email will be sent to {getLeadDisplayName(lead)} at {lead?.email}
+                            <small
+                                style={{
+                                    display: 'block',
+                                    marginTop: '0.5rem',
+                                    color: 'hsl(var(--foreground-muted))',
+                                }}
+                            >
+                                This email will be sent to {getLeadDisplayName(lead)} at{' '}
+                                {lead?.email}
                             </small>
                         </div>
                     </div>
@@ -2277,7 +2521,7 @@ const Lead = () => {
                                     display: 'block',
                                     marginBottom: '0.5rem',
                                     fontWeight: '600',
-                                    color: 'hsl(var(--foreground-muted))'
+                                    color: 'hsl(var(--foreground-muted))',
                                 }}
                             >
                                 Reminder Date *
@@ -2292,7 +2536,13 @@ const Lead = () => {
                                 style={{ width: '100%' }}
                                 minDate={new Date()}
                             />
-                            <small style={{ display: 'block', marginTop: '0.25rem', color: 'hsl(var(--foreground-muted))' }}>
+                            <small
+                                style={{
+                                    display: 'block',
+                                    marginTop: '0.25rem',
+                                    color: 'hsl(var(--foreground-muted))',
+                                }}
+                            >
                                 When should we remind you?
                             </small>
                         </div>
@@ -2305,7 +2555,7 @@ const Lead = () => {
                                     display: 'block',
                                     marginBottom: '0.5rem',
                                     fontWeight: '600',
-                                    color: 'hsl(var(--foreground-muted))'
+                                    color: 'hsl(var(--foreground-muted))',
                                 }}
                             >
                                 Reminder Type
@@ -2332,7 +2582,7 @@ const Lead = () => {
                                     display: 'block',
                                     marginBottom: '0.5rem',
                                     fontWeight: '600',
-                                    color: 'hsl(var(--foreground-muted))'
+                                    color: 'hsl(var(--foreground-muted))',
                                 }}
                             >
                                 Description *
@@ -2345,8 +2595,15 @@ const Lead = () => {
                                 placeholder="What do you need to follow up on?"
                                 style={{ width: '100%', fontFamily: 'inherit' }}
                             />
-                            <small style={{ display: 'block', marginTop: '0.5rem', color: 'hsl(var(--foreground-muted))' }}>
-                                Add notes about what you need to do or discuss with {getLeadDisplayName(lead)}
+                            <small
+                                style={{
+                                    display: 'block',
+                                    marginTop: '0.5rem',
+                                    color: 'hsl(var(--foreground-muted))',
+                                }}
+                            >
+                                Add notes about what you need to do or discuss with{' '}
+                                {getLeadDisplayName(lead)}
                             </small>
                         </div>
                     </div>
@@ -2396,7 +2653,7 @@ const Lead = () => {
                                     display: 'block',
                                     marginBottom: '0.5rem',
                                     fontWeight: '600',
-                                    color: 'hsl(var(--foreground-muted))'
+                                    color: 'hsl(var(--foreground-muted))',
                                 }}
                             >
                                 Select Agent *
@@ -2406,19 +2663,36 @@ const Lead = () => {
                                 value={selectedAgent}
                                 options={agents}
                                 onChange={(e) => setSelectedAgent(e.value)}
-                                placeholder={loadingAgents ? 'Loading agents...' : 'Select an agent to transfer to'}
+                                placeholder={
+                                    loadingAgents
+                                        ? 'Loading agents...'
+                                        : 'Select an agent to transfer to'
+                                }
                                 style={{ width: '100%' }}
                                 disabled={loadingAgents}
                                 filter
                                 filterPlaceholder="Search agents..."
                             />
-                            <small style={{ display: 'block', marginTop: '0.25rem', color: 'hsl(var(--foreground-muted))' }}>
+                            <small
+                                style={{
+                                    display: 'block',
+                                    marginTop: '0.25rem',
+                                    color: 'hsl(var(--foreground-muted))',
+                                }}
+                            >
                                 Choose the agent who will take over this lead
                             </small>
                         </div>
 
                         {/* Notify Agent Checkbox */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                        <div
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.5rem',
+                                marginBottom: '1rem',
+                            }}
+                        >
                             <Checkbox
                                 inputId="notify-agent"
                                 checked={notifyAgent}
@@ -2426,7 +2700,11 @@ const Lead = () => {
                             />
                             <label
                                 htmlFor="notify-agent"
-                                style={{ fontWeight: '600', cursor: 'pointer', color: 'hsl(var(--foreground-muted))' }}
+                                style={{
+                                    fontWeight: '600',
+                                    cursor: 'pointer',
+                                    color: 'hsl(var(--foreground-muted))',
+                                }}
                             >
                                 Notify Agent
                             </label>
@@ -2441,7 +2719,7 @@ const Lead = () => {
                                         display: 'block',
                                         marginBottom: '0.5rem',
                                         fontWeight: '600',
-                                        color: 'hsl(var(--foreground-muted))'
+                                        color: 'hsl(var(--foreground-muted))',
                                     }}
                                 >
                                     Note to Agent (Optional)
@@ -2454,8 +2732,15 @@ const Lead = () => {
                                     placeholder="Add a note for the new agent..."
                                     style={{ width: '100%', fontFamily: 'inherit' }}
                                 />
-                                <small style={{ display: 'block', marginTop: '0.5rem', color: 'hsl(var(--foreground-muted))' }}>
-                                    This note will be included in the notification email sent to the agent
+                                <small
+                                    style={{
+                                        display: 'block',
+                                        marginTop: '0.5rem',
+                                        color: 'hsl(var(--foreground-muted))',
+                                    }}
+                                >
+                                    This note will be included in the notification email sent to the
+                                    agent
                                 </small>
                             </div>
                         )}
@@ -2500,7 +2785,7 @@ const Lead = () => {
                                 display: 'block',
                                 marginBottom: '0.5rem',
                                 fontWeight: '600',
-                                color: 'hsl(var(--foreground-muted))'
+                                color: 'hsl(var(--foreground-muted))',
                             }}
                         >
                             Select Campaign *
@@ -2513,14 +2798,23 @@ const Lead = () => {
                                 value: c._id,
                             }))}
                             onChange={(e) => setSelectedCampaign(e.value)}
-                            placeholder={loadingCampaigns ? 'Loading campaigns...' : 'Select a campaign'}
+                            placeholder={
+                                loadingCampaigns ? 'Loading campaigns...' : 'Select a campaign'
+                            }
                             style={{ width: '100%' }}
                             disabled={loadingCampaigns}
                             filter
                             filterPlaceholder="Search campaigns..."
                         />
-                        <small style={{ display: 'block', marginTop: '0.5rem', color: 'hsl(var(--foreground-muted))' }}>
-                            Choose a drip campaign to enroll {getLeadDisplayName(lead)} in. Emails will be sent automatically on schedule.
+                        <small
+                            style={{
+                                display: 'block',
+                                marginTop: '0.5rem',
+                                color: 'hsl(var(--foreground-muted))',
+                            }}
+                        >
+                            Choose a drip campaign to enroll {getLeadDisplayName(lead)} in. Emails
+                            will be sent automatically on schedule.
                         </small>
                     </div>
                 </Dialog>
@@ -2551,11 +2845,28 @@ const Lead = () => {
                         </div>
                     }
                 >
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', padding: '0.5rem 0' }}>
+                    <div
+                        style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '1.25rem',
+                            padding: '0.5rem 0',
+                        }}
+                    >
                         {/* Section 1 — Name + Frequency */}
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                        <div
+                            style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}
+                        >
                             <div>
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.85rem', color: 'hsl(var(--foreground-muted))' }}>
+                                <label
+                                    style={{
+                                        display: 'block',
+                                        marginBottom: '0.5rem',
+                                        fontWeight: 600,
+                                        fontSize: '0.85rem',
+                                        color: 'hsl(var(--foreground-muted))',
+                                    }}
+                                >
                                     Search Name *
                                 </label>
                                 <InputText
@@ -2566,7 +2877,15 @@ const Lead = () => {
                                 />
                             </div>
                             <div>
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.85rem', color: 'hsl(var(--foreground-muted))' }}>
+                                <label
+                                    style={{
+                                        display: 'block',
+                                        marginBottom: '0.5rem',
+                                        fontWeight: 600,
+                                        fontSize: '0.85rem',
+                                        color: 'hsl(var(--foreground-muted))',
+                                    }}
+                                >
                                     Frequency
                                 </label>
                                 <Dropdown
@@ -2580,7 +2899,15 @@ const Lead = () => {
 
                         {/* Section 2 — Area Selector */}
                         <div>
-                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.85rem', color: 'hsl(var(--foreground-muted))' }}>
+                            <label
+                                style={{
+                                    display: 'block',
+                                    marginBottom: '0.5rem',
+                                    fontWeight: 600,
+                                    fontSize: '0.85rem',
+                                    color: 'hsl(var(--foreground-muted))',
+                                }}
+                            >
                                 Areas / Neighborhoods
                             </label>
                             <InputText
@@ -2590,51 +2917,151 @@ const Lead = () => {
                                 placeholder="Search cities, neighborhoods..."
                             />
                             {editEAlertAreaSearch.length > 0 && (
-                                <div style={{ border: '1px solid hsl(var(--border))', borderRadius: '6px', marginTop: '0.5rem', maxHeight: '180px', overflowY: 'auto' }}>
-                                    {[...(irgAreas?.City || []), ...(irgAreas?.Neighborhood || []), ...(irgAreas?.CondoBuilding || [])]
-                                        .filter((a) => a.name.toLowerCase().includes(editEAlertAreaSearch.toLowerCase()))
-                                        .filter((a) => !editEAlertAreas.some((sel) => sel.areaName === a.name && sel.areaType === a.type))
+                                <div
+                                    style={{
+                                        border: '1px solid hsl(var(--border))',
+                                        borderRadius: '6px',
+                                        marginTop: '0.5rem',
+                                        maxHeight: '180px',
+                                        overflowY: 'auto',
+                                    }}
+                                >
+                                    {[
+                                        ...(irgAreas?.City || []),
+                                        ...(irgAreas?.Neighborhood || []),
+                                        ...(irgAreas?.CondoBuilding || []),
+                                    ]
+                                        .filter((a) =>
+                                            a.name
+                                                .toLowerCase()
+                                                .includes(editEAlertAreaSearch.toLowerCase()),
+                                        )
+                                        .filter(
+                                            (a) =>
+                                                !editEAlertAreas.some(
+                                                    (sel) =>
+                                                        sel.areaName === a.name &&
+                                                        sel.areaType === a.type,
+                                                ),
+                                        )
                                         .slice(0, 5)
                                         .map((a) => (
                                             <button
                                                 key={`${a.type}-${a.name}`}
                                                 type="button"
                                                 onClick={() => {
-                                                    setEditEAlertAreas((prev) => [...prev, { areaName: a.name, areaType: a.type }]);
+                                                    setEditEAlertAreas((prev) => [
+                                                        ...prev,
+                                                        { areaName: a.name, areaType: a.type },
+                                                    ]);
                                                     setEditEAlertAreaSearch('');
                                                 }}
-                                                style={{ padding: '0.5rem 0.75rem', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid hsl(var(--border))', border: 'none', background: 'transparent', width: '100%', textAlign: 'left' }}
-                                                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'hsl(var(--muted))'; }}
-                                                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+                                                style={{
+                                                    padding: '0.5rem 0.75rem',
+                                                    cursor: 'pointer',
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'center',
+                                                    borderBottom: '1px solid hsl(var(--border))',
+                                                    border: 'none',
+                                                    background: 'transparent',
+                                                    width: '100%',
+                                                    textAlign: 'left',
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    e.currentTarget.style.backgroundColor =
+                                                        'hsl(var(--muted))';
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    e.currentTarget.style.backgroundColor =
+                                                        'transparent';
+                                                }}
                                             >
                                                 <span style={{ fontSize: '0.9rem' }}>{a.name}</span>
-                                                <span style={{ fontSize: '0.7rem', padding: '2px 8px', borderRadius: '4px', backgroundColor: '#e0f7fa', color: '#00838f', border: '1px solid #4dd0e1' }}>
+                                                <span
+                                                    style={{
+                                                        fontSize: '0.7rem',
+                                                        padding: '2px 8px',
+                                                        borderRadius: '4px',
+                                                        backgroundColor: '#e0f7fa',
+                                                        color: '#00838f',
+                                                        border: '1px solid #4dd0e1',
+                                                    }}
+                                                >
                                                     {a.type}
                                                 </span>
                                             </button>
                                         ))}
-                                    {[...(irgAreas?.City || []), ...(irgAreas?.Neighborhood || []), ...(irgAreas?.CondoBuilding || [])]
-                                        .filter((a) => a.name.toLowerCase().includes(editEAlertAreaSearch.toLowerCase()))
-                                        .filter((a) => !editEAlertAreas.some((sel) => sel.areaName === a.name && sel.areaType === a.type))
-                                        .length === 0 && (
-                                        <div style={{ padding: '0.75rem', color: 'hsl(var(--foreground-muted))', fontSize: '0.85rem', textAlign: 'center' }}>
+                                    {[
+                                        ...(irgAreas?.City || []),
+                                        ...(irgAreas?.Neighborhood || []),
+                                        ...(irgAreas?.CondoBuilding || []),
+                                    ]
+                                        .filter((a) =>
+                                            a.name
+                                                .toLowerCase()
+                                                .includes(editEAlertAreaSearch.toLowerCase()),
+                                        )
+                                        .filter(
+                                            (a) =>
+                                                !editEAlertAreas.some(
+                                                    (sel) =>
+                                                        sel.areaName === a.name &&
+                                                        sel.areaType === a.type,
+                                                ),
+                                        ).length === 0 && (
+                                        <div
+                                            style={{
+                                                padding: '0.75rem',
+                                                color: 'hsl(var(--foreground-muted))',
+                                                fontSize: '0.85rem',
+                                                textAlign: 'center',
+                                            }}
+                                        >
                                             No areas found
                                         </div>
                                     )}
                                 </div>
                             )}
                             {editEAlertAreas.length > 0 && (
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.5rem' }}>
+                                <div
+                                    style={{
+                                        display: 'flex',
+                                        flexWrap: 'wrap',
+                                        gap: '0.5rem',
+                                        marginTop: '0.5rem',
+                                    }}
+                                >
                                     {editEAlertAreas.map((area, idx) => (
                                         <span
                                             key={`${area.areaType}-${area.areaName}`}
-                                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.25rem 0.6rem', borderRadius: '16px', fontSize: '0.8rem', backgroundColor: 'hsl(var(--muted))', border: '1px solid hsl(var(--border))' }}
+                                            style={{
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '0.35rem',
+                                                padding: '0.25rem 0.6rem',
+                                                borderRadius: '16px',
+                                                fontSize: '0.8rem',
+                                                backgroundColor: 'hsl(var(--muted))',
+                                                border: '1px solid hsl(var(--border))',
+                                            }}
                                         >
                                             {area.areaName}
                                             <button
                                                 type="button"
-                                                style={{ fontSize: '0.65rem', cursor: 'pointer', opacity: 0.7, border: 'none', background: 'transparent', padding: 0 }}
-                                                onClick={() => setEditEAlertAreas((prev) => prev.filter((_, i) => i !== idx))}
+                                                style={{
+                                                    fontSize: '0.65rem',
+                                                    cursor: 'pointer',
+                                                    opacity: 0.7,
+                                                    border: 'none',
+                                                    background: 'transparent',
+                                                    padding: 0,
+                                                }}
+                                                onClick={() =>
+                                                    setEditEAlertAreas((prev) =>
+                                                        prev.filter((_, i) => i !== idx),
+                                                    )
+                                                }
                                                 aria-label={`Remove ${area.areaName}`}
                                             >
                                                 <i className="pi pi-times" />
@@ -2647,10 +3074,24 @@ const Lead = () => {
 
                         {/* Section 3 — Price Range */}
                         <div>
-                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.85rem', color: 'hsl(var(--foreground-muted))' }}>
+                            <label
+                                style={{
+                                    display: 'block',
+                                    marginBottom: '0.5rem',
+                                    fontWeight: 600,
+                                    fontSize: '0.85rem',
+                                    color: 'hsl(var(--foreground-muted))',
+                                }}
+                            >
                                 Price Range
                             </label>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                            <div
+                                style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: '1fr 1fr',
+                                    gap: '1rem',
+                                }}
+                            >
                                 <Dropdown
                                     value={editEAlertMinPrice}
                                     options={[{ value: '', label: 'No Min' }, ...priceFilterValues]}
@@ -2670,9 +3111,24 @@ const Lead = () => {
 
                         {/* Section 4 — Beds / Baths / Garage */}
                         <div>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                            <div
+                                style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: '1fr 1fr 1fr',
+                                    gap: '1rem',
+                                    marginBottom: '1rem',
+                                }}
+                            >
                                 <div>
-                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.85rem', color: 'hsl(var(--foreground-muted))' }}>
+                                    <label
+                                        style={{
+                                            display: 'block',
+                                            marginBottom: '0.5rem',
+                                            fontWeight: 600,
+                                            fontSize: '0.85rem',
+                                            color: 'hsl(var(--foreground-muted))',
+                                        }}
+                                    >
                                         Min Beds
                                     </label>
                                     <Dropdown
@@ -2684,7 +3140,15 @@ const Lead = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.85rem', color: 'hsl(var(--foreground-muted))' }}>
+                                    <label
+                                        style={{
+                                            display: 'block',
+                                            marginBottom: '0.5rem',
+                                            fontWeight: 600,
+                                            fontSize: '0.85rem',
+                                            color: 'hsl(var(--foreground-muted))',
+                                        }}
+                                    >
                                         Min Baths
                                     </label>
                                     <Dropdown
@@ -2696,22 +3160,47 @@ const Lead = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.85rem', color: 'hsl(var(--foreground-muted))' }}>
+                                    <label
+                                        style={{
+                                            display: 'block',
+                                            marginBottom: '0.5rem',
+                                            fontWeight: 600,
+                                            fontSize: '0.85rem',
+                                            color: 'hsl(var(--foreground-muted))',
+                                        }}
+                                    >
                                         Min Garage
                                     </label>
                                     <Dropdown
                                         value={editEAlertMinGarage}
-                                        options={[{ value: '', label: 'Any' }, ...garageFilterValues]}
+                                        options={[
+                                            { value: '', label: 'Any' },
+                                            ...garageFilterValues,
+                                        ]}
                                         onChange={(e) => setEditEAlertMinGarage(e.value)}
                                         placeholder="Any"
                                         style={{ width: '100%' }}
                                     />
                                 </div>
                             </div>
-                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.85rem', color: 'hsl(var(--foreground-muted))' }}>
+                            <label
+                                style={{
+                                    display: 'block',
+                                    marginBottom: '0.5rem',
+                                    fontWeight: 600,
+                                    fontSize: '0.85rem',
+                                    color: 'hsl(var(--foreground-muted))',
+                                }}
+                            >
                                 Sqft Range
                             </label>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                            <div
+                                style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: '1fr 1fr',
+                                    gap: '1rem',
+                                }}
+                            >
                                 <Dropdown
                                     value={editEAlertMinSqft}
                                     options={[{ value: '', label: 'No Min' }, ...sqftFilterValues]}
@@ -2731,20 +3220,40 @@ const Lead = () => {
 
                         {/* Section — Lot Size */}
                         <div>
-                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.85rem', color: 'hsl(var(--foreground-muted))' }}>
+                            <label
+                                style={{
+                                    display: 'block',
+                                    marginBottom: '0.5rem',
+                                    fontWeight: 600,
+                                    fontSize: '0.85rem',
+                                    color: 'hsl(var(--foreground-muted))',
+                                }}
+                            >
                                 Lot Size (Acres)
                             </label>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                            <div
+                                style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: '1fr 1fr',
+                                    gap: '1rem',
+                                }}
+                            >
                                 <Dropdown
                                     value={editEAlertMinLotSize}
-                                    options={[{ value: '', label: 'No Min' }, ...lotSizeFilterValues]}
+                                    options={[
+                                        { value: '', label: 'No Min' },
+                                        ...lotSizeFilterValues,
+                                    ]}
                                     onChange={(e) => setEditEAlertMinLotSize(e.value)}
                                     placeholder="No Min"
                                     style={{ width: '100%' }}
                                 />
                                 <Dropdown
                                     value={editEAlertMaxLotSize}
-                                    options={[{ value: '', label: 'No Max' }, ...lotSizeFilterValues]}
+                                    options={[
+                                        { value: '', label: 'No Max' },
+                                        ...lotSizeFilterValues,
+                                    ]}
                                     onChange={(e) => setEditEAlertMaxLotSize(e.value)}
                                     placeholder="No Max"
                                     style={{ width: '100%' }}
@@ -2754,10 +3263,24 @@ const Lead = () => {
 
                         {/* Section 5 — Year Built */}
                         <div>
-                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.85rem', color: 'hsl(var(--foreground-muted))' }}>
+                            <label
+                                style={{
+                                    display: 'block',
+                                    marginBottom: '0.5rem',
+                                    fontWeight: 600,
+                                    fontSize: '0.85rem',
+                                    color: 'hsl(var(--foreground-muted))',
+                                }}
+                            >
                                 Year Built
                             </label>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                            <div
+                                style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: '1fr 1fr',
+                                    gap: '1rem',
+                                }}
+                            >
                                 <Dropdown
                                     value={editEAlertMinYear}
                                     options={[{ value: '', label: 'No Min' }, ...yearFilterValues]}
@@ -2777,20 +3300,43 @@ const Lead = () => {
 
                         {/* Section 6 — Property Type */}
                         <div>
-                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.85rem', color: 'hsl(var(--foreground-muted))' }}>
+                            <label
+                                style={{
+                                    display: 'block',
+                                    marginBottom: '0.5rem',
+                                    fontWeight: 600,
+                                    fontSize: '0.85rem',
+                                    color: 'hsl(var(--foreground-muted))',
+                                }}
+                            >
                                 Property Type
                             </label>
                             <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                    <Checkbox checked={editEAlertSingleFamily} onChange={(e) => setEditEAlertSingleFamily(e.checked)} />
+                                <div
+                                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                                >
+                                    <Checkbox
+                                        checked={editEAlertSingleFamily}
+                                        onChange={(e) => setEditEAlertSingleFamily(e.checked)}
+                                    />
                                     <span style={{ fontSize: '0.9rem' }}>Single Family</span>
                                 </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                    <Checkbox checked={editEAlertTownhomes} onChange={(e) => setEditEAlertTownhomes(e.checked)} />
+                                <div
+                                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                                >
+                                    <Checkbox
+                                        checked={editEAlertTownhomes}
+                                        onChange={(e) => setEditEAlertTownhomes(e.checked)}
+                                    />
                                     <span style={{ fontSize: '0.9rem' }}>Townhomes</span>
                                 </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                    <Checkbox checked={editEAlertCondos} onChange={(e) => setEditEAlertCondos(e.checked)} />
+                                <div
+                                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                                >
+                                    <Checkbox
+                                        checked={editEAlertCondos}
+                                        onChange={(e) => setEditEAlertCondos(e.checked)}
+                                    />
                                     <span style={{ fontSize: '0.9rem' }}>Condos</span>
                                 </div>
                             </div>
@@ -2798,24 +3344,60 @@ const Lead = () => {
 
                         {/* Section 7 — Additional Options */}
                         <div>
-                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.85rem', color: 'hsl(var(--foreground-muted))' }}>
+                            <label
+                                style={{
+                                    display: 'block',
+                                    marginBottom: '0.5rem',
+                                    fontWeight: 600,
+                                    fontSize: '0.85rem',
+                                    color: 'hsl(var(--foreground-muted))',
+                                }}
+                            >
                                 Additional Options
                             </label>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                    <Checkbox checked={editEAlertPool} onChange={(e) => setEditEAlertPool(e.checked)} />
+                            <div
+                                style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: '1fr 1fr',
+                                    gap: '0.75rem',
+                                }}
+                            >
+                                <div
+                                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                                >
+                                    <Checkbox
+                                        checked={editEAlertPool}
+                                        onChange={(e) => setEditEAlertPool(e.checked)}
+                                    />
                                     <span style={{ fontSize: '0.9rem' }}>Must Have Pool</span>
                                 </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                    <Checkbox checked={editEAlertSingleStory} onChange={(e) => setEditEAlertSingleStory(e.checked)} />
+                                <div
+                                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                                >
+                                    <Checkbox
+                                        checked={editEAlertSingleStory}
+                                        onChange={(e) => setEditEAlertSingleStory(e.checked)}
+                                    />
                                     <span style={{ fontSize: '0.9rem' }}>Single Story Only</span>
                                 </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                    <Checkbox checked={editEAlertExclude55} onChange={(e) => setEditEAlertExclude55(e.checked)} />
-                                    <span style={{ fontSize: '0.9rem' }}>Exclude 55+ Communities</span>
+                                <div
+                                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                                >
+                                    <Checkbox
+                                        checked={editEAlertExclude55}
+                                        onChange={(e) => setEditEAlertExclude55(e.checked)}
+                                    />
+                                    <span style={{ fontSize: '0.9rem' }}>
+                                        Exclude 55+ Communities
+                                    </span>
                                 </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                    <Checkbox checked={editEAlertAdu} onChange={(e) => setEditEAlertAdu(e.checked)} />
+                                <div
+                                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                                >
+                                    <Checkbox
+                                        checked={editEAlertAdu}
+                                        onChange={(e) => setEditEAlertAdu(e.checked)}
+                                    />
                                     <span style={{ fontSize: '0.9rem' }}>Has ADU</span>
                                 </div>
                             </div>
@@ -2824,10 +3406,32 @@ const Lead = () => {
 
                     {/* Co-buyer sync option */}
                     {canSyncEAlertHousehold(editEAlertTarget) && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0.75rem 1.5rem', borderTop: '1px solid hsl(var(--border))' }}>
-                            <input type="checkbox" id="editEAlertSyncCoBuyers" checked={editEAlertSyncCoBuyers} onChange={(e) => setEditEAlertSyncCoBuyers(e.target.checked)} />
-                            <label htmlFor="editEAlertSyncCoBuyers" style={{ fontSize: '13px', color: 'hsl(var(--foreground))' }}>
-                                Also update linked co-buyer {coBuyers.length > 1 ? 'copies' : 'copy'} by shared search ID: <strong>{coBuyers.map((cb) => `${cb.first_name} ${cb.last_name}`).join(', ')}</strong>
+                        <div
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                padding: '0.75rem 1.5rem',
+                                borderTop: '1px solid hsl(var(--border))',
+                            }}
+                        >
+                            <input
+                                type="checkbox"
+                                id="editEAlertSyncCoBuyers"
+                                checked={editEAlertSyncCoBuyers}
+                                onChange={(e) => setEditEAlertSyncCoBuyers(e.target.checked)}
+                            />
+                            <label
+                                htmlFor="editEAlertSyncCoBuyers"
+                                style={{ fontSize: '13px', color: 'hsl(var(--foreground))' }}
+                            >
+                                Also update linked co-buyer{' '}
+                                {coBuyers.length > 1 ? 'copies' : 'copy'} by shared search ID:{' '}
+                                <strong>
+                                    {coBuyers
+                                        .map((cb) => `${cb.first_name} ${cb.last_name}`)
+                                        .join(', ')}
+                                </strong>
                             </label>
                         </div>
                     )}
@@ -2842,11 +3446,29 @@ const Lead = () => {
                     modal
                     draggable={false}
                 >
-                    <p style={{ fontSize: '14px', color: 'hsl(var(--foreground))', lineHeight: 1.5, margin: '0 0 1.25rem' }}>
-                        This alert can also update linked co-buyer copies that already use the same shared search ID.
-                        Apply this edit to <strong>{coBuyers.map((cb) => `${cb.first_name} ${cb.last_name}`).join(', ')}</strong> too?
+                    <p
+                        style={{
+                            fontSize: '14px',
+                            color: 'hsl(var(--foreground))',
+                            lineHeight: 1.5,
+                            margin: '0 0 1.25rem',
+                        }}
+                    >
+                        This alert can also update linked co-buyer copies that already use the same
+                        shared search ID. Apply this edit to{' '}
+                        <strong>
+                            {coBuyers.map((cb) => `${cb.first_name} ${cb.last_name}`).join(', ')}
+                        </strong>{' '}
+                        too?
                     </p>
-                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                    <div
+                        style={{
+                            display: 'flex',
+                            gap: '8px',
+                            justifyContent: 'flex-end',
+                            flexWrap: 'wrap',
+                        }}
+                    >
                         <Button
                             label="Cancel"
                             className="p-button-text p-button-secondary"
@@ -2877,11 +3499,29 @@ const Lead = () => {
                     modal
                     draggable={false}
                 >
-                    <p style={{ fontSize: '14px', color: 'hsl(var(--foreground))', lineHeight: 1.5, margin: '0 0 1.25rem' }}>
-                        This alert can also be removed from linked co-buyer copies that currently use the same shared search ID.
-                        Delete matching copies for <strong>{coBuyers.map((cb) => `${cb.first_name} ${cb.last_name}`).join(', ')}</strong> too?
+                    <p
+                        style={{
+                            fontSize: '14px',
+                            color: 'hsl(var(--foreground))',
+                            lineHeight: 1.5,
+                            margin: '0 0 1.25rem',
+                        }}
+                    >
+                        This alert can also be removed from linked co-buyer copies that currently
+                        use the same shared search ID. Delete matching copies for{' '}
+                        <strong>
+                            {coBuyers.map((cb) => `${cb.first_name} ${cb.last_name}`).join(', ')}
+                        </strong>{' '}
+                        too?
                     </p>
-                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                    <div
+                        style={{
+                            display: 'flex',
+                            gap: '8px',
+                            justifyContent: 'flex-end',
+                            flexWrap: 'wrap',
+                        }}
+                    >
                         <Button
                             label="Cancel"
                             className="p-button-text p-button-secondary"

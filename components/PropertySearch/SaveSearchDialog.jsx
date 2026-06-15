@@ -69,7 +69,15 @@ const buildSearchFilter = (f) => ({
     maxCloseDate: f.maxCloseDate || '',
 });
 
-const SaveSearchDialog = ({ visible, onClose, appliedFilters, activeAreas = [], drawnPolygonGeoJSON, mapBounds, isSaveSearchBlocked }) => {
+const SaveSearchDialog = ({
+    visible,
+    onClose,
+    appliedFilters,
+    activeAreas = [],
+    drawnPolygonGeoJSON,
+    mapBounds,
+    isSaveSearchBlocked,
+}) => {
     const allLeads = useSelector((state) => state.allLeadsPage.leads);
     const isLoggedIn = useSelector((state) => state.isLoggedIn);
 
@@ -155,7 +163,10 @@ const SaveSearchDialog = ({ visible, onClose, appliedFilters, activeAreas = [], 
         const minP = f.minPrice.replace(/,/g, '');
         const maxP = f.maxPrice.replace(/,/g, '');
         if (minP && maxP) {
-            pills.push({ label: `${formatShortPrice(minP)} \u2013 ${formatShortPrice(maxP)}`, type: 'Price' });
+            pills.push({
+                label: `${formatShortPrice(minP)} \u2013 ${formatShortPrice(maxP)}`,
+                type: 'Price',
+            });
         } else if (minP) {
             pills.push({ label: `${formatShortPrice(minP)}+`, type: 'Price' });
         } else if (maxP) {
@@ -184,12 +195,16 @@ const SaveSearchDialog = ({ visible, onClose, appliedFilters, activeAreas = [], 
         if (f.minLotSize || f.maxLotSize) {
             const parts = [];
             if (f.minLotSize) parts.push(`${f.minLotSize}+`);
-            if (f.maxLotSize) parts.push(f.minLotSize ? `\u2013${f.maxLotSize}` : `Up to ${f.maxLotSize}`);
+            if (f.maxLotSize)
+                parts.push(f.minLotSize ? `\u2013${f.maxLotSize}` : `Up to ${f.maxLotSize}`);
             pills.push({ label: `${parts.join('')} Acres`, type: 'Lot' });
         }
         if (f.minYearBuilt || f.maxYearBuilt) {
             if (f.minYearBuilt && f.maxYearBuilt) {
-                pills.push({ label: `Built ${f.minYearBuilt}\u2013${f.maxYearBuilt}`, type: 'Year' });
+                pills.push({
+                    label: `Built ${f.minYearBuilt}\u2013${f.maxYearBuilt}`,
+                    type: 'Year',
+                });
             } else if (f.minYearBuilt) {
                 pills.push({ label: `Built ${f.minYearBuilt}+`, type: 'Year' });
             } else {
@@ -201,11 +216,17 @@ const SaveSearchDialog = ({ visible, onClose, appliedFilters, activeAreas = [], 
         }
         if (f.minSqft || f.maxSqft) {
             if (f.minSqft && f.maxSqft) {
-                pills.push({ label: `${Number(f.minSqft).toLocaleString()}\u2013${Number(f.maxSqft).toLocaleString()} SqFt`, type: 'SqFt' });
+                pills.push({
+                    label: `${Number(f.minSqft).toLocaleString()}\u2013${Number(f.maxSqft).toLocaleString()} SqFt`,
+                    type: 'SqFt',
+                });
             } else if (f.minSqft) {
                 pills.push({ label: `${Number(f.minSqft).toLocaleString()}+ SqFt`, type: 'SqFt' });
             } else {
-                pills.push({ label: `Up to ${Number(f.maxSqft).toLocaleString()} SqFt`, type: 'SqFt' });
+                pills.push({
+                    label: `Up to ${Number(f.maxSqft).toLocaleString()} SqFt`,
+                    type: 'SqFt',
+                });
             }
         }
         {
@@ -215,8 +236,11 @@ const SaveSearchDialog = ({ visible, onClose, appliedFilters, activeAreas = [], 
             if (f.condos) types.push('Condo');
             if (types.length > 0) pills.push({ label: types.join(', '), type: 'Type' });
         }
-        if (appliedFilters?.statuses && !(appliedFilters.statuses.length === 1 && appliedFilters.statuses[0] === 'Active')) {
-            const statusLabels = appliedFilters.statuses.map((s) => s === 'Closed' ? 'Sold' : s);
+        if (
+            appliedFilters?.statuses &&
+            !(appliedFilters.statuses.length === 1 && appliedFilters.statuses[0] === 'Active')
+        ) {
+            const statusLabels = appliedFilters.statuses.map((s) => (s === 'Closed' ? 'Sold' : s));
             pills.push({ label: statusLabels.join(', '), type: 'Status' });
         }
         if (f.singleStory) pills.push({ label: 'Single Story', type: 'Feature' });
@@ -271,10 +295,19 @@ const SaveSearchDialog = ({ visible, onClose, appliedFilters, activeAreas = [], 
         try {
             await IrgApi.post(
                 `/users/save-client-search?userId=${selectedLead.user_id}`,
-                { savedSearch, coBuyerIds: saveToCoBuyers && coBuyers.length > 0 ? coBuyers.map((cb) => cb._id) : [] },
-                { headers: { Authorization: `Bearer ${isLoggedIn}` } }
+                {
+                    savedSearch,
+                    coBuyerIds:
+                        saveToCoBuyers && coBuyers.length > 0 ? coBuyers.map((cb) => cb._id) : [],
+                },
+                { headers: { Authorization: `Bearer ${isLoggedIn}` } },
             );
-            showToast('success', `Search saved for ${getLeadDisplayName(selectedLead)}`, 'Search Saved!', 'top-right');
+            showToast(
+                'success',
+                `Search saved for ${getLeadDisplayName(selectedLead)}`,
+                'Search Saved!',
+                'top-right',
+            );
             onClose();
         } catch (err) {
             const msg = err.response?.data?.message || 'Failed to save search. Please try again.';
@@ -282,7 +315,18 @@ const SaveSearchDialog = ({ visible, onClose, appliedFilters, activeAreas = [], 
         }
 
         setSaving(false);
-    }, [selectedLead, saving, searchName, frequency, appliedFilters, activeAreas, drawnPolygonGeoJSON, mapBounds, isLoggedIn, onClose]);
+    }, [
+        selectedLead,
+        saving,
+        searchName,
+        frequency,
+        appliedFilters,
+        activeAreas,
+        drawnPolygonGeoJSON,
+        mapBounds,
+        isLoggedIn,
+        onClose,
+    ]);
 
     if (!visible) return null;
 
@@ -313,11 +357,28 @@ const SaveSearchDialog = ({ visible, onClose, appliedFilters, activeAreas = [], 
                     <div className="save-search-dialog__section">
                         <div className="save-search-dialog__section-label">Search Summary</div>
                         <div className="save-search-dialog__pills">
-                            {summaryPills.map((pill) => (
-                                <span key={`${pill.type}-${pill.label}`} className={`save-search-dialog__pill save-search-dialog__pill--${pill.type === 'Bounds' || pill.type === 'Polygon' || pill.type === 'Neighborhood' || pill.type === 'City' || pill.type === 'Zip' || pill.type === 'CondoBuilding' ? 'area' : 'filter'}`}>
-                                    {pill.label}
-                                </span>
-                            ))}
+                            {summaryPills.map((pill) => {
+                                const isAreaPill = [
+                                    'Bounds',
+                                    'Polygon',
+                                    'Neighborhood',
+                                    'City',
+                                    'Zip',
+                                    'CondoBuilding',
+                                ].includes(pill.type);
+
+                                return (
+                                    <span
+                                        key={`${pill.type}-${pill.label}`}
+                                        className={[
+                                            'save-search-dialog__pill',
+                                            `save-search-dialog__pill--${isAreaPill ? 'area' : 'filter'}`,
+                                        ].join(' ')}
+                                    >
+                                        {pill.label}
+                                    </span>
+                                );
+                            })}
                         </div>
                     </div>
 
@@ -331,7 +392,11 @@ const SaveSearchDialog = ({ visible, onClose, appliedFilters, activeAreas = [], 
                                 <div className="save-search-dialog__lead-selected">
                                     <i className="pi pi-user" />
                                     <span>{getLeadDisplayName(selectedLead)}</span>
-                                    <button type="button" onClick={handleClearLead} aria-label="Remove lead">
+                                    <button
+                                        type="button"
+                                        onClick={handleClearLead}
+                                        aria-label="Remove lead"
+                                    >
                                         <i className="pi pi-times" />
                                     </button>
                                 </div>
@@ -354,7 +419,9 @@ const SaveSearchDialog = ({ visible, onClose, appliedFilters, activeAreas = [], 
                             {dropdownOpen && !selectedLead && (
                                 <div className="save-search-dialog__lead-dropdown">
                                     {filteredLeads.length === 0 ? (
-                                        <div className="save-search-dialog__lead-empty">No leads found</div>
+                                        <div className="save-search-dialog__lead-empty">
+                                            No leads found
+                                        </div>
                                     ) : (
                                         filteredLeads.map((lead) => (
                                             <button
@@ -367,11 +434,12 @@ const SaveSearchDialog = ({ visible, onClose, appliedFilters, activeAreas = [], 
                                                 <span className="save-search-dialog__lead-name">
                                                     {getLeadDisplayName(lead)}
                                                 </span>
-                                                {lead.email && getLeadDisplayName(lead) !== lead.email && (
-                                                    <span className="save-search-dialog__lead-email">
-                                                        {lead.email}
-                                                    </span>
-                                                )}
+                                                {lead.email &&
+                                                    getLeadDisplayName(lead) !== lead.email && (
+                                                        <span className="save-search-dialog__lead-email">
+                                                            {lead.email}
+                                                        </span>
+                                                    )}
                                             </button>
                                         ))
                                     )}
@@ -384,9 +452,22 @@ const SaveSearchDialog = ({ visible, onClose, appliedFilters, activeAreas = [], 
                     {coBuyers.length > 0 && (
                         <div className="save-search-dialog__section" style={{ paddingTop: 0 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <input type="checkbox" id="saveToCoBuyers" checked={saveToCoBuyers} onChange={(e) => setSaveToCoBuyers(e.target.checked)} />
-                                <label htmlFor="saveToCoBuyers" style={{ fontSize: '13px', color: 'hsl(var(--foreground))' }}>
-                                    Also save for co-buyer{coBuyers.length > 1 ? 's' : ''}: <strong>{coBuyers.map((cb) => `${cb.first_name} ${cb.last_name}`).join(', ')}</strong>
+                                <input
+                                    type="checkbox"
+                                    id="saveToCoBuyers"
+                                    checked={saveToCoBuyers}
+                                    onChange={(e) => setSaveToCoBuyers(e.target.checked)}
+                                />
+                                <label
+                                    htmlFor="saveToCoBuyers"
+                                    style={{ fontSize: '13px', color: 'hsl(var(--foreground))' }}
+                                >
+                                    Also save for co-buyer{coBuyers.length > 1 ? 's' : ''}:{' '}
+                                    <strong>
+                                        {coBuyers
+                                            .map((cb) => `${cb.first_name} ${cb.last_name}`)
+                                            .join(', ')}
+                                    </strong>
                                 </label>
                             </div>
                         </div>
@@ -414,7 +495,9 @@ const SaveSearchDialog = ({ visible, onClose, appliedFilters, activeAreas = [], 
 
                     {/* Section 4: Search Name */}
                     <div className="save-search-dialog__section">
-                        <div className="save-search-dialog__section-label">Search Name (optional)</div>
+                        <div className="save-search-dialog__section-label">
+                            Search Name (optional)
+                        </div>
                         <input
                             className="save-search-dialog__name-input"
                             placeholder="eg. John's 3BR Search in Clairemont"
@@ -438,10 +521,20 @@ const SaveSearchDialog = ({ visible, onClose, appliedFilters, activeAreas = [], 
                         onClick={handleSave}
                         type="button"
                         disabled={!selectedLead || saving || isSaveSearchBlocked}
-                        title={isSaveSearchBlocked ? 'Save Search is only available for Active listings. Remove other statuses to save.' : undefined}
+                        title={
+                            isSaveSearchBlocked
+                                ? 'Save Search is only available for Active listings. Remove other statuses to save.'
+                                : undefined
+                        }
                     >
                         {saving ? (
-                            <><i className="pi pi-spin pi-spinner" style={{ marginRight: '0.375rem' }} />Saving...</>
+                            <>
+                                <i
+                                    className="pi pi-spin pi-spinner"
+                                    style={{ marginRight: '0.375rem' }}
+                                />
+                                Saving...
+                            </>
                         ) : (
                             'Save Search'
                         )}

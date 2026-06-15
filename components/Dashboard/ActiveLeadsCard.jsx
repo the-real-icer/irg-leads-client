@@ -13,7 +13,13 @@ const ActiveLeadsCard = ({ sessions, loading, allLeads }) => {
             <Card title="Leads Active on Site" style={{ width: '100%' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                     {loading ? (
-                        <div style={{ padding: '2rem', textAlign: 'center', color: 'hsl(var(--foreground-muted))' }}>
+                        <div
+                            style={{
+                                padding: '2rem',
+                                textAlign: 'center',
+                                color: 'hsl(var(--foreground-muted))',
+                            }}
+                        >
                             <i className="pi pi-spin pi-spinner" style={{ fontSize: '1.5rem' }}></i>
                         </div>
                     ) : sessions.length > 0 ? (
@@ -43,7 +49,13 @@ const ActiveLeadsCard = ({ sessions, loading, allLeads }) => {
                                 }}
                                 onClick={() => router.push(`/lead/${session.lead_id}`)}
                             >
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                <div
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.75rem',
+                                    }}
+                                >
                                     {session.is_live && (
                                         <span
                                             style={{
@@ -57,20 +69,56 @@ const ActiveLeadsCard = ({ sessions, loading, allLeads }) => {
                                         />
                                     )}
                                     <div>
-                                        <div style={{ fontSize: '0.9375rem', fontWeight: '600', color: 'hsl(var(--foreground))' }}>
-                                            {session.lead_name || getLeadDisplayName(allLeads?.find((l) => l._id === session.lead_id))}
+                                        <div
+                                            style={{
+                                                fontSize: '0.9375rem',
+                                                fontWeight: '600',
+                                                color: 'hsl(var(--foreground))',
+                                            }}
+                                        >
+                                            {session.lead_name ||
+                                                getLeadDisplayName(
+                                                    allLeads?.find(
+                                                        (l) => l._id === session.lead_id,
+                                                    ),
+                                                )}
                                         </div>
-                                        <div style={{ fontSize: '0.8125rem', color: 'hsl(var(--foreground-muted))', marginTop: '0.125rem' }}>
-                                            {session.current_page_title || session.current_page || 'Unknown page'}
+                                        <div
+                                            style={{
+                                                fontSize: '0.8125rem',
+                                                color: 'hsl(var(--foreground-muted))',
+                                                marginTop: '0.125rem',
+                                            }}
+                                        >
+                                            {session.current_page_title ||
+                                                session.current_page ||
+                                                'Unknown page'}
                                         </div>
                                     </div>
                                 </div>
                                 <div style={{ textAlign: 'right' }}>
-                                    <div style={{ fontSize: '0.8125rem', color: session.is_live ? 'hsl(var(--success))' : 'hsl(var(--foreground-muted))', fontWeight: '500' }}>
-                                        {session.is_live ? 'Live now' : formatLastVisit(session.last_seen)}
+                                    <div
+                                        style={{
+                                            fontSize: '0.8125rem',
+                                            color: session.is_live
+                                                ? 'hsl(var(--success))'
+                                                : 'hsl(var(--foreground-muted))',
+                                            fontWeight: '500',
+                                        }}
+                                    >
+                                        {session.is_live
+                                            ? 'Live now'
+                                            : formatLastVisit(session.last_seen)}
                                     </div>
-                                    <div style={{ fontSize: '0.75rem', color: 'hsl(var(--foreground-muted))', marginTop: '0.125rem' }}>
-                                        {session.total_pages_viewed} {session.total_pages_viewed === 1 ? 'page' : 'pages'} viewed
+                                    <div
+                                        style={{
+                                            fontSize: '0.75rem',
+                                            color: 'hsl(var(--foreground-muted))',
+                                            marginTop: '0.125rem',
+                                        }}
+                                    >
+                                        {session.total_pages_viewed}{' '}
+                                        {session.total_pages_viewed === 1 ? 'page' : 'pages'} viewed
                                     </div>
                                 </div>
                             </button>
@@ -85,7 +133,11 @@ const ActiveLeadsCard = ({ sessions, loading, allLeads }) => {
                         >
                             <i
                                 className="pi pi-eye"
-                                style={{ fontSize: '2rem', marginBottom: '0.75rem', display: 'block' }}
+                                style={{
+                                    fontSize: '2rem',
+                                    marginBottom: '0.75rem',
+                                    display: 'block',
+                                }}
                             ></i>
                             <p style={{ fontSize: '0.9375rem', margin: 0 }}>
                                 No leads have been active in the past 30 minutes

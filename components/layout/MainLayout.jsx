@@ -103,7 +103,10 @@ const MainLayout = (props) => {
                 {/* Mobile overlay */}
                 {mobileMenuOpen && (
                     <button
-                        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[998] lg:hidden transition-opacity duration-200"
+                        className={[
+                            'fixed inset-0 bg-black/40 backdrop-blur-sm z-[998]',
+                            'lg:hidden transition-opacity duration-200',
+                        ].join(' ')}
                         onClick={() => setMobileMenuOpen(false)}
                         type="button"
                         aria-label="Close navigation menu"
@@ -114,7 +117,16 @@ const MainLayout = (props) => {
 
                 <div className="min-h-screen flex flex-column flex-auto min-w-0 lg:ml-[280px]">
                     <TopBar onMobileMenuToggle={() => setMobileMenuOpen((prev) => !prev)} />
-                    <main className="flex-auto" style={{ overflowY: 'auto', overflowX: 'hidden', scrollbarGutter: 'stable' }}>{children}</main>
+                    <main
+                        className="flex-auto"
+                        style={{
+                            overflowY: 'auto',
+                            overflowX: 'hidden',
+                            scrollbarGutter: 'stable',
+                        }}
+                    >
+                        {children}
+                    </main>
                 </div>
             </div>
         </>

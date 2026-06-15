@@ -57,7 +57,9 @@ const GoogleConnectButton = () => {
         const { google_auth } = router.query;
 
         // Check if we just completed OAuth flow (from localStorage flag)
-        const oauthInProgress = typeof window !== 'undefined' && window.localStorage.getItem('google_oauth_in_progress');
+        const oauthInProgress =
+            typeof window !== 'undefined' &&
+            window.localStorage.getItem('google_oauth_in_progress');
 
         if (google_auth === 'success') {
             if (!hasHandledCallback.current) {
@@ -388,38 +390,50 @@ const GoogleConnectButton = () => {
     }
 
     return (
-        <div style={{
-            padding: '1.5rem',
-            background: 'white',
-            borderRadius: '8px',
-            boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
-        }}>
+        <div
+            style={{
+                padding: '1.5rem',
+                background: 'white',
+                borderRadius: '8px',
+                boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
+            }}
+        >
             <div style={{ marginBottom: '1rem' }}>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#2c3e50', marginBottom: '0.5rem' }}>
+                <h3
+                    style={{
+                        fontSize: '1.25rem',
+                        fontWeight: '600',
+                        color: '#2c3e50',
+                        marginBottom: '0.5rem',
+                    }}
+                >
                     Google Integration
                 </h3>
                 <p style={{ color: '#6c757d', fontSize: '0.9rem', margin: 0 }}>
-                    Connect your Google account to sync calendar events, send emails through Gmail, and add leads to your contacts.
+                    Connect your Google account to sync calendar events, send emails through Gmail,
+                    and add leads to your contacts.
                 </p>
             </div>
 
-            <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-                gap: '0.75rem',
-                padding: '1rem',
-                backgroundColor: isConnected ? '#d4edda' : '#f8f9fa',
-                borderRadius: '6px',
-                marginBottom: '1rem'
-            }}>
+            <div
+                style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    flexWrap: 'wrap',
+                    gap: '0.75rem',
+                    padding: '1rem',
+                    backgroundColor: isConnected ? '#d4edda' : '#f8f9fa',
+                    borderRadius: '6px',
+                    marginBottom: '1rem',
+                }}
+            >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                     <i
                         className={isConnected ? 'pi pi-check-circle' : 'pi pi-times-circle'}
                         style={{
                             fontSize: '1.5rem',
-                            color: isConnected ? '#28a745' : '#6c757d'
+                            color: isConnected ? '#28a745' : '#6c757d',
                         }}
                     ></i>
                     <div>
@@ -427,7 +441,9 @@ const GoogleConnectButton = () => {
                             {isConnected ? 'Connected' : 'Not Connected'}
                         </div>
                         <div style={{ fontSize: '0.85rem', color: '#6c757d' }}>
-                            {isConnected ? 'Your Google account is connected' : 'Connect to enable integrations'}
+                            {isConnected
+                                ? 'Your Google account is connected'
+                                : 'Connect to enable integrations'}
                         </div>
                     </div>
                 </div>
@@ -455,15 +471,19 @@ const GoogleConnectButton = () => {
 
             {isConnected && (
                 <>
-                    <div style={{
-                        padding: '1rem',
-                        backgroundColor: '#f8f9fa',
-                        borderRadius: '6px',
-                        fontSize: '0.85rem',
-                        color: '#6c757d',
-                        marginBottom: '1rem'
-                    }}>
-                        <div style={{ fontWeight: '600', marginBottom: '0.5rem', color: '#2c3e50' }}>
+                    <div
+                        style={{
+                            padding: '1rem',
+                            backgroundColor: '#f8f9fa',
+                            borderRadius: '6px',
+                            fontSize: '0.85rem',
+                            color: '#6c757d',
+                            marginBottom: '1rem',
+                        }}
+                    >
+                        <div
+                            style={{ fontWeight: '600', marginBottom: '0.5rem', color: '#2c3e50' }}
+                        >
                             Active Integrations:
                         </div>
                         <ul style={{ margin: 0, paddingLeft: '1.5rem' }}>
@@ -474,13 +494,24 @@ const GoogleConnectButton = () => {
                     </div>
 
                     {/* Calendar Selection */}
-                    <div style={{
-                        padding: '1rem',
-                        backgroundColor: '#f8f9fa',
-                        borderRadius: '6px',
-                    }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                            <div style={{ fontWeight: '600', color: '#2c3e50', fontSize: '0.95rem' }}>
+                    <div
+                        style={{
+                            padding: '1rem',
+                            backgroundColor: '#f8f9fa',
+                            borderRadius: '6px',
+                        }}
+                    >
+                        <div
+                            style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                marginBottom: '1rem',
+                            }}
+                        >
+                            <div
+                                style={{ fontWeight: '600', color: '#2c3e50', fontSize: '0.95rem' }}
+                            >
                                 Calendar Selection
                             </div>
                             <Button
@@ -494,16 +525,30 @@ const GoogleConnectButton = () => {
                         </div>
 
                         {loadingCalendars ? (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '1rem' }}>
-                                <i className="pi pi-spin pi-spinner" style={{ fontSize: '1rem' }}></i>
-                                <span style={{ color: '#6c757d', fontSize: '0.9rem' }}>Loading calendars...</span>
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem',
+                                    padding: '1rem',
+                                }}
+                            >
+                                <i
+                                    className="pi pi-spin pi-spinner"
+                                    style={{ fontSize: '1rem' }}
+                                ></i>
+                                <span style={{ color: '#6c757d', fontSize: '0.9rem' }}>
+                                    Loading calendars...
+                                </span>
                             </div>
                         ) : calendars.length === 0 ? (
                             <div style={{ padding: '1rem', color: '#6c757d', fontSize: '0.85rem' }}>
                                 No calendars found
                             </div>
                         ) : (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            <div
+                                style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}
+                            >
                                 {calendars.map((calendar) => (
                                     <div
                                         key={calendar.id}
@@ -514,7 +559,7 @@ const GoogleConnectButton = () => {
                                             padding: '0.75rem',
                                             backgroundColor: 'white',
                                             borderRadius: '4px',
-                                            border: '1px solid #dee2e6'
+                                            border: '1px solid #dee2e6',
                                         }}
                                     >
                                         <Checkbox
@@ -531,39 +576,46 @@ const GoogleConnectButton = () => {
                                                     cursor: 'pointer',
                                                     fontSize: '0.9rem',
                                                     color: '#2c3e50',
-                                                    fontWeight: calendar.primary ? '600' : '400'
+                                                    fontWeight: calendar.primary ? '600' : '400',
                                                 }}
                                             >
                                                 {calendar.summary}
                                                 {calendar.primary && (
-                                                    <span style={{
-                                                        marginLeft: '0.5rem',
-                                                        fontSize: '0.75rem',
-                                                        color: '#667eea',
-                                                        fontWeight: '600'
-                                                    }}>
+                                                    <span
+                                                        style={{
+                                                            marginLeft: '0.5rem',
+                                                            fontSize: '0.75rem',
+                                                            color: '#667eea',
+                                                            fontWeight: '600',
+                                                        }}
+                                                    >
                                                         (Primary)
                                                     </span>
                                                 )}
                                             </label>
                                             {calendar.description && (
-                                                <div style={{
-                                                    fontSize: '0.75rem',
-                                                    color: '#6c757d',
-                                                    marginTop: '0.25rem'
-                                                }}>
+                                                <div
+                                                    style={{
+                                                        fontSize: '0.75rem',
+                                                        color: '#6c757d',
+                                                        marginTop: '0.25rem',
+                                                    }}
+                                                >
                                                     {calendar.description}
                                                 </div>
                                             )}
                                         </div>
                                     </div>
                                 ))}
-                                <div style={{
-                                    fontSize: '0.75rem',
-                                    color: '#6c757d',
-                                    marginTop: '0.5rem'
-                                }}>
-                                    Select which calendars to sync with your CRM. Click "Save" to apply changes.
+                                <div
+                                    style={{
+                                        fontSize: '0.75rem',
+                                        color: '#6c757d',
+                                        marginTop: '0.5rem',
+                                    }}
+                                >
+                                    Select which calendars to sync with your CRM. Click "Save" to
+                                    apply changes.
                                 </div>
                             </div>
                         )}

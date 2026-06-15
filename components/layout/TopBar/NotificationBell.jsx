@@ -104,15 +104,16 @@ const NotificationBell = () => {
             {/* Bell Button */}
             <button
                 onClick={() => setOpen((prev) => !prev)}
-                className="hidden lg:flex relative items-center justify-center text-foreground-muted hover:text-foreground transition-colors duration-150"
+                className={[
+                    'hidden lg:flex relative items-center justify-center text-foreground-muted',
+                    'hover:text-foreground transition-colors duration-150',
+                ].join(' ')}
                 title="Reminders"
                 aria-label={`Reminders${count > 0 ? `, ${count} upcoming` : ''}`}
             >
                 <i className="pi pi-bell text-xl" />
                 {count > 0 && (
-                    <span className="notification-bell__badge">
-                        {count >= 10 ? '9+' : count}
-                    </span>
+                    <span className="notification-bell__badge">{count >= 10 ? '9+' : count}</span>
                 )}
             </button>
 
@@ -125,9 +126,7 @@ const NotificationBell = () => {
                             <p className="notification-bell__title">Upcoming Reminders</p>
                             <p className="notification-bell__subtitle">Next 7 days</p>
                         </div>
-                        {count > 0 && (
-                            <span className="notification-bell__count">{count}</span>
-                        )}
+                        {count > 0 && <span className="notification-bell__count">{count}</span>}
                     </div>
 
                     {/* List or Empty */}
@@ -170,7 +169,7 @@ const NotificationBell = () => {
                                                     reminder.reminderDate,
                                                     reminder.isToday,
                                                     reminder.isTomorrow,
-                                                    reminder.isOverdue
+                                                    reminder.isOverdue,
                                                 )}
                                             </span>
                                             <span className="notification-bell__item-separator">

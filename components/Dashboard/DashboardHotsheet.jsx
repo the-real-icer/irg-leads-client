@@ -267,9 +267,24 @@ const DashboardHotsheet = () => {
                     <div key={i} className="dashboard-hotsheet__skeleton">
                         <div className="dashboard-hotsheet__skeleton-img" />
                         <div className="dashboard-hotsheet__skeleton-body">
-                            <div className="dashboard-hotsheet__skeleton-body-line dashboard-hotsheet__skeleton-body-line--price" />
-                            <div className="dashboard-hotsheet__skeleton-body-line dashboard-hotsheet__skeleton-body-line--details" />
-                            <div className="dashboard-hotsheet__skeleton-body-line dashboard-hotsheet__skeleton-body-line--address" />
+                            <div
+                                className={[
+                                    'dashboard-hotsheet__skeleton-body-line',
+                                    'dashboard-hotsheet__skeleton-body-line--price',
+                                ].join(' ')}
+                            />
+                            <div
+                                className={[
+                                    'dashboard-hotsheet__skeleton-body-line',
+                                    'dashboard-hotsheet__skeleton-body-line--details',
+                                ].join(' ')}
+                            />
+                            <div
+                                className={[
+                                    'dashboard-hotsheet__skeleton-body-line',
+                                    'dashboard-hotsheet__skeleton-body-line--address',
+                                ].join(' ')}
+                            />
                         </div>
                     </div>
                 ))}
@@ -320,8 +335,22 @@ const DashboardHotsheet = () => {
             {loading && properties.length === 0 ? (
                 renderSkeletons()
             ) : error ? (
-                <div style={{ textAlign: 'center', padding: '3rem', color: 'hsl(var(--foreground-muted))' }}>
-                    <i className="pi pi-exclamation-triangle" style={{ fontSize: '2.5rem', marginBottom: '1rem', display: 'block', color: 'hsl(var(--danger))' }}></i>
+                <div
+                    style={{
+                        textAlign: 'center',
+                        padding: '3rem',
+                        color: 'hsl(var(--foreground-muted))',
+                    }}
+                >
+                    <i
+                        className="pi pi-exclamation-triangle"
+                        style={{
+                            fontSize: '2.5rem',
+                            marginBottom: '1rem',
+                            display: 'block',
+                            color: 'hsl(var(--danger))',
+                        }}
+                    ></i>
                     <p style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>{error}</p>
                     <button
                         onClick={handleRetry}
@@ -344,7 +373,10 @@ const DashboardHotsheet = () => {
                     {expanded ? (
                         <div className="dashboard-hotsheet__grid">
                             {properties.map((property) => (
-                                <div key={property._id || property.mls_number} className="dashboard-hotsheet__card-wrapper">
+                                <div
+                                    key={property._id || property.mls_number}
+                                    className="dashboard-hotsheet__card-wrapper"
+                                >
                                     {isNewListing(property) && (
                                         <span className="dashboard-hotsheet__new-badge">NEW</span>
                                     )}
@@ -370,17 +402,28 @@ const DashboardHotsheet = () => {
                                 className="dashboard-hotsheet__slider-arrow dashboard-hotsheet__slider-arrow--left"
                                 onClick={scrollLeft}
                                 aria-label="Scroll left"
-                                style={{ opacity: canScrollLeft ? 1 : 0, pointerEvents: canScrollLeft ? 'auto' : 'none' }}
+                                style={{
+                                    opacity: canScrollLeft ? 1 : 0,
+                                    pointerEvents: canScrollLeft ? 'auto' : 'none',
+                                }}
                             >
                                 <i className="pi pi-chevron-left" />
                             </button>
                             <div className="dashboard-hotsheet__slider-track" ref={scrollRef}>
                                 {properties.map((property) => (
-                                    <div key={property._id || property.mls_number} className="dashboard-hotsheet__card-wrapper">
+                                    <div
+                                        key={property._id || property.mls_number}
+                                        className="dashboard-hotsheet__card-wrapper"
+                                    >
                                         {isNewListing(property) && (
-                                            <span className="dashboard-hotsheet__new-badge">NEW</span>
+                                            <span className="dashboard-hotsheet__new-badge">
+                                                NEW
+                                            </span>
                                         )}
-                                        <PrpCard property={property} handleOpenMapDialog={() => {}} />
+                                        <PrpCard
+                                            property={property}
+                                            handleOpenMapDialog={() => {}}
+                                        />
                                         <div className="dashboard-hotsheet__card-meta">
                                             {property.property_sub_type && (
                                                 <span className="dashboard-hotsheet__card-meta-type">
@@ -400,7 +443,10 @@ const DashboardHotsheet = () => {
                                 className="dashboard-hotsheet__slider-arrow dashboard-hotsheet__slider-arrow--right"
                                 onClick={scrollRight}
                                 aria-label="Scroll right"
-                                style={{ opacity: canScrollRight ? 1 : 0, pointerEvents: canScrollRight ? 'auto' : 'none' }}
+                                style={{
+                                    opacity: canScrollRight ? 1 : 0,
+                                    pointerEvents: canScrollRight ? 'auto' : 'none',
+                                }}
                             >
                                 <i className="pi pi-chevron-right" />
                             </button>
@@ -408,7 +454,10 @@ const DashboardHotsheet = () => {
                     )}
                     {properties.length > 3 && (
                         <div className="dashboard-hotsheet__toggle">
-                            <button className="dashboard-hotsheet__toggle-btn" onClick={() => setExpanded(!expanded)}>
+                            <button
+                                className="dashboard-hotsheet__toggle-btn"
+                                onClick={() => setExpanded(!expanded)}
+                            >
                                 <i className={`pi ${expanded ? 'pi-chevron-up' : 'pi-th-large'}`} />
                                 {expanded ? 'Collapse' : 'Show All'}
                             </button>
@@ -416,12 +465,24 @@ const DashboardHotsheet = () => {
                     )}
                 </>
             ) : (
-                <div style={{ textAlign: 'center', padding: '3rem', color: 'hsl(var(--foreground-muted))' }}>
-                    <i className="pi pi-home" style={{ fontSize: '3rem', marginBottom: '1rem', display: 'block' }}></i>
+                <div
+                    style={{
+                        textAlign: 'center',
+                        padding: '3rem',
+                        color: 'hsl(var(--foreground-muted))',
+                    }}
+                >
+                    <i
+                        className="pi pi-home"
+                        style={{ fontSize: '3rem', marginBottom: '1rem', display: 'block' }}
+                    ></i>
                     <p style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>
-                        No new listings found in {selectedArea.label || areaInput} in the {timeLabel.toLowerCase()}.
+                        No new listings found in {selectedArea.label || areaInput} in the{' '}
+                        {timeLabel.toLowerCase()}.
                     </p>
-                    <p style={{ fontSize: '0.9rem' }}>Try expanding your search area or time window.</p>
+                    <p style={{ fontSize: '0.9rem' }}>
+                        Try expanding your search area or time window.
+                    </p>
                 </div>
             )}
         </Card>

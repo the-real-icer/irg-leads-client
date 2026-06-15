@@ -980,20 +980,25 @@ const Leads = () => {
                         justifyContent: 'space-between',
                         alignItems: isMobile ? 'stretch' : 'center',
                         marginBottom: '1.25rem',
-                        gap: isMobile ? '12px' : '0'
+                        gap: isMobile ? '12px' : '0',
                     }}
                 >
-                    <h2 style={{
-                        margin: 0,
-                        fontSize: isMobile ? '1.5rem' : '1.75rem',
-                        fontWeight: '600',
-                        color: 'hsl(var(--foreground))',
-                        paddingLeft: '6px'
-                    }}>
+                    <h2
+                        style={{
+                            margin: 0,
+                            fontSize: isMobile ? '1.5rem' : '1.75rem',
+                            fontWeight: '600',
+                            color: 'hsl(var(--foreground))',
+                            paddingLeft: '6px',
+                        }}
+                    >
                         Leads
                     </h2>
                     <span className="p-input-icon-left" style={{ marginTop: isMobile ? 0 : '4px' }}>
-                        <i className="pi pi-search" style={{ color: 'hsl(var(--foreground-muted))' }} />
+                        <i
+                            className="pi pi-search"
+                            style={{ color: 'hsl(var(--foreground-muted))' }}
+                        />
                         <InputText
                             value={globalFilterValue}
                             onChange={onGlobalFilterChange}
@@ -1001,7 +1006,7 @@ const Leads = () => {
                             style={{
                                 width: isMobile ? '100%' : '320px',
                                 borderRadius: '8px',
-                                padding: '0.75rem 1rem 0.75rem 2.5rem'
+                                padding: '0.75rem 1rem 0.75rem 2.5rem',
                             }}
                         />
                     </span>
@@ -1017,18 +1022,20 @@ const Leads = () => {
                         padding: isMobile ? '12px' : '1rem 1.25rem',
                         backgroundColor: 'hsl(var(--muted))',
                         borderRadius: '10px',
-                        border: '1px solid hsl(var(--border))'
+                        border: '1px solid hsl(var(--border))',
                     }}
                 >
-                    <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        color: 'hsl(var(--foreground-muted))',
-                        fontSize: '0.9rem',
-                        fontWeight: '600',
-                        minWidth: '60px'
-                    }}>
+                    <div
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            color: 'hsl(var(--foreground-muted))',
+                            fontSize: '0.9rem',
+                            fontWeight: '600',
+                            minWidth: '60px',
+                        }}
+                    >
                         <i className="pi pi-filter" style={{ fontSize: '0.9rem' }}></i>
                         <span>Filters</span>
                         {hasActiveFilters && isMobile && (
@@ -1041,19 +1048,21 @@ const Leads = () => {
                                 style={{
                                     width: '2rem',
                                     height: '2rem',
-                                    marginLeft: 'auto'
+                                    marginLeft: 'auto',
                                 }}
                             />
                         )}
                     </div>
 
-                    <div style={{
-                        display: 'flex',
-                        alignItems: isMobile ? 'stretch' : 'center',
-                        flexDirection: isMobile ? 'column' : 'row',
-                        gap: isMobile ? '8px' : '0.75rem',
-                        flex: 1
-                    }}>
+                    <div
+                        style={{
+                            display: 'flex',
+                            alignItems: isMobile ? 'stretch' : 'center',
+                            flexDirection: isMobile ? 'column' : 'row',
+                            gap: isMobile ? '8px' : '0.75rem',
+                            flex: 1,
+                        }}
+                    >
                         <Dropdown
                             value={selectedStatus}
                             options={statusValues}
@@ -1062,7 +1071,10 @@ const Leads = () => {
                             showClear
                             itemTemplate={statusItemTemplate}
                             valueTemplate={statusValueTemplate}
-                            style={{ minWidth: isMobile ? undefined : '160px', width: isMobile ? '100%' : undefined }}
+                            style={{
+                                minWidth: isMobile ? undefined : '160px',
+                                width: isMobile ? '100%' : undefined,
+                            }}
                             className="filter-dropdown"
                         />
                         <Dropdown
@@ -1071,7 +1083,10 @@ const Leads = () => {
                             onChange={(e) => setSelectedType(e.value)}
                             placeholder="Type"
                             showClear
-                            style={{ minWidth: isMobile ? undefined : '160px', width: isMobile ? '100%' : undefined }}
+                            style={{
+                                minWidth: isMobile ? undefined : '160px',
+                                width: isMobile ? '100%' : undefined,
+                            }}
                             className="filter-dropdown"
                         />
                         <Dropdown
@@ -1080,7 +1095,10 @@ const Leads = () => {
                             onChange={(e) => setSelectedSource(e.value)}
                             placeholder="Source"
                             showClear
-                            style={{ minWidth: isMobile ? undefined : '160px', width: isMobile ? '100%' : undefined }}
+                            style={{
+                                minWidth: isMobile ? undefined : '160px',
+                                width: isMobile ? '100%' : undefined,
+                            }}
                             className="filter-dropdown"
                         />
                         {isAdmin && (
@@ -1089,7 +1107,10 @@ const Leads = () => {
                                 options={viewOptions}
                                 onChange={(e) => setLeadView(e.value)}
                                 placeholder="Lead View"
-                                style={{ minWidth: isMobile ? undefined : '200px', width: isMobile ? '100%' : undefined }}
+                                style={{
+                                    minWidth: isMobile ? undefined : '200px',
+                                    width: isMobile ? '100%' : undefined,
+                                }}
                                 className="filter-dropdown"
                                 disabled={agentOptionsLoading}
                             />
@@ -1108,7 +1129,7 @@ const Leads = () => {
                             style={{
                                 width: '2.5rem',
                                 height: '2.5rem',
-                                marginLeft: 'auto'
+                                marginLeft: 'auto',
                             }}
                         />
                     )}

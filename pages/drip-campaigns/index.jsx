@@ -233,7 +233,12 @@ const DripCampaigns = () => {
                         >
                             Drip Campaigns
                         </h1>
-                        <p style={{ color: 'hsl(var(--foreground-muted))', margin: '0.5rem 0 0 0' }}>
+                        <p
+                            style={{
+                                color: 'hsl(var(--foreground-muted))',
+                                margin: '0.5rem 0 0 0',
+                            }}
+                        >
                             Create and manage automated email sequences for your leads
                         </p>
                     </div>
@@ -402,7 +407,9 @@ const DripCampaigns = () => {
                                                 className="p-button-sm p-button-outlined"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    router.push(`/drip-campaigns/edit/${campaign._id}`);
+                                                    router.push(
+                                                        `/drip-campaigns/edit/${campaign._id}`,
+                                                    );
                                                 }}
                                             />
                                             <button
@@ -426,15 +433,22 @@ const DripCampaigns = () => {
                                                     whiteSpace: 'nowrap',
                                                 }}
                                                 onMouseEnter={(e) => {
-                                                    e.currentTarget.style.background = 'hsl(var(--accent))';
-                                                    e.currentTarget.style.borderColor = 'hsl(var(--primary))';
+                                                    e.currentTarget.style.background =
+                                                        'hsl(var(--accent))';
+                                                    e.currentTarget.style.borderColor =
+                                                        'hsl(var(--primary))';
                                                 }}
                                                 onMouseLeave={(e) => {
-                                                    e.currentTarget.style.background = 'transparent';
-                                                    e.currentTarget.style.borderColor = 'hsl(var(--border))';
+                                                    e.currentTarget.style.background =
+                                                        'transparent';
+                                                    e.currentTarget.style.borderColor =
+                                                        'hsl(var(--border))';
                                                 }}
                                             >
-                                                <i className="pi pi-user-plus" style={{ fontSize: '12px' }} />
+                                                <i
+                                                    className="pi pi-user-plus"
+                                                    style={{ fontSize: '12px' }}
+                                                />
                                                 Assign
                                             </button>
                                             {(campaign.created_by?._id === agent?._id ||
@@ -478,7 +492,12 @@ const DripCampaigns = () => {
                         <h3 style={{ color: 'hsl(var(--foreground))', marginBottom: '0.5rem' }}>
                             No campaigns yet
                         </h3>
-                        <p style={{ color: 'hsl(var(--foreground-muted))', marginBottom: '1.5rem' }}>
+                        <p
+                            style={{
+                                color: 'hsl(var(--foreground-muted))',
+                                marginBottom: '1.5rem',
+                            }}
+                        >
                             Create your first drip campaign to start automating lead engagement
                         </p>
                         <Button
@@ -622,17 +641,19 @@ const DripCampaigns = () => {
                                         >
                                             {getLeadDisplayName(selectedLead)}
                                         </span>
-                                        {selectedLead.email && getLeadDisplayName(selectedLead) !== selectedLead.email && (
-                                            <span
-                                                style={{
-                                                    fontSize: '13px',
-                                                    color: 'hsl(var(--muted-foreground))',
-                                                    marginLeft: '8px',
-                                                }}
-                                            >
-                                                {selectedLead.email}
-                                            </span>
-                                        )}
+                                        {selectedLead.email &&
+                                            getLeadDisplayName(selectedLead) !==
+                                                selectedLead.email && (
+                                                <span
+                                                    style={{
+                                                        fontSize: '13px',
+                                                        color: 'hsl(var(--muted-foreground))',
+                                                        marginLeft: '8px',
+                                                    }}
+                                                >
+                                                    {selectedLead.email}
+                                                </span>
+                                            )}
                                     </div>
                                     <button
                                         onClick={() => {
@@ -733,16 +754,17 @@ const DripCampaigns = () => {
                                             >
                                                 {getLeadDisplayName(lead)}
                                             </span>
-                                            {lead.email && getLeadDisplayName(lead) !== lead.email && (
-                                                <span
-                                                    style={{
-                                                        fontSize: '13px',
-                                                        color: 'hsl(var(--muted-foreground))',
-                                                    }}
-                                                >
-                                                    {lead.email}
-                                                </span>
-                                            )}
+                                            {lead.email &&
+                                                getLeadDisplayName(lead) !== lead.email && (
+                                                    <span
+                                                        style={{
+                                                            fontSize: '13px',
+                                                            color: 'hsl(var(--muted-foreground))',
+                                                        }}
+                                                    >
+                                                        {lead.email}
+                                                    </span>
+                                                )}
                                         </button>
                                     ))}
                                 </div>
@@ -836,7 +858,9 @@ const DripCampaigns = () => {
                             </button>
                             <button
                                 onClick={handleAssign}
-                                disabled={!selectedLead || assignState === 'loading' || !!assignError}
+                                disabled={
+                                    !selectedLead || assignState === 'loading' || !!assignError
+                                }
                                 style={{
                                     padding: '9px 24px',
                                     borderRadius: 'var(--radius)',

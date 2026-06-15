@@ -122,17 +122,32 @@ const AgentProfile = () => {
         e.preventDefault();
 
         // Validation
-        if (!formData.name || !formData.email || !formData.display_email || !formData.title || !formData.dre_license || !formData.image) {
+        if (
+            !formData.name ||
+            !formData.email ||
+            !formData.display_email ||
+            !formData.title ||
+            !formData.dre_license ||
+            !formData.image
+        ) {
             showToast('error', 'Please fill in all required fields', 'Validation Error');
             return;
         }
 
         // Commission split validation
-        if (formData.commissionSplit !== '' && formData.commissionSplit !== null && formData.commissionSplit !== undefined) {
+        if (
+            formData.commissionSplit !== '' &&
+            formData.commissionSplit !== null &&
+            formData.commissionSplit !== undefined
+        ) {
             const splitVal = parseFloat(formData.commissionSplit);
             if (Number.isNaN(splitVal) || splitVal < 0 || splitVal > 100) {
                 setCommissionSplitError('Please enter a valid percentage between 0 and 100');
-                showToast('error', 'Commission split must be between 0 and 100', 'Validation Error');
+                showToast(
+                    'error',
+                    'Commission split must be between 0 and 100',
+                    'Validation Error',
+                );
                 return;
             }
             setCommissionSplitError('');
@@ -140,7 +155,11 @@ const AgentProfile = () => {
 
         // Parse commission split for submission
         const submitData = { ...formData };
-        if (submitData.commissionSplit !== '' && submitData.commissionSplit !== null && submitData.commissionSplit !== undefined) {
+        if (
+            submitData.commissionSplit !== '' &&
+            submitData.commissionSplit !== null &&
+            submitData.commissionSplit !== undefined
+        ) {
             submitData.commissionSplit = parseFloat(submitData.commissionSplit);
         } else {
             delete submitData.commissionSplit;
@@ -254,19 +273,28 @@ const AgentProfile = () => {
             <div style={{ padding: '1.5rem', maxWidth: '900px', margin: '0 auto' }}>
                 {/* Header */}
                 <div style={{ marginBottom: '2rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
+                    <div
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '1rem',
+                            marginBottom: '0.5rem',
+                        }}
+                    >
                         <Button
                             icon="pi pi-arrow-left"
                             className="p-button-text p-button-rounded"
                             onClick={handleBack}
                             tooltip="Back to Agents"
                         />
-                        <h1 style={{
-                            fontSize: '2rem',
-                            fontWeight: '700',
-                            color: '#2c3e50',
-                            margin: 0,
-                        }}>
+                        <h1
+                            style={{
+                                fontSize: '2rem',
+                                fontWeight: '700',
+                                color: '#2c3e50',
+                                margin: 0,
+                            }}
+                        >
                             {loading ? 'Loading...' : `Edit Agent: ${agent?.name || ''}`}
                         </h1>
                     </div>
@@ -277,19 +305,28 @@ const AgentProfile = () => {
 
                 {/* Content */}
                 {loading ? (
-                    <Card style={{ boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)', borderRadius: '12px' }}>
+                    <Card
+                        style={{
+                            boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
+                            borderRadius: '12px',
+                        }}
+                    >
                         <div style={{ textAlign: 'center', padding: '3rem', color: '#6c757d' }}>
                             <i className="pi pi-spin pi-spinner" style={{ fontSize: '2rem' }}></i>
                             <p style={{ marginTop: '1rem' }}>Loading agent details...</p>
                         </div>
                     </Card>
                 ) : (
-                    <Card style={{
-                        boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
-                        borderRadius: '12px'
-                    }}>
+                    <Card
+                        style={{
+                            boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
+                            borderRadius: '12px',
+                        }}
+                    >
                         <form onSubmit={handleSubmit}>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                            <div
+                                style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
+                            >
                                 {/* Agent Image Preview */}
                                 {formData.image && (
                                     <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
@@ -301,7 +338,7 @@ const AgentProfile = () => {
                                                 height: '120px',
                                                 borderRadius: '50%',
                                                 objectFit: 'cover',
-                                                border: '3px solid #667eea'
+                                                border: '3px solid #667eea',
                                             }}
                                             onError={(e) => {
                                                 e.target.style.display = 'none';
@@ -320,10 +357,15 @@ const AgentProfile = () => {
                                         fontSize: '0.95rem',
                                     }}
                                 >
-                                    <strong>Last successful login:</strong>{' '}
-                                    {lastLogin.primary}
+                                    <strong>Last successful login:</strong> {lastLogin.primary}
                                     {lastLogin.secondary && (
-                                        <div style={{ color: '#6c757d', fontSize: '0.85rem', marginTop: '0.25rem' }}>
+                                        <div
+                                            style={{
+                                                color: '#6c757d',
+                                                fontSize: '0.85rem',
+                                                marginTop: '0.25rem',
+                                            }}
+                                        >
                                             {lastLogin.secondary}
                                         </div>
                                     )}
@@ -331,7 +373,15 @@ const AgentProfile = () => {
 
                                 {/* Name */}
                                 <div>
-                                    <label htmlFor="name" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#495057' }}>
+                                    <label
+                                        htmlFor="name"
+                                        style={{
+                                            display: 'block',
+                                            marginBottom: '0.5rem',
+                                            fontWeight: '600',
+                                            color: '#495057',
+                                        }}
+                                    >
                                         Name *
                                     </label>
                                     <InputText
@@ -345,10 +395,24 @@ const AgentProfile = () => {
                                 </div>
 
                                 {/* Email Grid */}
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                                <div
+                                    style={{
+                                        display: 'grid',
+                                        gridTemplateColumns: '1fr 1fr',
+                                        gap: '1.5rem',
+                                    }}
+                                >
                                     {/* Email (Login) */}
                                     <div>
-                                        <label htmlFor="email" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#495057' }}>
+                                        <label
+                                            htmlFor="email"
+                                            style={{
+                                                display: 'block',
+                                                marginBottom: '0.5rem',
+                                                fontWeight: '600',
+                                                color: '#495057',
+                                            }}
+                                        >
                                             Email (Login) *
                                         </label>
                                         <InputText
@@ -364,14 +428,24 @@ const AgentProfile = () => {
 
                                     {/* Display Email */}
                                     <div>
-                                        <label htmlFor="display_email" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#495057' }}>
+                                        <label
+                                            htmlFor="display_email"
+                                            style={{
+                                                display: 'block',
+                                                marginBottom: '0.5rem',
+                                                fontWeight: '600',
+                                                color: '#495057',
+                                            }}
+                                        >
                                             Display Email *
                                         </label>
                                         <InputText
                                             id="display_email"
                                             type="email"
                                             value={formData.display_email}
-                                            onChange={(e) => handleChange('display_email', e.target.value)}
+                                            onChange={(e) =>
+                                                handleChange('display_email', e.target.value)
+                                            }
                                             placeholder="Enter public display email"
                                             style={{ width: '100%' }}
                                             required
@@ -381,7 +455,15 @@ const AgentProfile = () => {
 
                                 {/* Phone */}
                                 <div>
-                                    <label htmlFor="phone" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#495057' }}>
+                                    <label
+                                        htmlFor="phone"
+                                        style={{
+                                            display: 'block',
+                                            marginBottom: '0.5rem',
+                                            fontWeight: '600',
+                                            color: '#495057',
+                                        }}
+                                    >
                                         Phone
                                     </label>
                                     <InputText
@@ -394,10 +476,24 @@ const AgentProfile = () => {
                                 </div>
 
                                 {/* Title and DRE License Grid */}
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                                <div
+                                    style={{
+                                        display: 'grid',
+                                        gridTemplateColumns: '1fr 1fr',
+                                        gap: '1.5rem',
+                                    }}
+                                >
                                     {/* Title */}
                                     <div>
-                                        <label htmlFor="title" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#495057' }}>
+                                        <label
+                                            htmlFor="title"
+                                            style={{
+                                                display: 'block',
+                                                marginBottom: '0.5rem',
+                                                fontWeight: '600',
+                                                color: '#495057',
+                                            }}
+                                        >
                                             Title *
                                         </label>
                                         <InputText
@@ -412,13 +508,23 @@ const AgentProfile = () => {
 
                                     {/* DRE License */}
                                     <div>
-                                        <label htmlFor="dre_license" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#495057' }}>
+                                        <label
+                                            htmlFor="dre_license"
+                                            style={{
+                                                display: 'block',
+                                                marginBottom: '0.5rem',
+                                                fontWeight: '600',
+                                                color: '#495057',
+                                            }}
+                                        >
                                             DRE License *
                                         </label>
                                         <InputText
                                             id="dre_license"
                                             value={formData.dre_license}
-                                            onChange={(e) => handleChange('dre_license', e.target.value)}
+                                            onChange={(e) =>
+                                                handleChange('dre_license', e.target.value)
+                                            }
                                             placeholder="Enter DRE license number"
                                             style={{ width: '100%' }}
                                             required
@@ -428,7 +534,15 @@ const AgentProfile = () => {
 
                                 {/* Image URL */}
                                 <div>
-                                    <label htmlFor="image" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#495057' }}>
+                                    <label
+                                        htmlFor="image"
+                                        style={{
+                                            display: 'block',
+                                            marginBottom: '0.5rem',
+                                            fontWeight: '600',
+                                            color: '#495057',
+                                        }}
+                                    >
                                         Image URL *
                                     </label>
                                     <InputText
@@ -443,7 +557,15 @@ const AgentProfile = () => {
 
                                 {/* Address */}
                                 <div>
-                                    <label htmlFor="address" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#495057' }}>
+                                    <label
+                                        htmlFor="address"
+                                        style={{
+                                            display: 'block',
+                                            marginBottom: '0.5rem',
+                                            fontWeight: '600',
+                                            color: '#495057',
+                                        }}
+                                    >
                                         Address
                                     </label>
                                     <InputText
@@ -456,9 +578,23 @@ const AgentProfile = () => {
                                 </div>
 
                                 {/* City, State, Zip */}
-                                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '1rem' }}>
+                                <div
+                                    style={{
+                                        display: 'grid',
+                                        gridTemplateColumns: '2fr 1fr 1fr',
+                                        gap: '1rem',
+                                    }}
+                                >
                                     <div>
-                                        <label htmlFor="city" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#495057' }}>
+                                        <label
+                                            htmlFor="city"
+                                            style={{
+                                                display: 'block',
+                                                marginBottom: '0.5rem',
+                                                fontWeight: '600',
+                                                color: '#495057',
+                                            }}
+                                        >
                                             City
                                         </label>
                                         <InputText
@@ -470,7 +606,15 @@ const AgentProfile = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label htmlFor="state" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#495057' }}>
+                                        <label
+                                            htmlFor="state"
+                                            style={{
+                                                display: 'block',
+                                                marginBottom: '0.5rem',
+                                                fontWeight: '600',
+                                                color: '#495057',
+                                            }}
+                                        >
                                             State
                                         </label>
                                         <InputText
@@ -482,13 +626,23 @@ const AgentProfile = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label htmlFor="zip_code" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#495057' }}>
+                                        <label
+                                            htmlFor="zip_code"
+                                            style={{
+                                                display: 'block',
+                                                marginBottom: '0.5rem',
+                                                fontWeight: '600',
+                                                color: '#495057',
+                                            }}
+                                        >
                                             Zip
                                         </label>
                                         <InputText
                                             id="zip_code"
                                             value={formData.zip_code}
-                                            onChange={(e) => handleChange('zip_code', e.target.value)}
+                                            onChange={(e) =>
+                                                handleChange('zip_code', e.target.value)
+                                            }
                                             placeholder="Zip"
                                             style={{ width: '100%' }}
                                         />
@@ -497,7 +651,15 @@ const AgentProfile = () => {
 
                                 {/* Role */}
                                 <div>
-                                    <label htmlFor="role" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#495057' }}>
+                                    <label
+                                        htmlFor="role"
+                                        style={{
+                                            display: 'block',
+                                            marginBottom: '0.5rem',
+                                            fontWeight: '600',
+                                            color: '#495057',
+                                        }}
+                                    >
                                         Role *
                                     </label>
                                     <Dropdown
@@ -513,7 +675,15 @@ const AgentProfile = () => {
                                 {/* Commission Split (Admin Only) */}
                                 {isAdmin && (
                                     <div>
-                                        <label htmlFor="commissionSplit" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#495057' }}>
+                                        <label
+                                            htmlFor="commissionSplit"
+                                            style={{
+                                                display: 'block',
+                                                marginBottom: '0.5rem',
+                                                fontWeight: '600',
+                                                color: '#495057',
+                                            }}
+                                        >
                                             Commission Split
                                         </label>
                                         <div style={{ position: 'relative' }}>
@@ -521,28 +691,43 @@ const AgentProfile = () => {
                                                 id="commissionSplit"
                                                 value={formData.commissionSplit}
                                                 onChange={(e) => {
-                                                    const val = e.target.value.replace(/[^0-9.]/g, '');
+                                                    const val = e.target.value.replace(
+                                                        /[^0-9.]/g,
+                                                        '',
+                                                    );
                                                     handleChange('commissionSplit', val);
-                                                    if (commissionSplitError) setCommissionSplitError('');
+                                                    if (commissionSplitError)
+                                                        setCommissionSplitError('');
                                                 }}
                                                 placeholder="e.g., 50"
                                                 style={{ width: '100%', paddingRight: '2rem' }}
                                                 className={commissionSplitError ? 'p-invalid' : ''}
                                             />
                                             {formData.commissionSplit && (
-                                                <span style={{
-                                                    position: 'absolute',
-                                                    right: '0.75rem',
-                                                    top: '50%',
-                                                    transform: 'translateY(-50%)',
-                                                    color: '#6c757d',
-                                                    fontSize: '0.9rem',
-                                                    pointerEvents: 'none',
-                                                }}>%</span>
+                                                <span
+                                                    style={{
+                                                        position: 'absolute',
+                                                        right: '0.75rem',
+                                                        top: '50%',
+                                                        transform: 'translateY(-50%)',
+                                                        color: '#6c757d',
+                                                        fontSize: '0.9rem',
+                                                        pointerEvents: 'none',
+                                                    }}
+                                                >
+                                                    %
+                                                </span>
                                             )}
                                         </div>
                                         {commissionSplitError && (
-                                            <small style={{ color: '#e74c3c', fontSize: '0.8rem', marginTop: '0.25rem', display: 'block' }}>
+                                            <small
+                                                style={{
+                                                    color: '#e74c3c',
+                                                    fontSize: '0.8rem',
+                                                    marginTop: '0.25rem',
+                                                    display: 'block',
+                                                }}
+                                            >
                                                 {commissionSplitError}
                                             </small>
                                         )}
@@ -551,21 +736,30 @@ const AgentProfile = () => {
 
                                 {/* Lead Rotation Toggle (Admin Only) */}
                                 {isAdmin && (
-                                    <div style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'space-between',
-                                        padding: '1rem',
-                                        borderRadius: '8px',
-                                        background: '#f8f9fa',
-                                        border: '1px solid #dee2e6',
-                                    }}>
+                                    <div
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'space-between',
+                                            padding: '1rem',
+                                            borderRadius: '8px',
+                                            background: '#f8f9fa',
+                                            border: '1px solid #dee2e6',
+                                        }}
+                                    >
                                         <div>
                                             <div style={{ fontWeight: '600', color: '#495057' }}>
                                                 Receive New Leads
                                             </div>
-                                            <div style={{ fontSize: '0.8rem', color: '#6c757d', marginTop: '0.25rem' }}>
-                                                When off, this agent will be excluded from new lead assignments
+                                            <div
+                                                style={{
+                                                    fontSize: '0.8rem',
+                                                    color: '#6c757d',
+                                                    marginTop: '0.25rem',
+                                                }}
+                                            >
+                                                When off, this agent will be excluded from new lead
+                                                assignments
                                             </div>
                                         </div>
                                         <label
@@ -582,7 +776,9 @@ const AgentProfile = () => {
                                             <input
                                                 type="checkbox"
                                                 checked={inLeadRotation}
-                                                onChange={(e) => handleLeadRotationToggle(e.target.checked)}
+                                                onChange={(e) =>
+                                                    handleLeadRotationToggle(e.target.checked)
+                                                }
                                                 style={{
                                                     opacity: 0,
                                                     width: 0,
@@ -590,31 +786,46 @@ const AgentProfile = () => {
                                                     position: 'absolute',
                                                 }}
                                             />
-                                            <span style={{
-                                                position: 'absolute',
-                                                inset: 0,
-                                                borderRadius: '12px',
-                                                backgroundColor: inLeadRotation ? '#22c55e' : '#d1d5db',
-                                                transition: 'background-color 0.2s',
-                                            }}>
-                                                <span style={{
+                                            <span
+                                                style={{
                                                     position: 'absolute',
-                                                    left: inLeadRotation ? '22px' : '2px',
-                                                    top: '2px',
-                                                    width: '20px',
-                                                    height: '20px',
-                                                    borderRadius: '50%',
-                                                    backgroundColor: '#fff',
-                                                    transition: 'left 0.2s',
-                                                    boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-                                                }} />
+                                                    inset: 0,
+                                                    borderRadius: '12px',
+                                                    backgroundColor: inLeadRotation
+                                                        ? '#22c55e'
+                                                        : '#d1d5db',
+                                                    transition: 'background-color 0.2s',
+                                                }}
+                                            >
+                                                <span
+                                                    style={{
+                                                        position: 'absolute',
+                                                        left: inLeadRotation ? '22px' : '2px',
+                                                        top: '2px',
+                                                        width: '20px',
+                                                        height: '20px',
+                                                        borderRadius: '50%',
+                                                        backgroundColor: '#fff',
+                                                        transition: 'left 0.2s',
+                                                        boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                                                    }}
+                                                />
                                             </span>
                                         </label>
                                     </div>
                                 )}
 
                                 {/* Submit Buttons */}
-                                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #dee2e6' }}>
+                                <div
+                                    style={{
+                                        display: 'flex',
+                                        justifyContent: 'flex-end',
+                                        gap: '1rem',
+                                        marginTop: '1rem',
+                                        paddingTop: '1rem',
+                                        borderTop: '1px solid #dee2e6',
+                                    }}
+                                >
                                     <Button
                                         label="Cancel"
                                         className="p-button-text"
@@ -627,7 +838,11 @@ const AgentProfile = () => {
                                         icon={saving ? 'pi pi-spin pi-spinner' : 'pi pi-check'}
                                         type="submit"
                                         disabled={saving}
-                                        style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', border: 'none' }}
+                                        style={{
+                                            background:
+                                                'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                            border: 'none',
+                                        }}
                                     />
                                 </div>
                             </div>

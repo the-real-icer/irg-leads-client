@@ -10,7 +10,13 @@ const SideBar = ({ mobileOpen }) => {
     return (
         <div
             id="app-sidebar"
-            className={`bg-sidebar h-screen flex-shrink-0 fixed left-0 top-0 z-[999] border-r border-sidebar-border select-none transition-transform duration-200 ease-in-out ${mobileOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}
+            className={[
+                'bg-sidebar h-screen flex-shrink-0 fixed left-0 top-0 z-[999]',
+                'border-r border-sidebar-border select-none transition-transform',
+                'duration-200 ease-in-out',
+                mobileOpen ? 'translate-x-0' : '-translate-x-full',
+                'lg:translate-x-0',
+            ].join(' ')}
             style={{ width: '280px' }}
         >
             <div className="flex flex-column h-full">
@@ -25,7 +31,11 @@ const SideBar = ({ mobileOpen }) => {
                         <SideBarLink name="Dashboard" url="/dashboard" icon="pi pi-home mr-2" />
                         <SideBarLink name="Hotsheet" url="/hotsheet" icon="pi pi-bolt mr-2" />
                         <SideBarLink name="Marketing" url="/marketing" icon="pi pi-image mr-2" />
-                        <SideBarLink name="Property Search" url="/search" icon="pi pi-search mr-2" />
+                        <SideBarLink
+                            name="Property Search"
+                            url="/search"
+                            icon="pi pi-search mr-2"
+                        />
                         <SideBarLink name="Ask Doc" url="/ask-doc" icon="pi pi-comments mr-2" />
                         <SideBarLink
                             name="Schedule Showings"
@@ -44,7 +54,9 @@ const SideBar = ({ mobileOpen }) => {
                             icon="pi pi-send mr-2"
                         />
                         <li>
-                                <span className="block p-3 text-sidebar-foreground/50 text-xs font-semibold tracking-wider">LEADS</span>
+                            <span className="block p-3 text-sidebar-foreground/50 text-xs font-semibold tracking-wider">
+                                LEADS
+                            </span>
                         </li>
                         <SideBarLink name="Leads" url="/leads" icon="pi pi-users mr-2" />
                         <SideBarLink
@@ -52,18 +64,25 @@ const SideBar = ({ mobileOpen }) => {
                             url="/add-lead"
                             icon="pi pi-user-plus mr-2"
                         />
-                        <SideBarLink name="Save Property Search" url="/save-property-search" icon="pi pi-search mr-2" />
+                        <SideBarLink
+                            name="Save Property Search"
+                            url="/save-property-search"
+                            icon="pi pi-search mr-2"
+                        />
                     </ul>
                     {agent?.role === 'admin' && (
                         <ul className="list-none p-3 m-0">
                             <li>
-                                <span className="block p-3 text-sidebar-foreground/50 text-xs font-semibold tracking-wider">ADMIN</span>
+                                <span
+                                    className={[
+                                        'block p-3 text-sidebar-foreground/50 text-xs',
+                                        'font-semibold tracking-wider',
+                                    ].join(' ')}
+                                >
+                                    ADMIN
+                                </span>
                             </li>
-                            <SideBarLink
-                                name="Agents"
-                                url="/agents"
-                                icon="pi pi-users mr-2"
-                            />
+                            <SideBarLink name="Agents" url="/agents" icon="pi pi-users mr-2" />
                             <SideBarLink
                                 name="IRG Areas"
                                 url="/irg-areas"

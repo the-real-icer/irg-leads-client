@@ -34,19 +34,44 @@ const RecentAgentLoginsCard = ({ logins, loading }) => (
                                 }}
                             >
                                 <div style={{ minWidth: 0 }}>
-                                    <div style={{ fontSize: '0.95rem', fontWeight: '600', color: 'hsl(var(--foreground))' }}>
+                                    <div
+                                        style={{
+                                            fontSize: '0.95rem',
+                                            fontWeight: '600',
+                                            color: 'hsl(var(--foreground))',
+                                        }}
+                                    >
                                         {agent.name}
                                     </div>
-                                    <div style={{ fontSize: '0.8125rem', color: 'hsl(var(--foreground-muted))', marginTop: '0.125rem' }}>
-                                        {agent.title || (agent.role === 'admin' ? 'Admin' : 'Agent')}
+                                    <div
+                                        style={{
+                                            fontSize: '0.8125rem',
+                                            color: 'hsl(var(--foreground-muted))',
+                                            marginTop: '0.125rem',
+                                        }}
+                                    >
+                                        {agent.title ||
+                                            (agent.role === 'admin' ? 'Admin' : 'Agent')}
                                     </div>
                                 </div>
                                 <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                                    <div style={{ fontSize: '0.875rem', fontWeight: '600', color: 'hsl(var(--foreground))' }}>
+                                    <div
+                                        style={{
+                                            fontSize: '0.875rem',
+                                            fontWeight: '600',
+                                            color: 'hsl(var(--foreground))',
+                                        }}
+                                    >
                                         {lastLogin.primary}
                                     </div>
                                     {lastLogin.secondary && (
-                                        <div style={{ fontSize: '0.75rem', color: 'hsl(var(--foreground-muted))', marginTop: '0.125rem' }}>
+                                        <div
+                                            style={{
+                                                fontSize: '0.75rem',
+                                                color: 'hsl(var(--foreground-muted))',
+                                                marginTop: '0.125rem',
+                                            }}
+                                        >
                                             {lastLogin.secondary}
                                         </div>
                                     )}

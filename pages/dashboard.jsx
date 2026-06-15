@@ -47,54 +47,57 @@ const Dashboard = () => {
         <MainLayout title="Dashboard">
             <div className="dashboard-page" style={{ padding: '1.5rem' }}>
                 {/* ── Tab Bar (admin only) ──────────────────────────── */}
-                {isAdmin && (
-                    <DashboardTabBar activeTab={activeTab} onTabChange={setActiveTab} />
-                )}
+                {isAdmin && <DashboardTabBar activeTab={activeTab} onTabChange={setActiveTab} />}
 
                 {/* ══════════════════════════════════════════════════
                     TAB 1 — MY PRODUCTION
                     ══════════════════════════════════════════════════ */}
-                {activeTab === 'my' && (<>
-                {/* Top Section - Two Boxes Side by Side */}
-                <div className="grid-cols-1 md:grid-cols-2" style={{ display: 'grid', gap: '1.5rem', marginBottom: '1.5rem' }}>
-                    {/* Top Left - My Production */}
-                    <Card title="My Production" style={{ height: '100%' }}>
-                        <ProductionGrid
-                            metrics={txMetrics}
-                            loading={txLoading}
-                            error={txError}
-                            onRetry={retryTxMetrics}
-                        />
-                        {!txLoading && !txError && (
-                            <UpcomingDatesList
-                                title="Upcoming Important Dates"
-                                dates={upcomingDates}
-                                loading={upcomingDatesLoading}
+                {activeTab === 'my' && (
+                    <>
+                        {/* Top Section - Two Boxes Side by Side */}
+                        <div
+                            className="grid-cols-1 md:grid-cols-2"
+                            style={{ display: 'grid', gap: '1.5rem', marginBottom: '1.5rem' }}
+                        >
+                            {/* Top Left - My Production */}
+                            <Card title="My Production" style={{ height: '100%' }}>
+                                <ProductionGrid
+                                    metrics={txMetrics}
+                                    loading={txLoading}
+                                    error={txError}
+                                    onRetry={retryTxMetrics}
+                                />
+                                {!txLoading && !txError && (
+                                    <UpcomingDatesList
+                                        title="Upcoming Important Dates"
+                                        dates={upcomingDates}
+                                        loading={upcomingDatesLoading}
+                                    />
+                                )}
+                            </Card>
+
+                            {/* Top Right - Recent Leads */}
+                            <RecentLeadsCard leads={recentLeads} />
+                        </div>
+
+                        {isAdmin && (
+                            <RecentAgentLoginsCard
+                                logins={recentAgentLogins}
+                                loading={recentAgentLoginsLoading}
                             />
                         )}
-                    </Card>
 
-                    {/* Top Right - Recent Leads */}
-                    <RecentLeadsCard leads={recentLeads} />
-                </div>
+                        {/* Middle Section - Leads Active on Site */}
+                        <ActiveLeadsCard
+                            sessions={activeLeads}
+                            loading={activeLeadsLoading}
+                            allLeads={allLeads}
+                        />
 
-                {isAdmin && (
-                    <RecentAgentLoginsCard
-                        logins={recentAgentLogins}
-                        loading={recentAgentLoginsLoading}
-                    />
+                        {/* Bottom Section - Hotsheet */}
+                        <DashboardHotsheet />
+                    </>
                 )}
-
-                {/* Middle Section - Leads Active on Site */}
-                <ActiveLeadsCard
-                    sessions={activeLeads}
-                    loading={activeLeadsLoading}
-                    allLeads={allLeads}
-                />
-
-                {/* Bottom Section - Hotsheet */}
-                <DashboardHotsheet />
-                </>)}
 
                 {/* ══════════════════════════════════════════════════
                     TAB 2 — BROKERAGE (admin only)
