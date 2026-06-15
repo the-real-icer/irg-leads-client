@@ -14,6 +14,27 @@ const compat = new FlatCompat({
     recommendedConfig: eslint.configs.recommended,
 });
 
+const nodeToolingGlobals = {
+    Buffer: 'readonly',
+    URL: 'readonly',
+    URLSearchParams: 'readonly',
+    clearImmediate: 'readonly',
+    clearInterval: 'readonly',
+    clearTimeout: 'readonly',
+    console: 'readonly',
+    global: 'readonly',
+    process: 'readonly',
+    setImmediate: 'readonly',
+    setInterval: 'readonly',
+    setTimeout: 'readonly',
+};
+
+const playwrightEvaluateGlobals = {
+    document: 'readonly',
+    getComputedStyle: 'readonly',
+    Image: 'readonly',
+};
+
 export default [
     {
         ignores: [
@@ -34,6 +55,39 @@ export default [
         ),
     ),
     nextPlugin.flatConfig.coreWebVitals,
+    {
+        files: ['*.config.cjs', 'playwright.config.cjs', 'tests/**/*.cjs'],
+        languageOptions: {
+            ecmaVersion: 'latest',
+            sourceType: 'commonjs',
+            globals: {
+                ...nodeToolingGlobals,
+                ...playwrightEvaluateGlobals,
+                __dirname: 'readonly',
+                __filename: 'readonly',
+                exports: 'readonly',
+                module: 'readonly',
+                require: 'readonly',
+            },
+        },
+        rules: {
+            'import/no-extraneous-dependencies': ['error', { devDependencies: true }],
+        },
+    },
+    {
+        files: ['*.config.mjs', 'scripts/**/*.mjs', 'test/**/*.mjs', '**/*.test.mjs'],
+        languageOptions: {
+            ecmaVersion: 'latest',
+            sourceType: 'module',
+            globals: {
+                ...nodeToolingGlobals,
+                ...playwrightEvaluateGlobals,
+            },
+        },
+        rules: {
+            'import/no-extraneous-dependencies': ['error', { devDependencies: true }],
+        },
+    },
     {
         files: ['**/*.{js,jsx}'],
         languageOptions: {
