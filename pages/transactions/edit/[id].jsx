@@ -373,7 +373,9 @@ const EditTransaction = () => {
                         setSelectedProperty(txn.property);
                         const unitNum = txn.property.unit_number ? ` #${txn.property.unit_number}` : '';
                         setPropertySearch(
-                            `${txn.property.address}${unitNum}, ${txn.property.city}, ${txn.property.state} ${txn.property.zip_code} (MLS# ${txn.property.mls_number})`,
+                            `${txn.property.address}${unitNum}, ${txn.property.city}, ` +
+                                `${txn.property.state} ${txn.property.zip_code} ` +
+                                `(MLS# ${txn.property.mls_number})`,
                         );
                     }
 
@@ -442,15 +444,25 @@ const EditTransaction = () => {
                     // Transaction info
                     setTransactionInfo({
                         price: txn.salesPrice ? String(txn.salesPrice) : '',
-                        financing: txn.financing === false ? 'cash' : (txn.financing ? 'conventional' : null),
+                        financing:
+                            txn.financing === false
+                                ? 'cash'
+                                : txn.financing
+                                  ? 'conventional'
+                                  : null,
                         escrowLength: txn.escrowLength ? String(txn.escrowLength) : '',
                         referralFee: txn.referralFee || false,
                         referralFeeAmt: txn.referralFeeAmt || 0,
-                        buyersAgentCommissionPct: txn.buyersAgentCommissionPct ? String(txn.buyersAgentCommissionPct) : '',
-                        estimatedAgentCommission: txn.estimatedAgentCommission ? String(txn.estimatedAgentCommission) : '',
-                        agentLoanRepaymentAmount: txn.agentLoanRepaymentAmount != null
-                            ? String(txn.agentLoanRepaymentAmount)
-                            : '0',
+                        buyersAgentCommissionPct: txn.buyersAgentCommissionPct
+                            ? String(txn.buyersAgentCommissionPct)
+                            : '',
+                        estimatedAgentCommission: txn.estimatedAgentCommission
+                            ? String(txn.estimatedAgentCommission)
+                            : '',
+                        agentLoanRepaymentAmount:
+                            txn.agentLoanRepaymentAmount != null
+                                ? String(txn.agentLoanRepaymentAmount)
+                                : '0',
                         status: txn.status || 'Pending',
                     });
 
@@ -587,7 +599,9 @@ const EditTransaction = () => {
                     const formattedSuggestions = properties.map((prop) => {
                         const unitNum = prop.unit_number ? ` #${prop.unit_number}` : '';
                         return {
-                            label: `${prop.address}${unitNum}, ${prop.city}, ${prop.state} ${prop.zip_code} (MLS# ${prop.mls_number})`,
+                            label:
+                                `${prop.address}${unitNum}, ${prop.city}, ` +
+                                `${prop.state} ${prop.zip_code} (MLS# ${prop.mls_number})`,
                             value: prop,
                         };
                     });
@@ -1203,8 +1217,13 @@ const EditTransaction = () => {
                         <p className="txn-new__subtitle">Loading transaction data...</p>
                     </div>
                     <div className="txn-new__card" style={{ textAlign: 'center', padding: '3rem' }}>
-                        <i className="pi pi-spin pi-spinner" style={{ fontSize: '2rem', color: 'hsl(var(--primary))' }}></i>
-                        <p style={{ marginTop: '1rem', color: 'hsl(var(--foreground-muted))' }}>Loading transaction...</p>
+                        <i
+                            className="pi pi-spin pi-spinner"
+                            style={{ fontSize: '2rem', color: 'hsl(var(--primary))' }}
+                        ></i>
+                        <p style={{ marginTop: '1rem', color: 'hsl(var(--foreground-muted))' }}>
+                            Loading transaction...
+                        </p>
                     </div>
                 </div>
             </MainLayout>
@@ -1275,7 +1294,9 @@ const EditTransaction = () => {
                         <div className="mt-[12px]">
                             <OffMlsPropertyFields
                                 value={offMlsProperty}
-                                onChange={(updates) => setOffMlsProperty((prev) => ({ ...prev, ...updates }))}
+                                onChange={(updates) =>
+                                    setOffMlsProperty((prev) => ({ ...prev, ...updates }))
+                                }
                             />
                         </div>
                     ) : (
@@ -1284,24 +1305,42 @@ const EditTransaction = () => {
                                 <div className="txn-new__selected-property-inner">
                                     <div className="txn-new__selected-property-content">
                                         <img
-                                            src={selectedProperty.listing_pics?.replace(/http:/, 'https:') || '/No-Photo-Light-Large.jpg'}
+                                            src={
+                                                selectedProperty.listing_pics?.replace(
+                                                    /http:/,
+                                                    'https:',
+                                                ) || '/No-Photo-Light-Large.jpg'
+                                            }
                                             alt={selectedProperty.address}
                                             className="txn-new__selected-property-img"
                                         />
                                         <div className="txn-new__selected-property-details">
                                             <div className="txn-new__selected-property-address">
                                                 {selectedProperty.address}
-                                                {selectedProperty.unit_number && ` #${selectedProperty.unit_number}`}
+                                                {selectedProperty.unit_number &&
+                                                    ` #${selectedProperty.unit_number}`}
                                             </div>
                                             <div className="txn-new__selected-property-location">
-                                                {selectedProperty.city}, {selectedProperty.state} {selectedProperty.zip_code}
+                                                {selectedProperty.city}, {selectedProperty.state}{' '}
+                                                {selectedProperty.zip_code}
                                             </div>
                                             <div className="txn-new__selected-property-meta">
-                                                <span><strong>MLS#:</strong> {selectedProperty.mls_number}</span>
-                                                <span><strong>Status:</strong> {selectedProperty.status}</span>
-                                                <span><strong>Price:</strong> {selectedProperty.price}</span>
+                                                <span>
+                                                    <strong>MLS#:</strong>{' '}
+                                                    {selectedProperty.mls_number}
+                                                </span>
+                                                <span>
+                                                    <strong>Status:</strong>{' '}
+                                                    {selectedProperty.status}
+                                                </span>
+                                                <span>
+                                                    <strong>Price:</strong> {selectedProperty.price}
+                                                </span>
                                             </div>
-                                            <div className="txn-new__selected-property-meta" style={{ marginTop: '0.25rem' }}>
+                                            <div
+                                                className="txn-new__selected-property-meta"
+                                                style={{ marginTop: '0.25rem' }}
+                                            >
                                                 <span>{selectedProperty.bedrooms} Beds</span>
                                                 <span>|</span>
                                                 <span>{selectedProperty.bathrooms} Baths</span>
@@ -1337,15 +1376,19 @@ const EditTransaction = () => {
                         />
                     )}
                     <div className="txn-edit__action-bar__right">
-                        {canEditTransaction && transactionInfo.status !== 'Closed' && transactionInfo.status !== 'Cancelled' && (
-                            <Button
-                                label={markingSold ? 'Updating...' : 'Mark as Sold'}
-                                icon={markingSold ? 'pi pi-spin pi-spinner' : 'pi pi-check-circle'}
-                                className="txn-edit__btn-sold"
-                                onClick={() => setSoldConfirmVisible(true)}
-                                disabled={saving || deleting || markingSold}
-                            />
-                        )}
+                        {canEditTransaction &&
+                            transactionInfo.status !== 'Closed' &&
+                            transactionInfo.status !== 'Cancelled' && (
+                                <Button
+                                    label={markingSold ? 'Updating...' : 'Mark as Sold'}
+                                    icon={
+                                        markingSold ? 'pi pi-spin pi-spinner' : 'pi pi-check-circle'
+                                    }
+                                    className="txn-edit__btn-sold"
+                                    onClick={() => setSoldConfirmVisible(true)}
+                                    disabled={saving || deleting || markingSold}
+                                />
+                            )}
                         <Button
                             label={saving ? 'Saving...' : 'Save Changes'}
                             icon={saving ? 'pi pi-spin pi-spinner' : 'pi pi-check'}
@@ -1371,7 +1414,9 @@ const EditTransaction = () => {
                     {/* Agent Assignment (admin only) */}
                     {canReassignTransaction && agentsList.length > 0 && (
                         <div className="txn-new__field" style={{ marginBottom: '1.5rem' }}>
-                            <label className="txn-new__label" htmlFor="agent-select">Assign to Agent *</label>
+                            <label className="txn-new__label" htmlFor="agent-select">
+                                Assign to Agent *
+                            </label>
                             <Dropdown
                                 id="agent-select"
                                 value={selectedAgentId}
@@ -1386,7 +1431,9 @@ const EditTransaction = () => {
                     {/* Status Dropdown (edit-only) */}
                     <div className="txn-new__grid" style={{ marginBottom: '1.5rem' }}>
                         <div className="txn-new__field">
-                            <label className="txn-new__label" htmlFor="status">Transaction Status</label>
+                            <label className="txn-new__label" htmlFor="status">
+                                Transaction Status
+                            </label>
                             <Dropdown
                                 id="status"
                                 value={transactionInfo.status}
@@ -1430,7 +1477,10 @@ const EditTransaction = () => {
                                         checked={representation === opt.value}
                                         onChange={() => setRepresentation(opt.value)}
                                     />
-                                    <label htmlFor={`rep-${opt.value}`} className="txn-new__rep-label">
+                                    <label
+                                        htmlFor={`rep-${opt.value}`}
+                                        className="txn-new__rep-label"
+                                    >
                                         {opt.label}
                                     </label>
                                 </div>
@@ -1442,7 +1492,9 @@ const EditTransaction = () => {
                     <div className="txn-new__grid">
                         {/* Price */}
                         <div className="txn-new__field">
-                            <label className="txn-new__label" htmlFor="price">Price *</label>
+                            <label className="txn-new__label" htmlFor="price">
+                                Price *
+                            </label>
                             <InputText
                                 id="price"
                                 value={formatCurrency(transactionInfo.price)}
@@ -1457,7 +1509,9 @@ const EditTransaction = () => {
 
                         {/* Escrow Length */}
                         <div className="txn-new__field">
-                            <label className="txn-new__label" htmlFor="escrow-length">Escrow Length (Days) *</label>
+                            <label className="txn-new__label" htmlFor="escrow-length">
+                                Escrow Length (Days) *
+                            </label>
                             <InputText
                                 id="escrow-length"
                                 value={transactionInfo.escrowLength}
@@ -1476,7 +1530,9 @@ const EditTransaction = () => {
 
                         {/* Financing */}
                         <div className="txn-new__field">
-                            <label className="txn-new__label" htmlFor="financing">Financing Type</label>
+                            <label className="txn-new__label" htmlFor="financing">
+                                Financing Type
+                            </label>
                             <Dropdown
                                 id="financing"
                                 value={transactionInfo.financing}
@@ -1489,14 +1545,19 @@ const EditTransaction = () => {
 
                         {/* Agent Commission % */}
                         <div className="txn-new__field">
-                            <label className="txn-new__label" htmlFor="agent-commission-pct">Agent Commission (%)</label>
+                            <label className="txn-new__label" htmlFor="agent-commission-pct">
+                                Agent Commission (%)
+                            </label>
                             <div className="txn-new__input-wrap">
                                 <InputText
                                     id="agent-commission-pct"
                                     value={transactionInfo.buyersAgentCommissionPct}
                                     onChange={(e) => {
                                         const val = e.target.value.replace(/[^0-9.]/g, '');
-                                        handleTransactionInfoChange('buyersAgentCommissionPct', val);
+                                        handleTransactionInfoChange(
+                                            'buyersAgentCommissionPct',
+                                            val,
+                                        );
                                     }}
                                     placeholder="e.g., 2.5"
                                     style={{ width: '100%', paddingRight: '2rem' }}
@@ -1552,8 +1613,13 @@ const EditTransaction = () => {
                     </div>
 
                     {transactionInfo.referralFee && (
-                        <div className="txn-new__field" style={{ marginTop: '1rem', maxWidth: '50%' }}>
-                            <label className="txn-new__label" htmlFor="referral-fee-pct">Referral Fee (%)</label>
+                        <div
+                            className="txn-new__field"
+                            style={{ marginTop: '1rem', maxWidth: '50%' }}
+                        >
+                            <label className="txn-new__label" htmlFor="referral-fee-pct">
+                                Referral Fee (%)
+                            </label>
                             <div className="txn-new__input-wrap">
                                 <InputText
                                     id="referral-fee-pct"
@@ -1569,18 +1635,20 @@ const EditTransaction = () => {
                                     <span className="txn-new__input-suffix">%</span>
                                 )}
                             </div>
-                            {parseFloat(referralFeePercentage) > 0 && calc.totalCommissionAmount > 0 && (
-                                <p
-                                    style={{
-                                        fontSize: '0.75rem',
-                                        color: 'hsl(var(--foreground-muted))',
-                                        marginTop: '4px',
-                                    }}
-                                >
-                                    = {formatCommCurrency(calc.referralFeeAmount)} of{' '}
-                                    {formatCommCurrency(calc.totalCommissionAmount)} total commission
-                                </p>
-                            )}
+                            {parseFloat(referralFeePercentage) > 0 &&
+                                calc.totalCommissionAmount > 0 && (
+                                    <p
+                                        style={{
+                                            fontSize: '0.75rem',
+                                            color: 'hsl(var(--foreground-muted))',
+                                            marginTop: '4px',
+                                        }}
+                                    >
+                                        = {formatCommCurrency(calc.referralFeeAmount)} of{' '}
+                                        {formatCommCurrency(calc.totalCommissionAmount)} total
+                                        commission
+                                    </p>
+                                )}
                         </div>
                     )}
 
@@ -1614,19 +1682,41 @@ const EditTransaction = () => {
                                 clientCredits.map((credit) => (
                                     <div key={credit.id} className="txn-new__credit-row">
                                         <div className="txn-new__field">
-                                            <label className="txn-new__label" style={{ fontSize: '0.8rem' }}>Category</label>
+                                            <label
+                                                className="txn-new__label"
+                                                style={{ fontSize: '0.8rem' }}
+                                            >
+                                                Category
+                                            </label>
                                             <Dropdown
                                                 value={credit.category}
                                                 options={clientCreditCategories}
-                                                onChange={(e) => handleUpdateClientCredit(credit.id, 'category', e.value)}
+                                                onChange={(e) =>
+                                                    handleUpdateClientCredit(
+                                                        credit.id,
+                                                        'category',
+                                                        e.value,
+                                                    )
+                                                }
                                                 style={{ width: '100%' }}
                                             />
                                         </div>
                                         <div className="txn-new__field">
-                                            <label className="txn-new__label" style={{ fontSize: '0.8rem' }}>Amount</label>
+                                            <label
+                                                className="txn-new__label"
+                                                style={{ fontSize: '0.8rem' }}
+                                            >
+                                                Amount
+                                            </label>
                                             <InputText
                                                 value={credit.amount}
-                                                onChange={(e) => handleUpdateClientCredit(credit.id, 'amount', e.target.value)}
+                                                onChange={(e) =>
+                                                    handleUpdateClientCredit(
+                                                        credit.id,
+                                                        'amount',
+                                                        e.target.value,
+                                                    )
+                                                }
                                                 placeholder="Enter amount"
                                                 style={{ width: '100%' }}
                                                 type="number"
@@ -1645,7 +1735,10 @@ const EditTransaction = () => {
                         </div>
                     )}
 
-                    <div className="txn-new__field" style={{ marginTop: '1.5rem', maxWidth: '360px' }}>
+                    <div
+                        className="txn-new__field"
+                        style={{ marginTop: '1.5rem', maxWidth: '360px' }}
+                    >
                         <label className="txn-new__label" htmlFor="agent-loan-repayment">
                             Agent Loan Repayment
                         </label>
@@ -1671,114 +1764,120 @@ const EditTransaction = () => {
                                 margin: '4px 0 0',
                             }}
                         >
-                            Deducts a brokerage loan or advance repayment from the agent's net commission.
+                            Deducts a brokerage loan or advance repayment from the agent's net
+                            commission.
                         </p>
                     </div>
 
                     {/* Commission Breakdown Panel */}
-                    {calc && parseFloat(transactionInfo.price) > 0 && parseFloat(transactionInfo.buyersAgentCommissionPct) > 0 && (
-                        <div
-                            style={{
-                                marginTop: '24px',
-                                border: '1px solid hsl(var(--border))',
-                                borderRadius: 'var(--radius)',
-                                overflow: 'hidden',
-                            }}
-                        >
-                            {/* Panel Header */}
+                    {calc &&
+                        parseFloat(transactionInfo.price) > 0 &&
+                        parseFloat(transactionInfo.buyersAgentCommissionPct) > 0 && (
                             <div
                                 style={{
-                                    background: 'hsl(var(--muted))',
-                                    padding: '12px 16px',
-                                    borderBottom: '1px solid hsl(var(--border))',
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center',
+                                    marginTop: '24px',
+                                    border: '1px solid hsl(var(--border))',
+                                    borderRadius: 'var(--radius)',
+                                    overflow: 'hidden',
                                 }}
                             >
-                                <span
+                                {/* Panel Header */}
+                                <div
                                     style={{
-                                        fontSize: '0.75rem',
-                                        fontWeight: '700',
-                                        letterSpacing: '0.08em',
-                                        textTransform: 'uppercase',
-                                        color: 'hsl(var(--foreground-muted))',
+                                        background: 'hsl(var(--muted))',
+                                        padding: '12px 16px',
+                                        borderBottom: '1px solid hsl(var(--border))',
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
                                     }}
                                 >
-                                    Commission Breakdown
-                                </span>
-                                <span
-                                    style={{
-                                        fontSize: '0.75rem',
-                                        color: 'hsl(var(--foreground-muted))',
-                                    }}
-                                >
-                                    {agent?.commissionSplit || 0}% Agent Split
-                                </span>
-                            </div>
+                                    <span
+                                        style={{
+                                            fontSize: '0.75rem',
+                                            fontWeight: '700',
+                                            letterSpacing: '0.08em',
+                                            textTransform: 'uppercase',
+                                            color: 'hsl(var(--foreground-muted))',
+                                        }}
+                                    >
+                                        Commission Breakdown
+                                    </span>
+                                    <span
+                                        style={{
+                                            fontSize: '0.75rem',
+                                            color: 'hsl(var(--foreground-muted))',
+                                        }}
+                                    >
+                                        {agent?.commissionSplit || 0}% Agent Split
+                                    </span>
+                                </div>
 
-                            {/* Breakdown Rows */}
-                            <div style={{ padding: '4px 0' }}>
-                                <BreakdownRow
-                                    label="Total Commission Amount"
-                                    value={calc.totalCommissionAmount}
-                                    sublabel={`${formatCommCurrency(parseFloat(transactionInfo.price))} \u00d7 ${transactionInfo.buyersAgentCommissionPct}%`}
-                                />
-                                <BreakdownRow
-                                    label={`TC Fee (${representation === 'both' ? 'Dual' : 'Single Side'})`}
-                                    value={calc.tcFee}
-                                    deduction
-                                />
-                                {calc.referralFeeAmount > 0 && (
+                                {/* Breakdown Rows */}
+                                <div style={{ padding: '4px 0' }}>
                                     <BreakdownRow
-                                        label={`Referral Fee (${referralFeePercentage}%)`}
-                                        value={calc.referralFeeAmount}
+                                        label="Total Commission Amount"
+                                        value={calc.totalCommissionAmount}
+                                        sublabel={
+                                            `${formatCommCurrency(parseFloat(transactionInfo.price))} ` +
+                                            `\u00d7 ${transactionInfo.buyersAgentCommissionPct}%`
+                                        }
+                                    />
+                                    <BreakdownRow
+                                        label={`TC Fee (${representation === 'both' ? 'Dual' : 'Single Side'})`}
+                                        value={calc.tcFee}
                                         deduction
                                     />
-                                )}
-                                <BreakdownRow
-                                    label="Total Brokerage Commission"
-                                    value={calc.totalBrokerageCommission}
-                                    subtotal
-                                />
-                                <BreakdownRow
-                                    label={`Agent Gross (${agent?.commissionSplit || 0}%)`}
-                                    value={calc.agentCommissionGross}
-                                />
-                                <BreakdownRow
-                                    label={`Brokerage Gross (${100 - (agent?.commissionSplit || 0)}%)`}
-                                    value={calc.brokerageCommissionGross}
-                                    muted
-                                />
-                                {totalClientCredits > 0 && (
+                                    {calc.referralFeeAmount > 0 && (
+                                        <BreakdownRow
+                                            label={`Referral Fee (${referralFeePercentage}%)`}
+                                            value={calc.referralFeeAmount}
+                                            deduction
+                                        />
+                                    )}
                                     <BreakdownRow
-                                        label="Client Credits"
-                                        value={totalClientCredits}
-                                        deduction
+                                        label="Total Brokerage Commission"
+                                        value={calc.totalBrokerageCommission}
+                                        subtotal
                                     />
-                                )}
-                                {calc.agentLoanRepaymentAmount > 0 && (
                                     <BreakdownRow
-                                        label="Agent Loan Repayment"
-                                        value={calc.agentLoanRepaymentAmount}
-                                        deduction
+                                        label={`Agent Gross (${agent?.commissionSplit || 0}%)`}
+                                        value={calc.agentCommissionGross}
                                     />
-                                )}
-                                <BreakdownRow
-                                    label="Agent Net Commission (Est.)"
-                                    value={calc.agentNetCommission}
-                                    total
-                                    highlight
-                                />
-                                <BreakdownRow
-                                    label="Brokerage Net Commission"
-                                    value={calc.brokerageNetCommission}
-                                    total
-                                    muted
-                                />
+                                    <BreakdownRow
+                                        label={`Brokerage Gross (${100 - (agent?.commissionSplit || 0)}%)`}
+                                        value={calc.brokerageCommissionGross}
+                                        muted
+                                    />
+                                    {totalClientCredits > 0 && (
+                                        <BreakdownRow
+                                            label="Client Credits"
+                                            value={totalClientCredits}
+                                            deduction
+                                        />
+                                    )}
+                                    {calc.agentLoanRepaymentAmount > 0 && (
+                                        <BreakdownRow
+                                            label="Agent Loan Repayment"
+                                            value={calc.agentLoanRepaymentAmount}
+                                            deduction
+                                        />
+                                    )}
+                                    <BreakdownRow
+                                        label="Agent Net Commission (Est.)"
+                                        value={calc.agentNetCommission}
+                                        total
+                                        highlight
+                                    />
+                                    <BreakdownRow
+                                        label="Brokerage Net Commission"
+                                        value={calc.brokerageNetCommission}
+                                        total
+                                        muted
+                                    />
+                                </div>
                             </div>
-                        </div>
-                    )}
+                        )}
                 </div>
 
                 {/* ════════════════════════════════════════════════════
@@ -1813,7 +1912,9 @@ const EditTransaction = () => {
 
                     <div className="txn-new__grid">
                         <div className="txn-new__field">
-                            <label className="txn-new__label" htmlFor="acceptance-date">Acceptance Date *</label>
+                            <label className="txn-new__label" htmlFor="acceptance-date">
+                                Acceptance Date *
+                            </label>
                             <Calendar
                                 id="acceptance-date"
                                 value={acceptanceDate}
@@ -1825,7 +1926,9 @@ const EditTransaction = () => {
                             />
                         </div>
                         <div className="txn-new__field">
-                            <label className="txn-new__label" htmlFor="close-date">Expected Close Date *</label>
+                            <label className="txn-new__label" htmlFor="close-date">
+                                Expected Close Date *
+                            </label>
                             <Calendar
                                 id="close-date"
                                 value={expectedCloseDate}
@@ -1879,12 +1982,17 @@ const EditTransaction = () => {
                                 checked={contingencies.propertySale}
                                 onChange={(e) => handleContingencyChange('propertySale', e.checked)}
                             />
-                            <label htmlFor="property-sale-contingency">Contingency of Property Sale</label>
+                            <label htmlFor="property-sale-contingency">
+                                Contingency of Property Sale
+                            </label>
                         </div>
                     </div>
 
                     {/* Contingency Date Pickers (conditional) */}
-                    {(contingencies.inspection || contingencies.appraisal || contingencies.financing || contingencies.propertySale) && (
+                    {(contingencies.inspection ||
+                        contingencies.appraisal ||
+                        contingencies.financing ||
+                        contingencies.propertySale) && (
                         <div className="txn-new__contingency-dates">
                             {contingencies.inspection && (
                                 <div className="txn-new__field">
@@ -1894,7 +2002,9 @@ const EditTransaction = () => {
                                     <Calendar
                                         id="inspection-due"
                                         value={contingencyDates.inspectionDue}
-                                        onChange={(e) => handleContingencyDateChange('inspectionDue', e.value)}
+                                        onChange={(e) =>
+                                            handleContingencyDateChange('inspectionDue', e.value)
+                                        }
                                         placeholder="Select date"
                                         style={{ width: '100%' }}
                                         showIcon
@@ -1911,7 +2021,9 @@ const EditTransaction = () => {
                                     <Calendar
                                         id="appraisal-due"
                                         value={contingencyDates.appraisalDue}
-                                        onChange={(e) => handleContingencyDateChange('appraisalDue', e.value)}
+                                        onChange={(e) =>
+                                            handleContingencyDateChange('appraisalDue', e.value)
+                                        }
                                         placeholder="Select date"
                                         style={{ width: '100%' }}
                                         showIcon
@@ -1928,7 +2040,9 @@ const EditTransaction = () => {
                                     <Calendar
                                         id="financing-due"
                                         value={contingencyDates.financingDue}
-                                        onChange={(e) => handleContingencyDateChange('financingDue', e.value)}
+                                        onChange={(e) =>
+                                            handleContingencyDateChange('financingDue', e.value)
+                                        }
                                         placeholder="Select date"
                                         style={{ width: '100%' }}
                                         showIcon
@@ -1945,7 +2059,9 @@ const EditTransaction = () => {
                                     <Calendar
                                         id="property-sale-due"
                                         value={contingencyDates.propertySaleDue}
-                                        onChange={(e) => handleContingencyDateChange('propertySaleDue', e.value)}
+                                        onChange={(e) =>
+                                            handleContingencyDateChange('propertySaleDue', e.value)
+                                        }
                                         placeholder="Select date"
                                         style={{ width: '100%' }}
                                         showIcon
@@ -1966,7 +2082,13 @@ const EditTransaction = () => {
                         style={{ width: '450px' }}
                         modal
                         footer={
-                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    justifyContent: 'flex-end',
+                                    gap: '0.75rem',
+                                }}
+                            >
                                 <Button
                                     label="Cancel"
                                     className="p-button-text"
@@ -1988,7 +2110,10 @@ const EditTransaction = () => {
                                 className="pi pi-exclamation-triangle"
                                 style={{ fontSize: '2rem', color: 'hsl(var(--danger))' }}
                             />
-                            <span>Are you sure you want to delete this transaction? This cannot be undone.</span>
+                            <span>
+                                Are you sure you want to delete this transaction? This cannot be
+                                undone.
+                            </span>
                         </div>
                     </Dialog>
                 )}
@@ -2001,7 +2126,9 @@ const EditTransaction = () => {
                     style={{ width: '450px' }}
                     modal
                     footer={
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+                        <div
+                            style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}
+                        >
                             <Button
                                 label="Cancel"
                                 className="p-button-text"
@@ -2019,8 +2146,13 @@ const EditTransaction = () => {
                     }
                 >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                        <i className="pi pi-check-circle" style={{ fontSize: '2rem', color: '#22c55e' }} />
-                        <span>Mark this transaction as Sold? This will update the status to Closed.</span>
+                        <i
+                            className="pi pi-check-circle"
+                            style={{ fontSize: '2rem', color: '#22c55e' }}
+                        />
+                        <span>
+                            Mark this transaction as Sold? This will update the status to Closed.
+                        </span>
                     </div>
                 </Dialog>
             </div>

@@ -287,7 +287,12 @@ const SavePropertySearch = () => {
         }
         if (irgAreas?.Neighborhood?.length) {
             irgAreas.Neighborhood.forEach((area) => {
-                items.push({ label: area.name, name: area.search_name || area.name, type: 'Neighborhood', _id: area._id });
+                items.push({
+                    label: area.name,
+                    name: area.search_name || area.name,
+                    type: 'Neighborhood',
+                    _id: area._id,
+                });
             });
         }
         if (irgAreas?.Zip?.length) {
@@ -461,7 +466,12 @@ const SavePropertySearch = () => {
                 { headers: { Authorization: `Bearer ${isLoggedIn}` } }
             );
 
-            showToast('success', `Property search saved for ${getLeadDisplayName(selectedLead)}!`, 'Saved!', 'top-right');
+            showToast(
+                'success',
+                `Property search saved for ${getLeadDisplayName(selectedLead)}!`,
+                'Saved!',
+                'top-right',
+            );
             handleDialogClose();
             resetForm();
         } catch (err) {
@@ -483,7 +493,14 @@ const SavePropertySearch = () => {
             <div style={{ padding: '1.5rem', maxWidth: '1200px', margin: '0 auto' }}>
                 {/* Page Header */}
                 <div style={{ marginBottom: '2rem' }}>
-                    <h1 style={{ fontSize: '2rem', fontWeight: '700', color: 'hsl(var(--foreground))', marginBottom: '0.5rem' }}>
+                    <h1
+                        style={{
+                            fontSize: '2rem',
+                            fontWeight: '700',
+                            color: 'hsl(var(--foreground))',
+                            marginBottom: '0.5rem',
+                        }}
+                    >
                         Save A Property Search
                     </h1>
                     <p style={{ fontSize: '1rem', color: 'hsl(var(--foreground-muted))' }}>
@@ -492,7 +509,6 @@ const SavePropertySearch = () => {
                 </div>
 
                 <form onSubmit={handleInitialSubmit}>
-
                     {/* ═══ CARD 1: Lead Information ═══════════════════════ */}
                     <Card title="Lead Information" style={{ marginBottom: '1.5rem' }}>
                         <div>
@@ -518,23 +534,29 @@ const SavePropertySearch = () => {
                                 dropdown
                             />
                             {selectedLead && (
-                                <div style={{
-                                    marginTop: '0.5rem',
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: '0.5rem',
-                                    padding: '0.35rem 0.75rem',
-                                    borderRadius: '6px',
-                                    background: 'hsl(var(--primary) / 0.1)',
-                                    color: 'hsl(var(--primary))',
-                                    fontSize: '0.85rem',
-                                    fontWeight: '600',
-                                }}>
+                                <div
+                                    style={{
+                                        marginTop: '0.5rem',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem',
+                                        padding: '0.35rem 0.75rem',
+                                        borderRadius: '6px',
+                                        background: 'hsl(var(--primary) / 0.1)',
+                                        color: 'hsl(var(--primary))',
+                                        fontSize: '0.85rem',
+                                        fontWeight: '600',
+                                    }}
+                                >
                                     <i className="pi pi-user" style={{ fontSize: '0.75rem' }} />
                                     {getLeadDisplayName(selectedLead)}
                                     <button
                                         type="button"
-                                        onClick={() => { setSelectedLead(null); setLeadInput(''); setSaveToCoBuyers(false); }}
+                                        onClick={() => {
+                                            setSelectedLead(null);
+                                            setLeadInput('');
+                                            setSaveToCoBuyers(false);
+                                        }}
                                         style={{
                                             marginLeft: '0.25rem',
                                             cursor: 'pointer',
@@ -551,10 +573,33 @@ const SavePropertySearch = () => {
 
                             {/* Co-buyer option */}
                             {selectedLead && coBuyers.length > 0 && (
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '0.75rem' }}>
-                                    <input type="checkbox" id="saveToCoBuyersSPS" checked={saveToCoBuyers} onChange={(e) => setSaveToCoBuyers(e.target.checked)} />
-                                    <label htmlFor="saveToCoBuyersSPS" style={{ fontSize: '13px', color: 'hsl(var(--foreground))' }}>
-                                        Also save for co-buyer{coBuyers.length > 1 ? 's' : ''}: <strong>{coBuyers.map((cb) => `${cb.first_name} ${cb.last_name}`).join(', ')}</strong>
+                                <div
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                        marginTop: '0.75rem',
+                                    }}
+                                >
+                                    <input
+                                        type="checkbox"
+                                        id="saveToCoBuyersSPS"
+                                        checked={saveToCoBuyers}
+                                        onChange={(e) => setSaveToCoBuyers(e.target.checked)}
+                                    />
+                                    <label
+                                        htmlFor="saveToCoBuyersSPS"
+                                        style={{
+                                            fontSize: '13px',
+                                            color: 'hsl(var(--foreground))',
+                                        }}
+                                    >
+                                        Also save for co-buyer{coBuyers.length > 1 ? 's' : ''}:{' '}
+                                        <strong>
+                                            {coBuyers
+                                                .map((cb) => `${cb.first_name} ${cb.last_name}`)
+                                                .join(', ')}
+                                        </strong>
                                     </label>
                                 </div>
                             )}
@@ -589,7 +634,11 @@ const SavePropertySearch = () => {
                                     onChange={(e) => setSelectedAreas(e.value)}
                                     itemTemplate={areaItemTemplate}
                                     field="label"
-                                    placeholder={selectedAreas.length ? '' : 'Search city, zip, neighborhood...'}
+                                    placeholder={
+                                        selectedAreas.length
+                                            ? ''
+                                            : 'Search city, zip, neighborhood...'
+                                    }
                                     emptyMessage="No areas found"
                                     multiple
                                     className="areas-autocomplete"
@@ -612,116 +661,162 @@ const SavePropertySearch = () => {
                                 <div>
                                     <InputText
                                         value={searchCriteria.minPrice}
-                                        onChange={(e) => handlePriceChange('minPrice', e.target.value)}
+                                        onChange={(e) =>
+                                            handlePriceChange('minPrice', e.target.value)
+                                        }
                                         onBlur={() => handleBlur('minPrice', validatePrice)}
                                         placeholder="Min Price"
                                         style={{ width: '100%' }}
                                     />
-                                    {errors.minPrice && <div style={errorStyle}>{errors.minPrice}</div>}
+                                    {errors.minPrice && (
+                                        <div style={errorStyle}>{errors.minPrice}</div>
+                                    )}
                                 </div>
                                 <div>
                                     <InputText
                                         value={searchCriteria.maxPrice}
-                                        onChange={(e) => handlePriceChange('maxPrice', e.target.value)}
+                                        onChange={(e) =>
+                                            handlePriceChange('maxPrice', e.target.value)
+                                        }
                                         onBlur={() => handleBlur('maxPrice', validatePrice)}
                                         placeholder="Max Price"
                                         style={{ width: '100%' }}
                                     />
-                                    {errors.maxPrice && <div style={errorStyle}>{errors.maxPrice}</div>}
+                                    {errors.maxPrice && (
+                                        <div style={errorStyle}>{errors.maxPrice}</div>
+                                    )}
                                 </div>
                             </div>
                         </div>
 
                         {/* Bedrooms */}
                         <div style={{ marginBottom: '1.25rem' }}>
-                            <label style={{ ...labelStyle, marginBottom: '0.375rem' }}>Bedrooms</label>
+                            <label style={{ ...labelStyle, marginBottom: '0.375rem' }}>
+                                Bedrooms
+                            </label>
                             <div style={currentPairGrid}>
                                 <div>
                                     <InputText
                                         value={searchCriteria.minBedrooms}
-                                        onChange={(e) => handleCriteriaChange('minBedrooms', e.target.value)}
-                                        onBlur={() => handleBlur('minBedrooms', validateWholeNumber)}
+                                        onChange={(e) =>
+                                            handleCriteriaChange('minBedrooms', e.target.value)
+                                        }
+                                        onBlur={() =>
+                                            handleBlur('minBedrooms', validateWholeNumber)
+                                        }
                                         placeholder="Min Beds"
                                         style={{ width: '100%' }}
                                     />
-                                    {errors.minBedrooms && <div style={errorStyle}>{errors.minBedrooms}</div>}
+                                    {errors.minBedrooms && (
+                                        <div style={errorStyle}>{errors.minBedrooms}</div>
+                                    )}
                                 </div>
                                 <div>
                                     <InputText
                                         value={searchCriteria.maxBedrooms}
-                                        onChange={(e) => handleCriteriaChange('maxBedrooms', e.target.value)}
-                                        onBlur={() => handleBlur('maxBedrooms', validateWholeNumber)}
+                                        onChange={(e) =>
+                                            handleCriteriaChange('maxBedrooms', e.target.value)
+                                        }
+                                        onBlur={() =>
+                                            handleBlur('maxBedrooms', validateWholeNumber)
+                                        }
                                         placeholder="Max Beds"
                                         style={{ width: '100%' }}
                                     />
-                                    {errors.maxBedrooms && <div style={errorStyle}>{errors.maxBedrooms}</div>}
+                                    {errors.maxBedrooms && (
+                                        <div style={errorStyle}>{errors.maxBedrooms}</div>
+                                    )}
                                 </div>
                             </div>
                         </div>
 
                         {/* Bathrooms */}
                         <div style={{ marginBottom: '1.25rem' }}>
-                            <label style={{ ...labelStyle, marginBottom: '0.375rem' }}>Bathrooms</label>
+                            <label style={{ ...labelStyle, marginBottom: '0.375rem' }}>
+                                Bathrooms
+                            </label>
                             <div style={currentPairGrid}>
                                 <div>
                                     <InputText
                                         value={searchCriteria.minBathrooms}
-                                        onChange={(e) => handleCriteriaChange('minBathrooms', e.target.value)}
+                                        onChange={(e) =>
+                                            handleCriteriaChange('minBathrooms', e.target.value)
+                                        }
                                         onBlur={() => handleBlur('minBathrooms', validateBathrooms)}
                                         placeholder="Min Baths"
                                         style={{ width: '100%' }}
                                     />
-                                    {errors.minBathrooms && <div style={errorStyle}>{errors.minBathrooms}</div>}
+                                    {errors.minBathrooms && (
+                                        <div style={errorStyle}>{errors.minBathrooms}</div>
+                                    )}
                                 </div>
                                 <div>
                                     <InputText
                                         value={searchCriteria.maxBathrooms}
-                                        onChange={(e) => handleCriteriaChange('maxBathrooms', e.target.value)}
+                                        onChange={(e) =>
+                                            handleCriteriaChange('maxBathrooms', e.target.value)
+                                        }
                                         onBlur={() => handleBlur('maxBathrooms', validateBathrooms)}
                                         placeholder="Max Baths"
                                         style={{ width: '100%' }}
                                     />
-                                    {errors.maxBathrooms && <div style={errorStyle}>{errors.maxBathrooms}</div>}
+                                    {errors.maxBathrooms && (
+                                        <div style={errorStyle}>{errors.maxBathrooms}</div>
+                                    )}
                                 </div>
                             </div>
                         </div>
 
                         {/* SqFt */}
                         <div style={{ marginBottom: '1.25rem' }}>
-                            <label style={{ ...labelStyle, marginBottom: '0.375rem' }}>Square Footage</label>
+                            <label style={{ ...labelStyle, marginBottom: '0.375rem' }}>
+                                Square Footage
+                            </label>
                             <div style={currentPairGrid}>
                                 <div>
                                     <InputText
                                         value={searchCriteria.minSqFt}
-                                        onChange={(e) => handleSqftChange('minSqFt', e.target.value)}
+                                        onChange={(e) =>
+                                            handleSqftChange('minSqFt', e.target.value)
+                                        }
                                         onBlur={() => handleBlur('minSqFt', validateSqft)}
                                         placeholder="Min SqFt"
                                         style={{ width: '100%' }}
                                     />
-                                    {errors.minSqFt && <div style={errorStyle}>{errors.minSqFt}</div>}
+                                    {errors.minSqFt && (
+                                        <div style={errorStyle}>{errors.minSqFt}</div>
+                                    )}
                                 </div>
                                 <div>
                                     <InputText
                                         value={searchCriteria.maxSqFt}
-                                        onChange={(e) => handleSqftChange('maxSqFt', e.target.value)}
+                                        onChange={(e) =>
+                                            handleSqftChange('maxSqFt', e.target.value)
+                                        }
                                         onBlur={() => handleBlur('maxSqFt', validateSqft)}
                                         placeholder="Max SqFt"
                                         style={{ width: '100%' }}
                                     />
-                                    {errors.maxSqFt && <div style={errorStyle}>{errors.maxSqFt}</div>}
+                                    {errors.maxSqFt && (
+                                        <div style={errorStyle}>{errors.maxSqFt}</div>
+                                    )}
                                 </div>
                             </div>
                         </div>
 
                         {/* Lot Size */}
                         <div>
-                            <label style={{ ...labelStyle, marginBottom: '0.375rem' }}>Lot Size</label>
+                            <label style={{ ...labelStyle, marginBottom: '0.375rem' }}>
+                                Lot Size
+                            </label>
                             <div style={currentPairGrid}>
                                 <div>
                                     <Dropdown
                                         value={searchCriteria.minLotSize}
                                         options={lotSizeOptions}
-                                        onChange={(e) => handleCriteriaChange('minLotSize', e.value)}
+                                        onChange={(e) =>
+                                            handleCriteriaChange('minLotSize', e.value)
+                                        }
                                         placeholder="Min Lot Size"
                                         style={{ width: '100%' }}
                                     />
@@ -730,7 +825,9 @@ const SavePropertySearch = () => {
                                     <Dropdown
                                         value={searchCriteria.maxLotSize}
                                         options={lotSizeOptions}
-                                        onChange={(e) => handleCriteriaChange('maxLotSize', e.value)}
+                                        onChange={(e) =>
+                                            handleCriteriaChange('maxLotSize', e.value)
+                                        }
                                         placeholder="Max Lot Size"
                                         style={{ width: '100%' }}
                                     />
@@ -741,18 +838,31 @@ const SavePropertySearch = () => {
 
                     {/* ═══ CARD 3: Additional Options ═════════════════════ */}
                     <Card title="Additional Options" style={{ marginBottom: '1.5rem' }}>
-                        <div style={{
-                            display: 'grid',
-                            gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(200px, 1fr))',
-                            gap: '1rem',
-                        }}>
+                        <div
+                            style={{
+                                display: 'grid',
+                                gridTemplateColumns: isMobile
+                                    ? '1fr'
+                                    : 'repeat(auto-fit, minmax(200px, 1fr))',
+                                gap: '1rem',
+                            }}
+                        >
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                                 <Checkbox
                                     inputId="single-story"
                                     checked={searchOptions.singleStoryOnly}
-                                    onChange={(e) => handleCheckboxChange('singleStoryOnly', e.checked)}
+                                    onChange={(e) =>
+                                        handleCheckboxChange('singleStoryOnly', e.checked)
+                                    }
                                 />
-                                <label htmlFor="single-story" style={{ fontWeight: '500', color: 'hsl(var(--foreground))', cursor: 'pointer' }}>
+                                <label
+                                    htmlFor="single-story"
+                                    style={{
+                                        fontWeight: '500',
+                                        color: 'hsl(var(--foreground))',
+                                        cursor: 'pointer',
+                                    }}
+                                >
                                     Single Story Only
                                 </label>
                             </div>
@@ -760,9 +870,18 @@ const SavePropertySearch = () => {
                                 <Checkbox
                                     inputId="exclude-55"
                                     checked={searchOptions.exclude55Plus}
-                                    onChange={(e) => handleCheckboxChange('exclude55Plus', e.checked)}
+                                    onChange={(e) =>
+                                        handleCheckboxChange('exclude55Plus', e.checked)
+                                    }
                                 />
-                                <label htmlFor="exclude-55" style={{ fontWeight: '500', color: 'hsl(var(--foreground))', cursor: 'pointer' }}>
+                                <label
+                                    htmlFor="exclude-55"
+                                    style={{
+                                        fontWeight: '500',
+                                        color: 'hsl(var(--foreground))',
+                                        cursor: 'pointer',
+                                    }}
+                                >
                                     Exclude 55+ Communities
                                 </label>
                             </div>
@@ -770,9 +889,18 @@ const SavePropertySearch = () => {
                                 <Checkbox
                                     inputId="must-have-pool"
                                     checked={searchOptions.mustHavePool}
-                                    onChange={(e) => handleCheckboxChange('mustHavePool', e.checked)}
+                                    onChange={(e) =>
+                                        handleCheckboxChange('mustHavePool', e.checked)
+                                    }
                                 />
-                                <label htmlFor="must-have-pool" style={{ fontWeight: '500', color: 'hsl(var(--foreground))', cursor: 'pointer' }}>
+                                <label
+                                    htmlFor="must-have-pool"
+                                    style={{
+                                        fontWeight: '500',
+                                        color: 'hsl(var(--foreground))',
+                                        cursor: 'pointer',
+                                    }}
+                                >
                                     Must Have Pool
                                 </label>
                             </div>
@@ -782,7 +910,14 @@ const SavePropertySearch = () => {
                                     checked={searchOptions.hasADU}
                                     onChange={(e) => handleCheckboxChange('hasADU', e.checked)}
                                 />
-                                <label htmlFor="has-adu" style={{ fontWeight: '500', color: 'hsl(var(--foreground))', cursor: 'pointer' }}>
+                                <label
+                                    htmlFor="has-adu"
+                                    style={{
+                                        fontWeight: '500',
+                                        color: 'hsl(var(--foreground))',
+                                        cursor: 'pointer',
+                                    }}
+                                >
                                     Has ADU?
                                 </label>
                             </div>
@@ -818,17 +953,35 @@ const SavePropertySearch = () => {
             >
                 <form onSubmit={handleFinalSubmit}>
                     <div style={{ marginBottom: '1.5rem' }}>
-                        <h3 style={{ fontSize: '1.1rem', fontWeight: '600', color: 'hsl(var(--foreground))', marginBottom: '1rem' }}>
+                        <h3
+                            style={{
+                                fontSize: '1.1rem',
+                                fontWeight: '600',
+                                color: 'hsl(var(--foreground))',
+                                marginBottom: '1rem',
+                            }}
+                        >
                             Email Frequency
                         </h3>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                             {[
                                 { id: 'freq-instantly', value: 'instantly', label: 'Instantly' },
-                                { id: 'freq-twice-week', value: 'twice-weekly', label: 'Twice A Week' },
+                                {
+                                    id: 'freq-twice-week',
+                                    value: 'twice-weekly',
+                                    label: 'Twice A Week',
+                                },
                                 { id: 'freq-daily', value: 'daily', label: 'Daily' },
                                 { id: 'freq-weekly', value: 'weekly', label: 'Weekly' },
                             ].map((opt) => (
-                                <div key={opt.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                <div
+                                    key={opt.id}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.75rem',
+                                    }}
+                                >
                                     <RadioButton
                                         inputId={opt.id}
                                         name="frequency"
@@ -836,7 +989,14 @@ const SavePropertySearch = () => {
                                         onChange={(e) => setEmailFrequency(e.value)}
                                         checked={emailFrequency === opt.value}
                                     />
-                                    <label htmlFor={opt.id} style={{ fontWeight: '500', color: 'hsl(var(--foreground))', cursor: 'pointer' }}>
+                                    <label
+                                        htmlFor={opt.id}
+                                        style={{
+                                            fontWeight: '500',
+                                            color: 'hsl(var(--foreground))',
+                                            cursor: 'pointer',
+                                        }}
+                                    >
                                         {opt.label}
                                     </label>
                                 </div>
@@ -845,7 +1005,9 @@ const SavePropertySearch = () => {
                     </div>
 
                     <div style={{ marginBottom: '1.5rem' }}>
-                        <label htmlFor="email-subject" style={labelStyle}>Email Subject</label>
+                        <label htmlFor="email-subject" style={labelStyle}>
+                            Email Subject
+                        </label>
                         <InputText
                             id="email-subject"
                             value={emailSubject}
@@ -856,7 +1018,9 @@ const SavePropertySearch = () => {
                     </div>
 
                     <div style={{ marginBottom: '1.5rem' }}>
-                        <label htmlFor="email-body" style={labelStyle}>Email Body</label>
+                        <label htmlFor="email-body" style={labelStyle}>
+                            Email Body
+                        </label>
                         <InputTextarea
                             id="email-body"
                             value={emailBody}

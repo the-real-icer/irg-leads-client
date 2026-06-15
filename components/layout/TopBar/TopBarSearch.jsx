@@ -363,15 +363,51 @@ const TopBarSearch = () => {
         const addressQuery = /^\d/.test(query.trim());
         const defs = addressQuery
             ? [
-                { key: 'properties', items: results.properties, label: 'Properties', icon: 'pi-home', type: 'property' },
-                { key: 'leads', items: results.leads, label: 'Leads', icon: 'pi-users', type: 'lead' },
-                { key: 'areas', items: results.areas || [], label: 'Areas', icon: 'pi-map-marker', type: 'area' },
-            ]
+                  {
+                      key: 'properties',
+                      items: results.properties,
+                      label: 'Properties',
+                      icon: 'pi-home',
+                      type: 'property',
+                  },
+                  {
+                      key: 'leads',
+                      items: results.leads,
+                      label: 'Leads',
+                      icon: 'pi-users',
+                      type: 'lead',
+                  },
+                  {
+                      key: 'areas',
+                      items: results.areas || [],
+                      label: 'Areas',
+                      icon: 'pi-map-marker',
+                      type: 'area',
+                  },
+              ]
             : [
-                { key: 'areas', items: results.areas || [], label: 'Areas', icon: 'pi-map-marker', type: 'area' },
-                { key: 'leads', items: results.leads, label: 'Leads', icon: 'pi-users', type: 'lead' },
-                { key: 'properties', items: results.properties, label: 'Properties', icon: 'pi-home', type: 'property' },
-            ];
+                  {
+                      key: 'areas',
+                      items: results.areas || [],
+                      label: 'Areas',
+                      icon: 'pi-map-marker',
+                      type: 'area',
+                  },
+                  {
+                      key: 'leads',
+                      items: results.leads,
+                      label: 'Leads',
+                      icon: 'pi-users',
+                      type: 'lead',
+                  },
+                  {
+                      key: 'properties',
+                      items: results.properties,
+                      label: 'Properties',
+                      icon: 'pi-home',
+                      type: 'property',
+                  },
+              ];
 
         // Precompute globalIdx offsets
         const offsets = {};
@@ -410,7 +446,11 @@ const TopBarSearch = () => {
                         onFocus={() => {
                             if (hasQuery && hasResults) setOpen(true);
                         }}
-                        placeholder={hasExistingAreas ? 'Add another area...' : 'Search leads, properties, areas...'}
+                        placeholder={
+                            hasExistingAreas
+                                ? 'Add another area...'
+                                : 'Search leads, properties, areas...'
+                        }
                         className="topbar-search__input"
                         autoComplete="off"
                     />
@@ -458,7 +498,11 @@ const TopBarSearch = () => {
                                 value={query}
                                 onChange={handleChange}
                                 onKeyDown={handleKeyDown}
-                                placeholder={hasExistingAreas ? 'Add another area...' : 'Search leads, properties, areas...'}
+                                placeholder={
+                                    hasExistingAreas
+                                        ? 'Add another area...'
+                                        : 'Search leads, properties, areas...'
+                                }
                                 className="topbar-search__input"
                                 autoComplete="off"
                             />

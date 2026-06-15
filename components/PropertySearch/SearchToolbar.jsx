@@ -13,7 +13,20 @@ const formatCommas = (val) => {
     return parseInt(digits, 10).toLocaleString('en-US');
 };
 
-const SearchToolbar = ({ filters, onFilterChange, onSearch, onReset, isDrawing, onToggleDrawing, moreFiltersCount, onOpenMoreFilters, hasActiveFilters, onOpenSaveSearch, isSaveSearchBlocked, onOpenFilterDrawer }) => {
+const SearchToolbar = ({
+    filters,
+    onFilterChange,
+    onSearch,
+    onReset,
+    isDrawing,
+    onToggleDrawing,
+    moreFiltersCount,
+    onOpenMoreFilters,
+    hasActiveFilters,
+    onOpenSaveSearch,
+    isSaveSearchBlocked,
+    onOpenFilterDrawer,
+}) => {
     // ── Status dropdown state ──
     const [statusOpen, setStatusOpen] = useState(false);
     const statusRef = useRef(null);
@@ -33,7 +46,7 @@ const SearchToolbar = ({ filters, onFilterChange, onSearch, onReset, isDrawing, 
         (field) => (e) => {
             onFilterChange(field, formatCommas(e.target.value));
         },
-        [onFilterChange]
+        [onFilterChange],
     );
 
     const handleNumChange = useCallback(
@@ -41,7 +54,7 @@ const SearchToolbar = ({ filters, onFilterChange, onSearch, onReset, isDrawing, 
             const val = e.target.value.replace(/[^0-9.]/g, '');
             onFilterChange(field, val);
         },
-        [onFilterChange]
+        [onFilterChange],
     );
 
     const handleKeyDown = (e) => {
@@ -62,7 +75,10 @@ const SearchToolbar = ({ filters, onFilterChange, onSearch, onReset, isDrawing, 
         if (statuses.includes(value)) {
             // Prevent deselecting the last item
             if (statuses.length > 1) {
-                onFilterChange('statuses', statuses.filter((s) => s !== value));
+                onFilterChange(
+                    'statuses',
+                    statuses.filter((s) => s !== value),
+                );
             }
         } else {
             onFilterChange('statuses', [...statuses, value]);
@@ -183,7 +199,10 @@ const SearchToolbar = ({ filters, onFilterChange, onSearch, onReset, isDrawing, 
 
             {/* More Filters */}
             <button
-                className={`ps-toolbar__btn ps-toolbar__btn--more-filters${moreFiltersCount > 0 ? ' ps-toolbar__btn--more-filters-active' : ''}`}
+                className={[
+                    'ps-toolbar__btn ps-toolbar__btn--more-filters',
+                    moreFiltersCount > 0 ? 'ps-toolbar__btn--more-filters-active' : '',
+                ].join(' ')}
                 onClick={onOpenMoreFilters}
                 type="button"
             >
@@ -224,7 +243,10 @@ const SearchToolbar = ({ filters, onFilterChange, onSearch, onReset, isDrawing, 
                 {/* Save Search */}
                 <div className="ps-toolbar__save-wrap">
                     <button
-                        className={`ps-toolbar__btn ps-toolbar__btn--save-search${saveDisabled ? ' ps-toolbar__btn--disabled' : ''}`}
+                        className={[
+                            'ps-toolbar__btn ps-toolbar__btn--save-search',
+                            saveDisabled ? 'ps-toolbar__btn--disabled' : '',
+                        ].join(' ')}
                         onClick={saveDisabled ? undefined : onOpenSaveSearch}
                         type="button"
                         disabled={saveDisabled}

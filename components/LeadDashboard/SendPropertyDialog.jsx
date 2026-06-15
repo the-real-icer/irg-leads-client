@@ -5,7 +5,10 @@ import dynamic from 'next/dynamic';
 const Dialog = dynamic(() => import('primereact/dialog').then((mod) => mod.Dialog), { ssr: false });
 const Button = dynamic(() => import('primereact/button').then((mod) => mod.Button), { ssr: false });
 const InputText = dynamic(() => import('primereact/inputtext').then((mod) => mod.InputText), { ssr: false });
-const InputTextarea = dynamic(() => import('primereact/inputtextarea').then((mod) => mod.InputTextarea), { ssr: false });
+const InputTextarea = dynamic(
+    () => import('primereact/inputtextarea').then((mod) => mod.InputTextarea),
+    { ssr: false },
+);
 
 import IrgApi from '../../assets/irgApi';
 import showToast from '../../utils/showToast';
@@ -113,7 +116,9 @@ const SendPropertyDialog = ({ visible, onHide, leadId, isLoggedIn, onSuccess, co
             const recipientLabelMap = new Map(requestedRecipients.map((recipient) => [recipient.id, recipient.label]));
             const failedRecipients = resultRows.filter((result) => result.status !== 'success');
             const succeededCount = resultRows.filter((result) => result.status === 'success').length;
-            const failedRecipientLabels = failedRecipients.map((result) => recipientLabelMap.get(result.recipientId) || 'recipient');
+            const failedRecipientLabels = failedRecipients.map(
+                (result) => recipientLabelMap.get(result.recipientId) || 'recipient',
+            );
 
             if (resultRows.length === 0) {
                 throw new Error('Failed to send property');
@@ -127,7 +132,8 @@ const SendPropertyDialog = ({ visible, onHide, leadId, isLoggedIn, onSuccess, co
                     showToast(
                         'success',
                         requestedRecipients.length > 1
-                            ? `Property sent to lead and ${requestedRecipients.length - 1} co-buyer${requestedRecipients.length - 1 > 1 ? 's' : ''}`
+                            ? `Property sent to lead and ${requestedRecipients.length - 1} ` +
+                              `co-buyer${requestedRecipients.length - 1 > 1 ? 's' : ''}`
                             : 'Property sent to lead',
                         'Success',
                     );
@@ -142,7 +148,8 @@ const SendPropertyDialog = ({ visible, onHide, leadId, isLoggedIn, onSuccess, co
                     onSuccess();
                     showToast(
                         'warn',
-                        `Property sent to ${succeededCount} of ${resultRows.length} recipients. Failed: ${failedRecipientLabels.join(', ')}.`,
+                        `Property sent to ${succeededCount} of ${resultRows.length} recipients. ` +
+                            `Failed: ${failedRecipientLabels.join(', ')}.`,
                         'Partial Success',
                     );
                 }
@@ -183,13 +190,17 @@ const SendPropertyDialog = ({ visible, onHide, leadId, isLoggedIn, onSuccess, co
                     <div className="send-property__selected">
                         <div className="send-property__selected-info">
                             <strong>{selectedProperty.address}</strong>
-                            {selectedProperty.unit_number && ` #${selectedProperty.unit_number}`},{' '}
-                            {selectedProperty.city}, CA {selectedProperty.zip_code}
-                            <div style={{ color: '#2196f3', fontWeight: 700, marginTop: '0.25rem' }}>
+                            {selectedProperty.unit_number &&
+                                ` #${selectedProperty.unit_number}`}, {selectedProperty.city}, CA{' '}
+                            {selectedProperty.zip_code}
+                            <div
+                                style={{ color: '#2196f3', fontWeight: 700, marginTop: '0.25rem' }}
+                            >
                                 {selectedProperty.price}
                             </div>
                             <div style={{ color: '#6c757d', fontSize: '0.85rem' }}>
-                                {selectedProperty.bedrooms} Bed, {selectedProperty.bathrooms} Bath, {selectedProperty.sqft} SqFt
+                                {selectedProperty.bedrooms} Bed, {selectedProperty.bathrooms} Bath,{' '}
+                                {selectedProperty.sqft} SqFt
                             </div>
                         </div>
                         <Button
@@ -235,13 +246,27 @@ const SendPropertyDialog = ({ visible, onHide, leadId, isLoggedIn, onSuccess, co
                                     >
                                         <div>
                                             <strong>{property.address}</strong>
-                                            {property.unit_number && ` #${property.unit_number}`},{' '}
-                                            {property.city}, CA {property.zip_code}
+                                            {property.unit_number &&
+                                                ` #${property.unit_number}`}, {property.city}, CA{' '}
+                                            {property.zip_code}
                                         </div>
-                                        <div style={{ display: 'flex', gap: '1rem', fontSize: '0.85rem', color: '#6c757d' }}>
-                                            <span style={{ color: '#2196f3', fontWeight: 700 }}>{property.price}</span>
-                                            <span>{property.bedrooms}bd / {property.bathrooms}ba</span>
-                                            {property.mls_number && <span>MLS# {property.mls_number}</span>}
+                                        <div
+                                            style={{
+                                                display: 'flex',
+                                                gap: '1rem',
+                                                fontSize: '0.85rem',
+                                                color: '#6c757d',
+                                            }}
+                                        >
+                                            <span style={{ color: '#2196f3', fontWeight: 700 }}>
+                                                {property.price}
+                                            </span>
+                                            <span>
+                                                {property.bedrooms}bd / {property.bathrooms}ba
+                                            </span>
+                                            {property.mls_number && (
+                                                <span>MLS# {property.mls_number}</span>
+                                            )}
                                         </div>
                                     </div>
                                 ))}
@@ -252,7 +277,14 @@ const SendPropertyDialog = ({ visible, onHide, leadId, isLoggedIn, onSuccess, co
 
                 {/* Subject */}
                 <div className="send-property__message">
-                    <label style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '0.4rem', display: 'block' }}>
+                    <label
+                        style={{
+                            fontWeight: 600,
+                            fontSize: '0.9rem',
+                            marginBottom: '0.4rem',
+                            display: 'block',
+                        }}
+                    >
                         Subject
                     </label>
                     <InputText
@@ -266,7 +298,14 @@ const SendPropertyDialog = ({ visible, onHide, leadId, isLoggedIn, onSuccess, co
 
                 {/* Message */}
                 <div className="send-property__message">
-                    <label style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '0.4rem', display: 'block' }}>
+                    <label
+                        style={{
+                            fontWeight: 600,
+                            fontSize: '0.9rem',
+                            marginBottom: '0.4rem',
+                            display: 'block',
+                        }}
+                    >
                         Message (optional)
                     </label>
                     <InputTextarea
@@ -277,18 +316,51 @@ const SendPropertyDialog = ({ visible, onHide, leadId, isLoggedIn, onSuccess, co
                         autoResize
                         style={{ width: '100%' }}
                     />
-                    <p style={{ fontSize: '12px', color: 'hsl(var(--muted-foreground))', display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px', marginBottom: 0 }}>
-                        <i className="pi pi-info-circle" style={{ fontSize: '12px', flexShrink: 0 }} />
+                    <p
+                        style={{
+                            fontSize: '12px',
+                            color: 'hsl(var(--muted-foreground))',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            marginTop: '6px',
+                            marginBottom: 0,
+                        }}
+                    >
+                        <i
+                            className="pi pi-info-circle"
+                            style={{ fontSize: '12px', flexShrink: 0 }}
+                        />
                         Your saved email signature will be added automatically.
                     </p>
                 </div>
 
                 {/* Co-buyer option */}
                 {coBuyers.length > 0 && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 0' }}>
-                        <input type="checkbox" id="sendToCoBuyers" checked={sendToCoBuyers} onChange={(e) => setSendToCoBuyers(e.target.checked)} />
-                        <label htmlFor="sendToCoBuyers" style={{ fontSize: '13px', color: 'hsl(var(--foreground))' }}>
-                            Also send to co-buyer{coBuyers.length > 1 ? 's' : ''}: <strong>{coBuyers.map((cb) => `${cb.first_name} ${cb.last_name}`).join(', ')}</strong>
+                    <div
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            padding: '8px 0',
+                        }}
+                    >
+                        <input
+                            type="checkbox"
+                            id="sendToCoBuyers"
+                            checked={sendToCoBuyers}
+                            onChange={(e) => setSendToCoBuyers(e.target.checked)}
+                        />
+                        <label
+                            htmlFor="sendToCoBuyers"
+                            style={{ fontSize: '13px', color: 'hsl(var(--foreground))' }}
+                        >
+                            Also send to co-buyer{coBuyers.length > 1 ? 's' : ''}:{' '}
+                            <strong>
+                                {coBuyers
+                                    .map((cb) => `${cb.first_name} ${cb.last_name}`)
+                                    .join(', ')}
+                            </strong>
                         </label>
                     </div>
                 )}

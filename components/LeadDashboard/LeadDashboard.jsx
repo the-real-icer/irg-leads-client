@@ -52,7 +52,10 @@ const LeadDashboard = ({ leadId, isLoggedIn }) => {
         try {
             const params = new URLSearchParams({ page: pg, limit: 24 });
             if (reaction) params.append('reaction', reaction);
-            const response = await IrgApi.get(`/users/dashboard/${leadId}/properties?${params.toString()}`, { headers });
+            const response = await IrgApi.get(
+                `/users/dashboard/${leadId}/properties?${params.toString()}`,
+                { headers },
+            );
             if (response.data.status === 'success') {
                 setDeliveries(response.data.data);
                 setTotalPages(response.data.totalPages);
@@ -118,11 +121,41 @@ const LeadDashboard = ({ leadId, isLoggedIn }) => {
     };
 
     const statCards = [
-        { label: 'Total Sent', value: summary.total, icon: 'pi pi-send', color: '#667eea', filterKey: null },
-        { label: 'Liked', value: summary.liked, icon: 'pi pi-heart-fill', color: '#e74c3c', filterKey: 'like' },
-        { label: 'Maybe', value: summary.maybe, icon: 'pi pi-question-circle', color: '#f59e0b', filterKey: 'maybe' },
-        { label: 'Discarded', value: summary.discarded, icon: 'pi pi-times-circle', color: '#6c757d', filterKey: 'discard' },
-        { label: 'Pending Showings', value: summary.pending_showings, icon: 'pi pi-calendar', color: '#2196f3', filterKey: 'pending_showings' },
+        {
+            label: 'Total Sent',
+            value: summary.total,
+            icon: 'pi pi-send',
+            color: '#667eea',
+            filterKey: null,
+        },
+        {
+            label: 'Liked',
+            value: summary.liked,
+            icon: 'pi pi-heart-fill',
+            color: '#e74c3c',
+            filterKey: 'like',
+        },
+        {
+            label: 'Maybe',
+            value: summary.maybe,
+            icon: 'pi pi-question-circle',
+            color: '#f59e0b',
+            filterKey: 'maybe',
+        },
+        {
+            label: 'Discarded',
+            value: summary.discarded,
+            icon: 'pi pi-times-circle',
+            color: '#6c757d',
+            filterKey: 'discard',
+        },
+        {
+            label: 'Pending Showings',
+            value: summary.pending_showings,
+            icon: 'pi pi-calendar',
+            color: '#2196f3',
+            filterKey: 'pending_showings',
+        },
     ];
 
     return (
@@ -136,11 +169,20 @@ const LeadDashboard = ({ leadId, isLoggedIn }) => {
                         <button
                             key={stat.label}
                             type="button"
-                            className={`lead-dashboard__stat${isClickable ? ' lead-dashboard__stat--clickable' : ''}${isActive ? ' lead-dashboard__stat--active' : ''}`}
+                            className={[
+                                'lead-dashboard__stat',
+                                isClickable ? 'lead-dashboard__stat--clickable' : '',
+                                isActive ? 'lead-dashboard__stat--active' : '',
+                            ].join(' ')}
                             style={isActive ? { '--stat-color': stat.color } : undefined}
-                            onClick={isClickable ? () => handleFilterClick(stat.filterKey) : undefined}
+                            onClick={
+                                isClickable ? () => handleFilterClick(stat.filterKey) : undefined
+                            }
                         >
-                            <i className={`${stat.icon} lead-dashboard__stat-icon`} style={{ color: isActive ? '#fff' : stat.color }}></i>
+                            <i
+                                className={`${stat.icon} lead-dashboard__stat-icon`}
+                                style={{ color: isActive ? '#fff' : stat.color }}
+                            ></i>
                             <div className="lead-dashboard__stat-info">
                                 <span className="lead-dashboard__stat-value">{stat.value}</span>
                                 <span className="lead-dashboard__stat-label">{stat.label}</span>

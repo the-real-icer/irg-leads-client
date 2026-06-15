@@ -5,7 +5,10 @@ import dynamic from 'next/dynamic';
 // Dynamically import PrimeReact components
 const Button = dynamic(() => import('primereact/button').then((mod) => mod.Button), { ssr: false });
 const InputText = dynamic(() => import('primereact/inputtext').then((mod) => mod.InputText), { ssr: false });
-const InputTextarea = dynamic(() => import('primereact/inputtextarea').then((mod) => mod.InputTextarea), { ssr: false });
+const InputTextarea = dynamic(
+    () => import('primereact/inputtextarea').then((mod) => mod.InputTextarea),
+    { ssr: false },
+);
 const Dialog = dynamic(() => import('primereact/dialog').then((mod) => mod.Dialog), { ssr: false });
 
 // IRG Components
@@ -114,12 +117,14 @@ const SendUpdateEmail = () => {
             <div style={{ padding: '1.5rem', maxWidth: '1000px', margin: '0 auto' }}>
                 {/* Header */}
                 <div style={{ marginBottom: '2rem' }}>
-                    <h1 style={{
-                        fontSize: '2rem',
-                        fontWeight: '700',
-                        color: 'hsl(var(--foreground))',
-                        marginBottom: '0.5rem',
-                    }}>
+                    <h1
+                        style={{
+                            fontSize: '2rem',
+                            fontWeight: '700',
+                            color: 'hsl(var(--foreground))',
+                            marginBottom: '0.5rem',
+                        }}
+                    >
                         Send Update Email
                     </h1>
                     <p style={{ color: 'hsl(var(--foreground-muted))', fontSize: '0.95rem' }}>
@@ -128,19 +133,40 @@ const SendUpdateEmail = () => {
                 </div>
 
                 {/* Section 1: Recipient Selection */}
-                <div style={{
-                    background: 'hsl(var(--surface))',
-                    borderRadius: '12px',
-                    boxShadow: '0 2px 12px hsl(var(--shadow-color) / 0.08)',
-                    padding: '1.5rem',
-                    marginBottom: '1.5rem',
-                }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <div
+                    style={{
+                        background: 'hsl(var(--surface))',
+                        borderRadius: '12px',
+                        boxShadow: '0 2px 12px hsl(var(--shadow-color) / 0.08)',
+                        padding: '1.5rem',
+                        marginBottom: '1.5rem',
+                    }}
+                >
+                    <div
+                        style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            marginBottom: '1rem',
+                        }}
+                    >
                         <div>
-                            <h3 style={{ fontSize: '1.1rem', fontWeight: '600', color: 'hsl(var(--foreground))', margin: 0 }}>
+                            <h3
+                                style={{
+                                    fontSize: '1.1rem',
+                                    fontWeight: '600',
+                                    color: 'hsl(var(--foreground))',
+                                    margin: 0,
+                                }}
+                            >
                                 Recipients
                             </h3>
-                            <span style={{ fontSize: '0.85rem', color: 'hsl(var(--foreground-muted))' }}>
+                            <span
+                                style={{
+                                    fontSize: '0.85rem',
+                                    color: 'hsl(var(--foreground-muted))',
+                                }}
+                            >
                                 {selectedIds.length} of {agents.length} agents selected
                             </span>
                         </div>
@@ -161,7 +187,13 @@ const SendUpdateEmail = () => {
                     </div>
 
                     {loading ? (
-                        <div style={{ textAlign: 'center', padding: '2rem', color: 'hsl(var(--foreground-muted))' }}>
+                        <div
+                            style={{
+                                textAlign: 'center',
+                                padding: '2rem',
+                                color: 'hsl(var(--foreground-muted))',
+                            }}
+                        >
                             <i className="pi pi-spin pi-spinner" style={{ fontSize: '1.5rem' }}></i>
                             <p style={{ marginTop: '0.5rem' }}>Loading agents...</p>
                         </div>
@@ -181,8 +213,12 @@ const SendUpdateEmail = () => {
                                             padding: '0.5rem 1rem',
                                             borderRadius: '20px',
                                             cursor: 'pointer',
-                                            border: `2px solid ${isSelected ? 'hsl(var(--primary))' : 'hsl(var(--border))'}`,
-                                            background: isSelected ? 'hsl(var(--primary) / 0.12)' : 'transparent',
+                                            border: `2px solid ${
+                                                isSelected ? 'hsl(var(--primary))' : 'hsl(var(--border))'
+                                            }`,
+                                            background: isSelected
+                                                ? 'hsl(var(--primary) / 0.12)'
+                                                : 'transparent',
                                             transition: 'all 0.15s ease',
                                             userSelect: 'none',
                                         }}
@@ -191,33 +227,55 @@ const SendUpdateEmail = () => {
                                             <img
                                                 src={a.image}
                                                 alt={a.name}
-                                                style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover' }}
+                                                style={{
+                                                    width: '28px',
+                                                    height: '28px',
+                                                    borderRadius: '50%',
+                                                    objectFit: 'cover',
+                                                }}
                                             />
                                         ) : (
-                                            <div style={{
-                                                width: '28px',
-                                                height: '28px',
-                                                borderRadius: '50%',
-                                                background: 'hsl(var(--primary) / 0.2)',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                fontSize: '0.7rem',
-                                                fontWeight: '700',
-                                                color: 'hsl(var(--primary))',
-                                            }}>
-                                                {a.name?.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()}
+                                            <div
+                                                style={{
+                                                    width: '28px',
+                                                    height: '28px',
+                                                    borderRadius: '50%',
+                                                    background: 'hsl(var(--primary) / 0.2)',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    fontSize: '0.7rem',
+                                                    fontWeight: '700',
+                                                    color: 'hsl(var(--primary))',
+                                                }}
+                                            >
+                                                {a.name
+                                                    ?.split(' ')
+                                                    .map((n) => n[0])
+                                                    .join('')
+                                                    .slice(0, 2)
+                                                    .toUpperCase()}
                                             </div>
                                         )}
-                                        <span style={{
-                                            fontSize: '0.9rem',
-                                            fontWeight: isSelected ? '600' : '400',
-                                            color: isSelected ? 'hsl(var(--primary))' : 'hsl(var(--foreground))',
-                                        }}>
+                                        <span
+                                            style={{
+                                                fontSize: '0.9rem',
+                                                fontWeight: isSelected ? '600' : '400',
+                                                color: isSelected
+                                                    ? 'hsl(var(--primary))'
+                                                    : 'hsl(var(--foreground))',
+                                            }}
+                                        >
                                             {a.name}
                                         </span>
                                         {isSelected && (
-                                            <i className="pi pi-check" style={{ fontSize: '0.75rem', color: 'hsl(var(--primary))' }}></i>
+                                            <i
+                                                className="pi pi-check"
+                                                style={{
+                                                    fontSize: '0.75rem',
+                                                    color: 'hsl(var(--primary))',
+                                                }}
+                                            ></i>
                                         )}
                                     </button>
                                 );
@@ -227,14 +285,23 @@ const SendUpdateEmail = () => {
                 </div>
 
                 {/* Section 2: Subject Line */}
-                <div style={{
-                    background: 'hsl(var(--surface))',
-                    borderRadius: '12px',
-                    boxShadow: '0 2px 12px hsl(var(--shadow-color) / 0.08)',
-                    padding: '1.5rem',
-                    marginBottom: '1.5rem',
-                }}>
-                    <h3 style={{ fontSize: '1.1rem', fontWeight: '600', color: 'hsl(var(--foreground))', margin: '0 0 0.75rem 0' }}>
+                <div
+                    style={{
+                        background: 'hsl(var(--surface))',
+                        borderRadius: '12px',
+                        boxShadow: '0 2px 12px hsl(var(--shadow-color) / 0.08)',
+                        padding: '1.5rem',
+                        marginBottom: '1.5rem',
+                    }}
+                >
+                    <h3
+                        style={{
+                            fontSize: '1.1rem',
+                            fontWeight: '600',
+                            color: 'hsl(var(--foreground))',
+                            margin: '0 0 0.75rem 0',
+                        }}
+                    >
                         Subject
                     </h3>
                     <InputText
@@ -246,28 +313,52 @@ const SendUpdateEmail = () => {
                 </div>
 
                 {/* Section 3: HTML Editor / Preview */}
-                <div style={{
-                    background: 'hsl(var(--surface))',
-                    borderRadius: '12px',
-                    boxShadow: '0 2px 12px hsl(var(--shadow-color) / 0.08)',
-                    padding: '1.5rem',
-                    marginBottom: '1.5rem',
-                }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                        <h3 style={{ fontSize: '1.1rem', fontWeight: '600', color: 'hsl(var(--foreground))', margin: 0 }}>
+                <div
+                    style={{
+                        background: 'hsl(var(--surface))',
+                        borderRadius: '12px',
+                        boxShadow: '0 2px 12px hsl(var(--shadow-color) / 0.08)',
+                        padding: '1.5rem',
+                        marginBottom: '1.5rem',
+                    }}
+                >
+                    <div
+                        style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            marginBottom: '1rem',
+                        }}
+                    >
+                        <h3
+                            style={{
+                                fontSize: '1.1rem',
+                                fontWeight: '600',
+                                color: 'hsl(var(--foreground))',
+                                margin: 0,
+                            }}
+                        >
                             Email Body
                         </h3>
                         <div style={{ display: 'flex', gap: '0.25rem' }}>
                             <Button
                                 label="Edit"
                                 icon="pi pi-pencil"
-                                className={activeTab === 'edit' ? 'p-button-sm' : 'p-button-outlined p-button-sm'}
+                                className={
+                                    activeTab === 'edit'
+                                        ? 'p-button-sm'
+                                        : 'p-button-outlined p-button-sm'
+                                }
                                 onClick={() => setActiveTab('edit')}
                             />
                             <Button
                                 label="Preview"
                                 icon="pi pi-eye"
-                                className={activeTab === 'preview' ? 'p-button-sm' : 'p-button-outlined p-button-sm'}
+                                className={
+                                    activeTab === 'preview'
+                                        ? 'p-button-sm'
+                                        : 'p-button-outlined p-button-sm'
+                                }
                                 onClick={() => setActiveTab('preview')}
                             />
                         </div>
@@ -298,7 +389,11 @@ const SendUpdateEmail = () => {
                             </div>
                             <iframe
                                 ref={iframeRef}
-                                srcDoc={htmlContent || '<p style="color:#999;text-align:center;padding:2rem;">No HTML content to preview</p>'}
+                                srcDoc={
+                                    htmlContent ||
+                                    '<p style="color:#999;text-align:center;padding:2rem;">' +
+                                    'No HTML content to preview</p>'
+                                }
                                 style={{
                                     width: '100%',
                                     minHeight: '500px',
@@ -316,7 +411,11 @@ const SendUpdateEmail = () => {
                 {/* Section 4: Send Button */}
                 <div style={{ textAlign: 'right' }}>
                     <Button
-                        label={sending ? 'Sending...' : `Send Email to ${selectedIds.length} Agent${selectedIds.length !== 1 ? 's' : ''}`}
+                        label={
+                            sending
+                                ? 'Sending...'
+                                : `Send Email to ${selectedIds.length} Agent${selectedIds.length !== 1 ? 's' : ''}`
+                        }
                         icon={sending ? 'pi pi-spin pi-spinner' : 'pi pi-send'}
                         className="p-button-success"
                         style={{ padding: '0.75rem 2rem', fontSize: '1rem', fontWeight: '600' }}
@@ -348,9 +447,13 @@ const SendUpdateEmail = () => {
                     }
                 >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                        <i className="pi pi-exclamation-triangle" style={{ fontSize: '2rem', color: 'hsl(var(--warning))' }}></i>
+                        <i
+                            className="pi pi-exclamation-triangle"
+                            style={{ fontSize: '2rem', color: 'hsl(var(--warning))' }}
+                        ></i>
                         <span style={{ color: 'hsl(var(--foreground))' }}>
-                            Send to {selectedIds.length} agent{selectedIds.length !== 1 ? 's' : ''}? This cannot be undone.
+                            Send to {selectedIds.length} agent{selectedIds.length !== 1 ? 's' : ''}?
+                            This cannot be undone.
                         </span>
                     </div>
                 </Dialog>

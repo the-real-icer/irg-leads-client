@@ -750,7 +750,9 @@ const PropertySearchPage = ({ areaParams }) => {
             {drawnPolygon && (
                 <div className="property-search__area-label">
                     <i className="pi pi-pencil" />
-                    <span>Showing properties in <strong>drawn area</strong></span>
+                    <span>
+                        Showing properties in <strong>drawn area</strong>
+                    </span>
                     <button
                         className="property-search__area-label__clear"
                         onClick={handleClearPolygon}
@@ -838,16 +840,33 @@ const PropertySearchPage = ({ areaParams }) => {
                 {/* List panel */}
                 <div className="property-search__list-panel">
                     <div className="property-search__list-header">
-                        <span>{loading ? 'Searching...' : `${sortedProperties.length} Properties Found`}</span>
+                        <span>
+                            {loading
+                                ? 'Searching...'
+                                : `${sortedProperties.length} Properties Found`}
+                        </span>
                         {isAdmin && sortedProperties.length > 0 && (
                             <button
                                 type="button"
                                 className="ps-toolbar__btn ps-toolbar__btn--secondary"
-                                style={{ marginLeft: 'auto', padding: '4px 10px', fontSize: '12px' }}
-                                onClick={() => setSortOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'))}
+                                style={{
+                                    marginLeft: 'auto',
+                                    padding: '4px 10px',
+                                    fontSize: '12px',
+                                }}
+                                onClick={() =>
+                                    setSortOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'))
+                                }
                                 title={sortOrder === 'desc' ? 'Newest First' : 'Oldest First'}
                             >
-                                <i className={sortOrder === 'desc' ? 'pi pi-sort-amount-down' : 'pi pi-sort-amount-up'} style={{ marginRight: '4px' }} />
+                                <i
+                                    className={
+                                        sortOrder === 'desc'
+                                            ? 'pi pi-sort-amount-down'
+                                            : 'pi pi-sort-amount-up'
+                                    }
+                                    style={{ marginRight: '4px' }}
+                                />
                                 {sortOrder === 'desc' ? 'Newest' : 'Oldest'}
                             </button>
                         )}
@@ -869,8 +888,13 @@ const PropertySearchPage = ({ areaParams }) => {
                                 {sortedProperties.slice(0, visibleCount).map((p) => (
                                     <div
                                         key={p._id}
-                                        ref={(el) => { cardRefs.current[p._id] = el; }}
-                                        className={`ps-card-wrapper${highlightedId === p._id ? ' ps-card-wrapper--highlighted' : ''}`}
+                                        ref={(el) => {
+                                            cardRefs.current[p._id] = el;
+                                        }}
+                                        className={[
+                                            'ps-card-wrapper',
+                                            highlightedId === p._id ? 'ps-card-wrapper--highlighted' : '',
+                                        ].join(' ')}
                                         onMouseEnter={() => handleCardHover(p._id)}
                                         onMouseLeave={handleCardLeave}
                                     >

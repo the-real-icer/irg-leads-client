@@ -304,19 +304,28 @@ const AreaDetail = () => {
             <div style={{ padding: '1.5rem', maxWidth: '1200px', margin: '0 auto' }}>
                 {/* Header */}
                 <div style={{ marginBottom: '2rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
+                    <div
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '1rem',
+                            marginBottom: '0.5rem',
+                        }}
+                    >
                         <Button
                             icon="pi pi-arrow-left"
                             className="p-button-text p-button-rounded"
                             onClick={handleBack}
                             tooltip="Back to IRG Areas"
                         />
-                        <h1 style={{
-                            fontSize: '2rem',
-                            fontWeight: '700',
-                            color: '#2c3e50',
-                            margin: 0,
-                        }}>
+                        <h1
+                            style={{
+                                fontSize: '2rem',
+                                fontWeight: '700',
+                                color: '#2c3e50',
+                                margin: 0,
+                            }}
+                        >
                             {loading ? 'Loading...' : `Edit Area: ${area?.name || ''}`}
                         </h1>
                     </div>
@@ -327,7 +336,12 @@ const AreaDetail = () => {
 
                 {/* Content */}
                 {loading ? (
-                    <Card style={{ boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)', borderRadius: '12px' }}>
+                    <Card
+                        style={{
+                            boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
+                            borderRadius: '12px',
+                        }}
+                    >
                         <div style={{ textAlign: 'center', padding: '3rem', color: '#6c757d' }}>
                             <i className="pi pi-spin pi-spinner" style={{ fontSize: '2rem' }}></i>
                             <p style={{ marginTop: '1rem' }}>Loading area details...</p>
@@ -347,8 +361,17 @@ const AreaDetail = () => {
                             {isLoaded ? (
                                 renderMap()
                             ) : (
-                                <div style={{ textAlign: 'center', padding: '3rem', color: '#6c757d' }}>
-                                    <i className="pi pi-spin pi-spinner" style={{ fontSize: '2rem' }}></i>
+                                <div
+                                    style={{
+                                        textAlign: 'center',
+                                        padding: '3rem',
+                                        color: '#6c757d',
+                                    }}
+                                >
+                                    <i
+                                        className="pi pi-spin pi-spinner"
+                                        style={{ fontSize: '2rem' }}
+                                    ></i>
                                     <p style={{ marginTop: '1rem' }}>Loading map...</p>
                                 </div>
                             )}
@@ -363,17 +386,39 @@ const AreaDetail = () => {
                             }}
                         >
                             <form onSubmit={handleSubmit}>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                                <div
+                                    style={{
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: '1.5rem',
+                                    }}
+                                >
                                     {/* Basic Information */}
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                    <div
+                                        style={{
+                                            display: 'grid',
+                                            gridTemplateColumns: '1fr 1fr',
+                                            gap: '1rem',
+                                        }}
+                                    >
                                         <div>
-                                            <label htmlFor="name" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#495057' }}>
+                                            <label
+                                                htmlFor="name"
+                                                style={{
+                                                    display: 'block',
+                                                    marginBottom: '0.5rem',
+                                                    fontWeight: '600',
+                                                    color: '#495057',
+                                                }}
+                                            >
                                                 Name *
                                             </label>
                                             <InputText
                                                 id="name"
                                                 value={formData.name}
-                                                onChange={(e) => handleChange('name', e.target.value)}
+                                                onChange={(e) =>
+                                                    handleChange('name', e.target.value)
+                                                }
                                                 placeholder="e.g., San Diego"
                                                 style={{ width: '100%' }}
                                                 required
@@ -381,13 +426,23 @@ const AreaDetail = () => {
                                         </div>
 
                                         <div>
-                                            <label htmlFor="search_name" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#495057' }}>
+                                            <label
+                                                htmlFor="search_name"
+                                                style={{
+                                                    display: 'block',
+                                                    marginBottom: '0.5rem',
+                                                    fontWeight: '600',
+                                                    color: '#495057',
+                                                }}
+                                            >
                                                 Search Name (Unique) *
                                             </label>
                                             <InputText
                                                 id="search_name"
                                                 value={formData.search_name}
-                                                onChange={(e) => handleChange('search_name', e.target.value)}
+                                                onChange={(e) =>
+                                                    handleChange('search_name', e.target.value)
+                                                }
                                                 placeholder="e.g., san-diego"
                                                 style={{ width: '100%' }}
                                                 required
@@ -395,9 +450,23 @@ const AreaDetail = () => {
                                         </div>
                                     </div>
 
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                    <div
+                                        style={{
+                                            display: 'grid',
+                                            gridTemplateColumns: '1fr 1fr',
+                                            gap: '1rem',
+                                        }}
+                                    >
                                         <div>
-                                            <label htmlFor="type" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#495057' }}>
+                                            <label
+                                                htmlFor="type"
+                                                style={{
+                                                    display: 'block',
+                                                    marginBottom: '0.5rem',
+                                                    fontWeight: '600',
+                                                    color: '#495057',
+                                                }}
+                                            >
                                                 Type
                                             </label>
                                             <Dropdown
@@ -411,7 +480,15 @@ const AreaDetail = () => {
                                         </div>
 
                                         <div>
-                                            <label htmlFor="county" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#495057' }}>
+                                            <label
+                                                htmlFor="county"
+                                                style={{
+                                                    display: 'block',
+                                                    marginBottom: '0.5rem',
+                                                    fontWeight: '600',
+                                                    color: '#495057',
+                                                }}
+                                            >
                                                 County
                                             </label>
                                             <Dropdown
@@ -425,15 +502,31 @@ const AreaDetail = () => {
                                         </div>
                                     </div>
 
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                    <div
+                                        style={{
+                                            display: 'grid',
+                                            gridTemplateColumns: '1fr 1fr',
+                                            gap: '1rem',
+                                        }}
+                                    >
                                         <div>
-                                            <label htmlFor="state" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#495057' }}>
+                                            <label
+                                                htmlFor="state"
+                                                style={{
+                                                    display: 'block',
+                                                    marginBottom: '0.5rem',
+                                                    fontWeight: '600',
+                                                    color: '#495057',
+                                                }}
+                                            >
                                                 State *
                                             </label>
                                             <InputText
                                                 id="state"
                                                 value={formData.state}
-                                                onChange={(e) => handleChange('state', e.target.value)}
+                                                onChange={(e) =>
+                                                    handleChange('state', e.target.value)
+                                                }
                                                 placeholder="e.g., CA"
                                                 style={{ width: '100%' }}
                                                 required
@@ -441,22 +534,46 @@ const AreaDetail = () => {
                                         </div>
 
                                         <div>
-                                            <label htmlFor="city" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#495057' }}>
+                                            <label
+                                                htmlFor="city"
+                                                style={{
+                                                    display: 'block',
+                                                    marginBottom: '0.5rem',
+                                                    fontWeight: '600',
+                                                    color: '#495057',
+                                                }}
+                                            >
                                                 City
                                             </label>
                                             <InputText
                                                 id="city"
                                                 value={formData.city}
-                                                onChange={(e) => handleChange('city', e.target.value)}
+                                                onChange={(e) =>
+                                                    handleChange('city', e.target.value)
+                                                }
                                                 placeholder="City name"
                                                 style={{ width: '100%' }}
                                             />
                                         </div>
                                     </div>
 
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                    <div
+                                        style={{
+                                            display: 'grid',
+                                            gridTemplateColumns: '1fr 1fr',
+                                            gap: '1rem',
+                                        }}
+                                    >
                                         <div>
-                                            <label htmlFor="as" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#495057' }}>
+                                            <label
+                                                htmlFor="as"
+                                                style={{
+                                                    display: 'block',
+                                                    marginBottom: '0.5rem',
+                                                    fontWeight: '600',
+                                                    color: '#495057',
+                                                }}
+                                            >
                                                 County/Area (as)
                                             </label>
                                             <InputText
@@ -469,13 +586,23 @@ const AreaDetail = () => {
                                         </div>
 
                                         <div>
-                                            <label htmlFor="href" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#495057' }}>
+                                            <label
+                                                htmlFor="href"
+                                                style={{
+                                                    display: 'block',
+                                                    marginBottom: '0.5rem',
+                                                    fontWeight: '600',
+                                                    color: '#495057',
+                                                }}
+                                            >
                                                 HREF/URL *
                                             </label>
                                             <InputText
                                                 id="href"
                                                 value={formData.href}
-                                                onChange={(e) => handleChange('href', e.target.value)}
+                                                onChange={(e) =>
+                                                    handleChange('href', e.target.value)
+                                                }
                                                 placeholder="e.g., /search/city/san-diego"
                                                 style={{ width: '100%' }}
                                                 required
@@ -484,15 +611,31 @@ const AreaDetail = () => {
                                     </div>
 
                                     {/* Coordinates */}
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+                                    <div
+                                        style={{
+                                            display: 'grid',
+                                            gridTemplateColumns: '1fr 1fr 1fr',
+                                            gap: '1rem',
+                                        }}
+                                    >
                                         <div>
-                                            <label htmlFor="lat" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#495057' }}>
+                                            <label
+                                                htmlFor="lat"
+                                                style={{
+                                                    display: 'block',
+                                                    marginBottom: '0.5rem',
+                                                    fontWeight: '600',
+                                                    color: '#495057',
+                                                }}
+                                            >
                                                 Center Latitude *
                                             </label>
                                             <InputNumber
                                                 id="lat"
                                                 value={formData.coordinates.lat}
-                                                onValueChange={(e) => handleCoordinateChange('lat', e.value)}
+                                                onValueChange={(e) =>
+                                                    handleCoordinateChange('lat', e.value)
+                                                }
                                                 placeholder="e.g., 32.7157"
                                                 style={{ width: '100%' }}
                                                 minFractionDigits={2}
@@ -502,13 +645,23 @@ const AreaDetail = () => {
                                         </div>
 
                                         <div>
-                                            <label htmlFor="lng" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#495057' }}>
+                                            <label
+                                                htmlFor="lng"
+                                                style={{
+                                                    display: 'block',
+                                                    marginBottom: '0.5rem',
+                                                    fontWeight: '600',
+                                                    color: '#495057',
+                                                }}
+                                            >
                                                 Center Longitude *
                                             </label>
                                             <InputNumber
                                                 id="lng"
                                                 value={formData.coordinates.lng}
-                                                onValueChange={(e) => handleCoordinateChange('lng', e.value)}
+                                                onValueChange={(e) =>
+                                                    handleCoordinateChange('lng', e.value)
+                                                }
                                                 placeholder="e.g., -117.1611"
                                                 style={{ width: '100%' }}
                                                 minFractionDigits={2}
@@ -518,7 +671,15 @@ const AreaDetail = () => {
                                         </div>
 
                                         <div>
-                                            <label htmlFor="zoom" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#495057' }}>
+                                            <label
+                                                htmlFor="zoom"
+                                                style={{
+                                                    display: 'block',
+                                                    marginBottom: '0.5rem',
+                                                    fontWeight: '600',
+                                                    color: '#495057',
+                                                }}
+                                            >
                                                 Zoom Level *
                                             </label>
                                             <InputNumber
@@ -536,14 +697,24 @@ const AreaDetail = () => {
 
                                     {/* Boundary Coordinates */}
                                     <div>
-                                        <label htmlFor="boundary" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#495057' }}>
+                                        <label
+                                            htmlFor="boundary"
+                                            style={{
+                                                display: 'block',
+                                                marginBottom: '0.5rem',
+                                                fontWeight: '600',
+                                                color: '#495057',
+                                            }}
+                                        >
                                             Boundary Coordinates (JSON Array) *
                                         </label>
                                         <textarea
                                             id="boundary"
                                             value={boundaryText}
-                                            onChange={(e) => handleBoundaryTextChange(e.target.value)}
-                                            placeholder='[[[lng, lat], [lng, lat], ...]]'
+                                            onChange={(e) =>
+                                                handleBoundaryTextChange(e.target.value)
+                                            }
+                                            placeholder="[[[lng, lat], [lng, lat], ...]]"
                                             style={{
                                                 width: '100%',
                                                 minHeight: '250px',
@@ -556,25 +727,56 @@ const AreaDetail = () => {
                                             }}
                                             required
                                         />
-                                        <small style={{ color: '#6c757d', display: 'block', marginTop: '0.25rem' }}>
-                                            Format: Array of coordinate pairs [[lng, lat], [lng, lat], ...]
+                                        <small
+                                            style={{
+                                                color: '#6c757d',
+                                                display: 'block',
+                                                marginTop: '0.25rem',
+                                            }}
+                                        >
+                                            Format: Array of coordinate pairs [[lng, lat], [lng,
+                                            lat], ...]
                                         </small>
                                     </div>
 
                                     {/* Multi-Address Checkbox */}
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <div
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.5rem',
+                                        }}
+                                    >
                                         <Checkbox
                                             inputId="is_multi_address"
                                             checked={formData.is_multi_address}
-                                            onChange={(e) => handleChange('is_multi_address', e.checked)}
+                                            onChange={(e) =>
+                                                handleChange('is_multi_address', e.checked)
+                                            }
                                         />
-                                        <label htmlFor="is_multi_address" style={{ fontWeight: '600', color: '#495057', cursor: 'pointer' }}>
+                                        <label
+                                            htmlFor="is_multi_address"
+                                            style={{
+                                                fontWeight: '600',
+                                                color: '#495057',
+                                                cursor: 'pointer',
+                                            }}
+                                        >
                                             Multi-Address Area
                                         </label>
                                     </div>
 
                                     {/* Submit Buttons */}
-                                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #dee2e6' }}>
+                                    <div
+                                        style={{
+                                            display: 'flex',
+                                            justifyContent: 'flex-end',
+                                            gap: '1rem',
+                                            marginTop: '1rem',
+                                            paddingTop: '1rem',
+                                            borderTop: '1px solid #dee2e6',
+                                        }}
+                                    >
                                         <Button
                                             label="Cancel"
                                             className="p-button-text"
@@ -587,7 +789,11 @@ const AreaDetail = () => {
                                             icon={saving ? 'pi pi-spin pi-spinner' : 'pi pi-check'}
                                             type="submit"
                                             disabled={saving}
-                                            style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', border: 'none' }}
+                                            style={{
+                                                background:
+                                                    'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                                border: 'none',
+                                            }}
                                         />
                                     </div>
                                 </div>

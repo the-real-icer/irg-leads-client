@@ -19,7 +19,10 @@ const PropertyDescription = ({ property }) => {
         <div className="property__features__description">
             <p
                 ref={textRef}
-                className={`property__features__description__text${!expanded ? ' property__features__description__text--clamped' : ''}`}
+                className={[
+                    'property__features__description__text',
+                    !expanded ? 'property__features__description__text--clamped' : '',
+                ].join(' ')}
             >
                 {property.public_remarks}
             </p>

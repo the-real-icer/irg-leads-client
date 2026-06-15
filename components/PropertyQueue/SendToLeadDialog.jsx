@@ -78,7 +78,8 @@ const SendToLeadDialog = ({ visible, onHide }) => {
                     agent,
                     subject,
                     message,
-                    coBuyerIds: sendToCoBuyers && coBuyers.length > 0 ? coBuyers.map((cb) => cb._id) : [],
+                    coBuyerIds:
+                        sendToCoBuyers && coBuyers.length > 0 ? coBuyers.map((cb) => cb._id) : [],
                 },
                 {
                     headers: {
@@ -89,25 +90,53 @@ const SendToLeadDialog = ({ visible, onHide }) => {
             );
 
             const resultRows = res.data?.data?.results || [];
-            const succeededCount = resultRows.filter((result) => result.status === 'success').length;
+            const succeededCount = resultRows.filter(
+                (result) => result.status === 'success',
+            ).length;
             const failedCount = resultRows.length - succeededCount;
 
             if (res.data.status === 'success' && resultRows.length > 0 && failedCount === 0) {
                 dispatch(clearSelectedHomes());
                 resetForm();
                 onHide();
-                showToast('success', `${selectedHomes.length} properties sent to ${getLeadDisplayName(lead)}`, 'Email Sent!');
+                showToast(
+                    'success',
+                    `${selectedHomes.length} properties sent to ${getLeadDisplayName(lead)}`,
+                    'Email Sent!',
+                );
             } else if (res.data.status === 'success' && succeededCount > 0) {
-                showToast('warn', `Properties sent to ${succeededCount} of ${resultRows.length} recipients.`, 'Partial Success');
+                showToast(
+                    'warn',
+                    `Properties sent to ${succeededCount} of ${resultRows.length} recipients.`,
+                    'Partial Success',
+                );
             } else {
                 throw new Error('Failed to send properties. Please try again.');
             }
         } catch (err) {
-            showToast('error', err.response?.data?.message || err.message || 'Failed to send email. Please try again.', 'Error');
+            showToast(
+                'error',
+                err.response?.data?.message ||
+                    err.message ||
+                    'Failed to send email. Please try again.',
+                'Error',
+            );
         } finally {
             setSending(false);
         }
-    }, [lead, subject, message, selectedHomes, agent, isLoggedIn, dispatch, resetForm, onHide, coBuyers, sendToCoBuyers]);
+    }, [
+        lead,
+        subject,
+        message,
+        selectedHomes,
+        agent,
+        isLoggedIn,
+        dispatch,
+        resetForm,
+        onHide,
+        coBuyers,
+        sendToCoBuyers,
+    ]);
 
     const leadOptionTemplate = (option) => (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
@@ -178,10 +207,28 @@ const SendToLeadDialog = ({ visible, onHide }) => {
 
             {/* Co-buyer option */}
             {coBuyers.length > 0 && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0 0 0.5rem' }}>
-                    <input type="checkbox" id="sendQueueToCoBuyers" checked={sendToCoBuyers} onChange={(e) => setSendToCoBuyers(e.target.checked)} />
-                    <label htmlFor="sendQueueToCoBuyers" style={{ fontSize: '13px', color: 'hsl(var(--foreground))' }}>
-                        Also send to co-buyer{coBuyers.length > 1 ? 's' : ''}: <strong>{coBuyers.map((cb) => `${cb.first_name} ${cb.last_name}`).join(', ')}</strong>
+                <div
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '0 0 0.5rem',
+                    }}
+                >
+                    <input
+                        type="checkbox"
+                        id="sendQueueToCoBuyers"
+                        checked={sendToCoBuyers}
+                        onChange={(e) => setSendToCoBuyers(e.target.checked)}
+                    />
+                    <label
+                        htmlFor="sendQueueToCoBuyers"
+                        style={{ fontSize: '13px', color: 'hsl(var(--foreground))' }}
+                    >
+                        Also send to co-buyer{coBuyers.length > 1 ? 's' : ''}:{' '}
+                        <strong>
+                            {coBuyers.map((cb) => `${cb.first_name} ${cb.last_name}`).join(', ')}
+                        </strong>
                     </label>
                 </div>
             )}
@@ -209,8 +256,16 @@ const SendToLeadDialog = ({ visible, onHide }) => {
             </div>
 
             {/* Info note */}
-            <p style={{ fontSize: '0.8rem', color: 'hsl(var(--muted-foreground))', fontStyle: 'italic', margin: '0 0 0.5rem' }}>
-                Your queued properties and agent signature will be automatically included in the email.
+            <p
+                style={{
+                    fontSize: '0.8rem',
+                    color: 'hsl(var(--muted-foreground))',
+                    fontStyle: 'italic',
+                    margin: '0 0 0.5rem',
+                }}
+            >
+                Your queued properties and agent signature will be automatically included in the
+                email.
             </p>
 
             {/* Actions */}

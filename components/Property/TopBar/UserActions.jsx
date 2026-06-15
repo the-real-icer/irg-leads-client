@@ -12,25 +12,25 @@ const UserActions = ({ property }) => {
     const agent = useSelector((state) => state.agent);
     const allLeads = useSelector((state) => state.allLeadsPage?.leads);
 
-    // ── Dialog state ───────────────────────────────────────────────
+    // Dialog state
     const [showDialog, setShowDialog] = useState(false);
     const [sending, setSending] = useState(false);
 
-    // ── Lead search state ──────────────────────────────────────────
+    // Lead search state
     const [leadInput, setLeadInput] = useState('');
     const [leadSuggestions, setLeadSuggestions] = useState([]);
     const [selectedLead, setSelectedLead] = useState(null);
 
-    // ── Email content state ────────────────────────────────────────
+    // Email content state
     const [subject, setSubject] = useState('');
     const [message, setMessage] = useState('');
 
-    // ── Fallback leads (if Redux store is empty) ───────────────────
+    // Fallback leads if Redux store is empty
     const [localLeads, setLocalLeads] = useState(null);
 
     const leads = useMemo(() => allLeads || localLeads || [], [allLeads, localLeads]);
 
-    // ── Fetch leads if Redux store is empty when dialog opens ──────
+    // Fetch leads if Redux store is empty when dialog opens
     useEffect(() => {
         if (!showDialog || !isLoggedIn) return;
         if (allLeads?.length > 0) return; // Already have leads from Redux
@@ -53,22 +53,24 @@ const UserActions = ({ property }) => {
         fetchLeads();
     }, [showDialog, isLoggedIn, allLeads, localLeads]);
 
-    // ── Build default email content ────────────────────────────────
+    // Build default email content
     const buildDefaults = useCallback(() => {
         const addr = property?.address || '';
         const city = property?.city || '';
         const unitNum = property?.unit_number ? ` #${property.unit_number}` : '';
 
-        setSubject(`Check out this property — ${addr}${unitNum}, ${city}`);
+        setSubject(`Check out this property \u2014 ${addr}${unitNum}, ${city}`);
         setMessage(
             `<p>Hi,</p>` +
-            `<p>I found a property I think you'll love! Take a look:</p>` +
-            `<p><strong>${addr}${unitNum}, ${city}, ${property?.state || 'CA'} ${property?.zip_code || ''}</strong><br/>` +
-            `${property?.price || ''} — ${property?.bedrooms || 0} Beds, ${property?.bathrooms || 0} Baths, ${property?.sqft || 0} SqFt</p>`,
+                `<p>I found a property I think you'll love! Take a look:</p>` +
+                `<p><strong>${addr}${unitNum}, ${city}, ${property?.state || 'CA'} ` +
+                `${property?.zip_code || ''}</strong><br/>` +
+                `${property?.price || ''} \u2014 ${property?.bedrooms || 0} Beds, ` +
+                `${property?.bathrooms || 0} Baths, ${property?.sqft || 0} SqFt</p>`,
         );
     }, [property]);
 
-    // ── Open dialog ────────────────────────────────────────────────
+    // Open dialog
     const handleEmailClick = useCallback(() => {
         buildDefaults();
         setSelectedLead(null);
@@ -77,12 +79,12 @@ const UserActions = ({ property }) => {
         setShowDialog(true);
     }, [buildDefaults]);
 
-    // ── Close dialog ───────────────────────────────────────────────
+    // Close dialog
     const handleHide = useCallback(() => {
         if (!sending) setShowDialog(false);
     }, [sending]);
 
-    // ── Lead search (client-side filter) ───────────────────────────
+    // Lead search client-side filter
     const handleLeadSearch = useCallback(
         (event) => {
             const query = (event.query || '').toLowerCase().trim();
@@ -101,7 +103,7 @@ const UserActions = ({ property }) => {
         [leads],
     );
 
-    // ── Lead select ────────────────────────────────────────────────
+    // Lead select
     const handleLeadSelect = useCallback(
         (e) => {
             const lead = e.value;
@@ -117,9 +119,11 @@ const UserActions = ({ property }) => {
                     const unitNum = property?.unit_number ? ` #${property.unit_number}` : '';
                     setMessage(
                         `<p>Hi ${firstName},</p>` +
-                        `<p>I found a property I think you'll love! Take a look:</p>` +
-                        `<p><strong>${addr}${unitNum}, ${city}, ${property?.state || 'CA'} ${property?.zip_code || ''}</strong><br/>` +
-                        `${property?.price || ''} — ${property?.bedrooms || 0} Beds, ${property?.bathrooms || 0} Baths, ${property?.sqft || 0} SqFt</p>`,
+                            `<p>I found a property I think you'll love! Take a look:</p>` +
+                            `<p><strong>${addr}${unitNum}, ${city}, ${property?.state || 'CA'} ` +
+                            `${property?.zip_code || ''}</strong><br/>` +
+                            `${property?.price || ''} \u2014 ${property?.bedrooms || 0} Beds, ` +
+                            `${property?.bathrooms || 0} Baths, ${property?.sqft || 0} SqFt</p>`,
                     );
                 }
             }
@@ -127,13 +131,13 @@ const UserActions = ({ property }) => {
         [property],
     );
 
-    // ── Clear lead ─────────────────────────────────────────────────
+    // Clear lead
     const handleLeadClear = useCallback(() => {
         setSelectedLead(null);
         setLeadInput('');
     }, []);
 
-    // ── Send email ─────────────────────────────────────────────────
+    // Send email
     const handleSend = useCallback(async () => {
         if (!selectedLead || !selectedLead.email) {
             showToast('error', 'Please select a lead with a valid email address', 'Validation Error');

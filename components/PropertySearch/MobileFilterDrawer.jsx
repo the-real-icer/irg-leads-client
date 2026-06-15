@@ -44,11 +44,7 @@ const MobileFilterDrawer = ({ visible, filters, onFilterChange, onSearch, onRese
             <div className="mobile-filter-drawer__panel">
                 <div className="mobile-filter-drawer__header">
                     <span className="mobile-filter-drawer__title">Filters</span>
-                    <button
-                        className="mobile-filter-drawer__close"
-                        onClick={onClose}
-                        type="button"
-                    >
+                    <button className="mobile-filter-drawer__close" onClick={onClose} type="button">
                         <i className="pi pi-times" />
                     </button>
                 </div>
@@ -118,7 +114,10 @@ const MobileFilterDrawer = ({ visible, filters, onFilterChange, onSearch, onRese
                                     const current = filters.statuses || ['Active'];
                                     if (current.includes(opt.value)) {
                                         if (current.length > 1) {
-                                            onFilterChange('statuses', current.filter((s) => s !== opt.value));
+                                            onFilterChange(
+                                                'statuses',
+                                                current.filter((s) => s !== opt.value),
+                                            );
                                         }
                                     } else {
                                         onFilterChange('statuses', [...current, opt.value]);
@@ -188,10 +187,7 @@ const MobileFilterDrawer = ({ visible, filters, onFilterChange, onSearch, onRese
                             placeholder="No Min"
                             value={filters.minSqft || ''}
                             min={0}
-                            onChange={(e) => onFilterChange(
-                                'minSqft',
-                                Number(e.target.value) || 0
-                            )}
+                            onChange={(e) => onFilterChange('minSqft', Number(e.target.value) || 0)}
                         />
                         <input
                             type="number"
@@ -199,10 +195,7 @@ const MobileFilterDrawer = ({ visible, filters, onFilterChange, onSearch, onRese
                             placeholder="No Max"
                             value={filters.maxSqft || ''}
                             min={0}
-                            onChange={(e) => onFilterChange(
-                                'maxSqft',
-                                Number(e.target.value) || 0
-                            )}
+                            onChange={(e) => onFilterChange('maxSqft', Number(e.target.value) || 0)}
                         />
                     </div>
                 </div>
@@ -283,7 +276,12 @@ const MobileFilterDrawer = ({ visible, filters, onFilterChange, onSearch, onRese
                         <input
                             type="checkbox"
                             checked={filters.includeSeniorCommunities || false}
-                            onChange={() => onFilterChange('includeSeniorCommunities', !filters.includeSeniorCommunities)}
+                            onChange={() =>
+                                onFilterChange(
+                                    'includeSeniorCommunities',
+                                    !filters.includeSeniorCommunities,
+                                )
+                            }
                         />
                         Include Senior Communities
                     </label>

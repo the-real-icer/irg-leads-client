@@ -17,7 +17,10 @@ const RecentListingCard = ({ home }) => {
     return (
         <Link href={linkAddress} passHref>
             <li
-                className="py-3 border-bottom-1 surface-border flex md:align-items-start md:justify-content-between flex-column md:flex-row"
+                className={[
+                    'py-3 border-bottom-1 surface-border flex md:align-items-start',
+                    'md:justify-content-between flex-column md:flex-row',
+                ].join(' ')}
                 style={{ cursor: 'pointer' }}
             >
                 <div className="flex align-items-start mr-0 lg:mr-5">

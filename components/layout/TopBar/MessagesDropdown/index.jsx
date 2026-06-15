@@ -102,16 +102,17 @@ const MessagesDropdown = () => {
         <div className={styles.wrapper} ref={dropdownRef}>
             <button
                 type="button"
-                className="flex relative items-center justify-center text-foreground-muted hover:text-foreground transition-colors duration-150"
+                className={[
+                    'flex relative items-center justify-center text-foreground-muted',
+                    'hover:text-foreground transition-colors duration-150',
+                ].join(' ')}
                 onClick={() => setOpen((o) => !o)}
                 title="Messages"
                 aria-label={`Messages${unreadCount > 0 ? `, ${unreadCount} unread` : ''}`}
             >
                 <i className="pi pi-comments text-xl" />
                 {unreadCount > 0 && (
-                    <span className={styles.badge}>
-                        {unreadCount > 9 ? '9+' : unreadCount}
-                    </span>
+                    <span className={styles.badge}>{unreadCount > 9 ? '9+' : unreadCount}</span>
                 )}
             </button>
 
@@ -120,9 +121,7 @@ const MessagesDropdown = () => {
                     <div className={styles.header}>
                         <span>Messages</span>
                         {unreadCount > 0 && (
-                            <span className={styles.unreadLabel}>
-                                {unreadCount} unread
-                            </span>
+                            <span className={styles.unreadLabel}>{unreadCount} unread</span>
                         )}
                     </div>
 
@@ -148,16 +147,10 @@ const MessagesDropdown = () => {
                                         {getInitials(msg.authorName)}
                                     </div>
                                     <div className={styles.content}>
-                                        <div className={styles.name}>
-                                            {msg.authorName}
-                                        </div>
-                                        <div className={styles.body}>
-                                            {msg.body}
-                                        </div>
+                                        <div className={styles.name}>{msg.authorName}</div>
+                                        <div className={styles.body}>{msg.body}</div>
                                     </div>
-                                    <div className={styles.time}>
-                                        {formatTime(msg.createdAt)}
-                                    </div>
+                                    <div className={styles.time}>{formatTime(msg.createdAt)}</div>
                                 </button>
                             ))
                         )}

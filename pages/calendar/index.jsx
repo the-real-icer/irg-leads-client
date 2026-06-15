@@ -15,7 +15,10 @@ const Card = dynamic(() => import('primereact/card').then((mod) => mod.Card), { 
 const Button = dynamic(() => import('primereact/button').then((mod) => mod.Button), { ssr: false });
 const Dialog = dynamic(() => import('primereact/dialog').then((mod) => mod.Dialog), { ssr: false });
 const InputText = dynamic(() => import('primereact/inputtext').then((mod) => mod.InputText), { ssr: false });
-const InputTextarea = dynamic(() => import('primereact/inputtextarea').then((mod) => mod.InputTextarea), { ssr: false });
+const InputTextarea = dynamic(
+    () => import('primereact/inputtextarea').then((mod) => mod.InputTextarea),
+    { ssr: false },
+);
 const Dropdown = dynamic(() => import('primereact/dropdown').then((mod) => mod.Dropdown), { ssr: false });
 const CalendarPicker = dynamic(() => import('primereact/calendar').then((mod) => mod.Calendar), { ssr: false });
 
@@ -36,7 +39,8 @@ const Calendar = () => {
     const [googleCalendarEvents, setGoogleCalendarEvents] = useState([]);
     const [calendarEvents, setCalendarEvents] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [calendarView, setCalendarView] = useState('dayGridMonth'); // dayGridMonth, resourceTimeGridWeek, resourceTimeGridDay
+    // dayGridMonth, resourceTimeGridWeek, resourceTimeGridDay
+    const [calendarView, setCalendarView] = useState('dayGridMonth');
 
     // Create Event Modal State
     const [showCreateEventDialog, setShowCreateEventDialog] = useState(false);
@@ -137,7 +141,7 @@ const Calendar = () => {
                 setAvailableCalendars(formattedCalendars);
 
                 // Pre-select primary calendar
-                const primaryCal = formattedCalendars.find(cal => cal.label.includes('Primary'));
+                const primaryCal = formattedCalendars.find((cal) => cal.label.includes('Primary'));
                 if (primaryCal) {
                     setEventCalendar(primaryCal.value);
                 }
@@ -183,7 +187,7 @@ const Calendar = () => {
                     leadId: eventLead,
                     colorId: eventColor,
                 },
-                { headers: { Authorization: `Bearer ${isLoggedIn}` } }
+                { headers: { Authorization: `Bearer ${isLoggedIn}` } },
             );
 
             if (response.data.status === 'success') {
@@ -446,9 +450,9 @@ const Calendar = () => {
     const changeView = (view) => {
         // Map button clicks to correct view names
         const viewMapping = {
-            'timeGridDay': 'resourceTimeGridDay',
-            'timeGridWeek': 'timeGridWeek', // Use regular week view, not resource-based
-            'dayGridMonth': 'dayGridMonth'
+            timeGridDay: 'resourceTimeGridDay',
+            timeGridWeek: 'timeGridWeek', // Use regular week view, not resource-based
+            dayGridMonth: 'dayGridMonth',
         };
 
         const actualView = viewMapping[view] || view;
@@ -464,19 +468,23 @@ const Calendar = () => {
         <MainLayout title="Calendar">
             <div style={{ padding: '1.5rem', maxWidth: '1400px', margin: '0 auto' }}>
                 {/* Header */}
-                <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: '2rem'
-                }}>
+                <div
+                    style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: '2rem',
+                    }}
+                >
                     <div>
-                        <h1 style={{
-                            fontSize: '2rem',
-                            fontWeight: '700',
-                            color: '#2c3e50',
-                            marginBottom: '0.5rem',
-                        }}>
+                        <h1
+                            style={{
+                                fontSize: '2rem',
+                                fontWeight: '700',
+                                color: '#2c3e50',
+                                marginBottom: '0.5rem',
+                            }}
+                        >
                             Calendar
                         </h1>
                         <p style={{ color: '#6c757d', fontSize: '0.95rem' }}>
@@ -494,25 +502,37 @@ const Calendar = () => {
                                 padding: '0.5rem 1rem',
                                 marginRight: '1rem',
                                 backgroundColor: '#34A853',
-                                borderColor: '#34A853'
+                                borderColor: '#34A853',
                             }}
                         />
 
                         <Button
                             label="Daily"
-                            className={calendarView === 'resourceTimeGridDay' ? 'p-button-primary' : 'p-button-outlined'}
+                            className={
+                                calendarView === 'resourceTimeGridDay'
+                                    ? 'p-button-primary'
+                                    : 'p-button-outlined'
+                            }
                             onClick={() => changeView('timeGridDay')}
                             style={{ padding: '0.5rem 1rem' }}
                         />
                         <Button
                             label="Weekly"
-                            className={calendarView === 'timeGridWeek' ? 'p-button-primary' : 'p-button-outlined'}
+                            className={
+                                calendarView === 'timeGridWeek'
+                                    ? 'p-button-primary'
+                                    : 'p-button-outlined'
+                            }
                             onClick={() => changeView('timeGridWeek')}
                             style={{ padding: '0.5rem 1rem' }}
                         />
                         <Button
                             label="Monthly"
-                            className={calendarView === 'dayGridMonth' ? 'p-button-primary' : 'p-button-outlined'}
+                            className={
+                                calendarView === 'dayGridMonth'
+                                    ? 'p-button-primary'
+                                    : 'p-button-outlined'
+                            }
                             onClick={() => changeView('dayGridMonth')}
                             style={{ padding: '0.5rem 1rem' }}
                         />
@@ -521,81 +541,99 @@ const Calendar = () => {
 
                 {/* Legend */}
                 <Card style={{ marginBottom: '1.5rem', padding: '1rem' }}>
-                    <div style={{
-                        display: 'flex',
-                        gap: '2rem',
-                        flexWrap: 'wrap',
-                        alignItems: 'center'
-                    }}>
-                        <h4 style={{ margin: 0, marginRight: '1rem', color: '#2c3e50' }}>Legend:</h4>
+                    <div
+                        style={{
+                            display: 'flex',
+                            gap: '2rem',
+                            flexWrap: 'wrap',
+                            alignItems: 'center',
+                        }}
+                    >
+                        <h4 style={{ margin: 0, marginRight: '1rem', color: '#2c3e50' }}>
+                            Legend:
+                        </h4>
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <div style={{
-                                width: '16px',
-                                height: '16px',
-                                backgroundColor: '#667eea',
-                                borderRadius: '3px'
-                            }}></div>
+                            <div
+                                style={{
+                                    width: '16px',
+                                    height: '16px',
+                                    backgroundColor: '#667eea',
+                                    borderRadius: '3px',
+                                }}
+                            ></div>
                             <span style={{ fontSize: '0.9rem' }}>Anticipated Closing</span>
                         </div>
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <div style={{
-                                width: '16px',
-                                height: '16px',
-                                backgroundColor: '#4CAF50',
-                                borderRadius: '3px'
-                            }}></div>
+                            <div
+                                style={{
+                                    width: '16px',
+                                    height: '16px',
+                                    backgroundColor: '#4CAF50',
+                                    borderRadius: '3px',
+                                }}
+                            ></div>
                             <span style={{ fontSize: '0.9rem' }}>Closed Transaction</span>
                         </div>
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <div style={{
-                                width: '16px',
-                                height: '16px',
-                                backgroundColor: '#22c55e',
-                                borderRadius: '3px'
-                            }}></div>
+                            <div
+                                style={{
+                                    width: '16px',
+                                    height: '16px',
+                                    backgroundColor: '#22c55e',
+                                    borderRadius: '3px',
+                                }}
+                            ></div>
                             <span style={{ fontSize: '0.9rem' }}>Acceptance Date</span>
                         </div>
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <div style={{
-                                width: '16px',
-                                height: '16px',
-                                backgroundColor: '#f59e0b',
-                                borderRadius: '3px'
-                            }}></div>
+                            <div
+                                style={{
+                                    width: '16px',
+                                    height: '16px',
+                                    backgroundColor: '#f59e0b',
+                                    borderRadius: '3px',
+                                }}
+                            ></div>
                             <span style={{ fontSize: '0.9rem' }}>Contingency Due</span>
                         </div>
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <div style={{
-                                width: '16px',
-                                height: '16px',
-                                backgroundColor: '#ef4444',
-                                borderRadius: '3px'
-                            }}></div>
+                            <div
+                                style={{
+                                    width: '16px',
+                                    height: '16px',
+                                    backgroundColor: '#ef4444',
+                                    borderRadius: '3px',
+                                }}
+                            ></div>
                             <span style={{ fontSize: '0.9rem' }}>Lead Reminder</span>
                         </div>
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <div style={{
-                                width: '16px',
-                                height: '16px',
-                                backgroundColor: '#34A853',
-                                borderRadius: '3px'
-                            }}></div>
+                            <div
+                                style={{
+                                    width: '16px',
+                                    height: '16px',
+                                    backgroundColor: '#34A853',
+                                    borderRadius: '3px',
+                                }}
+                            ></div>
                             <span style={{ fontSize: '0.9rem' }}>Google Calendar</span>
                         </div>
                     </div>
                 </Card>
 
                 {/* Calendar */}
-                <Card style={{
-                    boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
-                    borderRadius: '12px'
-                }}>
+                <Card
+                    style={{
+                        boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
+                        borderRadius: '12px',
+                    }}
+                >
                     {loading ? (
                         <div style={{ textAlign: 'center', padding: '3rem', color: '#6c757d' }}>
                             <i className="pi pi-spin pi-spinner" style={{ fontSize: '2rem' }}></i>
@@ -604,18 +642,28 @@ const Calendar = () => {
                     ) : (
                         <FullCalendar
                             ref={calendarRef}
-                            plugins={[dayGridPlugin, timeGridPlugin, resourceTimeGridPlugin, interactionPlugin]}
+                            plugins={[
+                                dayGridPlugin,
+                                timeGridPlugin,
+                                resourceTimeGridPlugin,
+                                interactionPlugin,
+                            ]}
                             initialView={calendarView}
                             schedulerLicenseKey="GPL-My-Project-Is-Open-Source"
                             headerToolbar={{
                                 left: 'prev,next today',
                                 center: 'title',
-                                right: ''
+                                right: '',
                             }}
                             views={{
                                 resourceTimeGridDay: {
-                                    titleFormat: { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' }
-                                }
+                                    titleFormat: {
+                                        year: 'numeric',
+                                        month: 'long',
+                                        day: 'numeric',
+                                        weekday: 'long',
+                                    },
+                                },
                             }}
                             height="auto"
                             editable={false}
@@ -663,9 +711,15 @@ const Calendar = () => {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                     {/* Title */}
                     <div>
-                        <label htmlFor="event-title" style={{
-                            display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#495057'
-                        }}>
+                        <label
+                            htmlFor="event-title"
+                            style={{
+                                display: 'block',
+                                marginBottom: '0.5rem',
+                                fontWeight: '600',
+                                color: '#495057',
+                            }}
+                        >
                             Event Title <span style={{ color: '#ef4444' }}>*</span>
                         </label>
                         <InputText
@@ -679,9 +733,15 @@ const Calendar = () => {
 
                     {/* Start Date/Time */}
                     <div>
-                        <label htmlFor="event-start" style={{
-                            display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#495057'
-                        }}>
+                        <label
+                            htmlFor="event-start"
+                            style={{
+                                display: 'block',
+                                marginBottom: '0.5rem',
+                                fontWeight: '600',
+                                color: '#495057',
+                            }}
+                        >
                             Start Date & Time <span style={{ color: '#ef4444' }}>*</span>
                         </label>
                         <CalendarPicker
@@ -699,9 +759,15 @@ const Calendar = () => {
 
                     {/* End Date/Time */}
                     <div>
-                        <label htmlFor="event-end" style={{
-                            display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#495057'
-                        }}>
+                        <label
+                            htmlFor="event-end"
+                            style={{
+                                display: 'block',
+                                marginBottom: '0.5rem',
+                                fontWeight: '600',
+                                color: '#495057',
+                            }}
+                        >
                             End Date & Time <span style={{ color: '#ef4444' }}>*</span>
                         </label>
                         <CalendarPicker
@@ -719,9 +785,15 @@ const Calendar = () => {
 
                     {/* Calendar Selection */}
                     <div>
-                        <label htmlFor="event-calendar" style={{
-                            display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#495057'
-                        }}>
+                        <label
+                            htmlFor="event-calendar"
+                            style={{
+                                display: 'block',
+                                marginBottom: '0.5rem',
+                                fontWeight: '600',
+                                color: '#495057',
+                            }}
+                        >
                             Calendar <span style={{ color: '#ef4444' }}>*</span>
                         </label>
                         <Dropdown
@@ -729,7 +801,9 @@ const Calendar = () => {
                             value={eventCalendar}
                             options={availableCalendars}
                             onChange={(e) => setEventCalendar(e.value)}
-                            placeholder={loadingCalendars ? "Loading calendars..." : "Select calendar"}
+                            placeholder={
+                                loadingCalendars ? 'Loading calendars...' : 'Select calendar'
+                            }
                             style={{ width: '100%' }}
                             disabled={loadingCalendars}
                         />
@@ -737,9 +811,15 @@ const Calendar = () => {
 
                     {/* Event Color */}
                     <div>
-                        <label htmlFor="event-color" style={{
-                            display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#495057'
-                        }}>
+                        <label
+                            htmlFor="event-color"
+                            style={{
+                                display: 'block',
+                                marginBottom: '0.5rem',
+                                fontWeight: '600',
+                                color: '#495057',
+                            }}
+                        >
                             Event Color
                         </label>
                         <Dropdown
@@ -751,28 +831,49 @@ const Calendar = () => {
                             style={{ width: '100%' }}
                             showClear
                             itemTemplate={(option) => (
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                    <div style={{
-                                        width: '24px',
-                                        height: '24px',
-                                        borderRadius: '4px',
-                                        backgroundColor: option.color,
-                                        border: '1px solid #dee2e6'
-                                    }}></div>
+                                <div
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.75rem',
+                                    }}
+                                >
+                                    <div
+                                        style={{
+                                            width: '24px',
+                                            height: '24px',
+                                            borderRadius: '4px',
+                                            backgroundColor: option.color,
+                                            border: '1px solid #dee2e6',
+                                        }}
+                                    ></div>
                                     <span>{option.label}</span>
                                 </div>
                             )}
                             valueTemplate={(option) => {
-                                if (!option) return <span style={{ color: '#6c757d' }}>Select color (optional)</span>;
+                                if (!option)
+                                    return (
+                                        <span style={{ color: '#6c757d' }}>
+                                            Select color (optional)
+                                        </span>
+                                    );
                                 return (
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                        <div style={{
-                                            width: '20px',
-                                            height: '20px',
-                                            borderRadius: '4px',
-                                            backgroundColor: option.color,
-                                            border: '1px solid #dee2e6'
-                                        }}></div>
+                                    <div
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.75rem',
+                                        }}
+                                    >
+                                        <div
+                                            style={{
+                                                width: '20px',
+                                                height: '20px',
+                                                borderRadius: '4px',
+                                                backgroundColor: option.color,
+                                                border: '1px solid #dee2e6',
+                                            }}
+                                        ></div>
                                         <span>{option.label}</span>
                                     </div>
                                 );
@@ -782,9 +883,15 @@ const Calendar = () => {
 
                     {/* Location */}
                     <div>
-                        <label htmlFor="event-location" style={{
-                            display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#495057'
-                        }}>
+                        <label
+                            htmlFor="event-location"
+                            style={{
+                                display: 'block',
+                                marginBottom: '0.5rem',
+                                fontWeight: '600',
+                                color: '#495057',
+                            }}
+                        >
                             Location
                         </label>
                         <InputText
@@ -798,9 +905,15 @@ const Calendar = () => {
 
                     {/* Link to Lead */}
                     <div>
-                        <label htmlFor="event-lead" style={{
-                            display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#495057'
-                        }}>
+                        <label
+                            htmlFor="event-lead"
+                            style={{
+                                display: 'block',
+                                marginBottom: '0.5rem',
+                                fontWeight: '600',
+                                color: '#495057',
+                            }}
+                        >
                             Link to Lead
                         </label>
                         <Dropdown
@@ -824,9 +937,15 @@ const Calendar = () => {
 
                     {/* Description */}
                     <div>
-                        <label htmlFor="event-description" style={{
-                            display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#495057'
-                        }}>
+                        <label
+                            htmlFor="event-description"
+                            style={{
+                                display: 'block',
+                                marginBottom: '0.5rem',
+                                fontWeight: '600',
+                                color: '#495057',
+                            }}
+                        >
                             Description
                         </label>
                         <InputTextarea
@@ -840,16 +959,19 @@ const Calendar = () => {
                     </div>
 
                     {/* Help text */}
-                    <div style={{
-                        fontSize: '0.875rem',
-                        color: '#6c757d',
-                        padding: '0.75rem',
-                        backgroundColor: '#f8f9fa',
-                        borderRadius: '6px',
-                        borderLeft: '3px solid #34A853'
-                    }}>
+                    <div
+                        style={{
+                            fontSize: '0.875rem',
+                            color: '#6c757d',
+                            padding: '0.75rem',
+                            backgroundColor: '#f8f9fa',
+                            borderRadius: '6px',
+                            borderLeft: '3px solid #34A853',
+                        }}
+                    >
                         <i className="pi pi-info-circle" style={{ marginRight: '0.5rem' }}></i>
-                        This event will be created in your Google Calendar. If you link a lead, their contact info will be added to the event description.
+                        This event will be created in your Google Calendar. If you link a lead,
+                        their contact info will be added to the event description.
                     </div>
                 </div>
             </Dialog>

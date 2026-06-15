@@ -108,7 +108,13 @@ const AgentPropertyCard = ({ delivery, onOpenNotes, onShowingAction, leadId, isL
             {/* Info */}
             <div className="agent-card__info">
                 {propertyUrl ? (
-                    <Link href={propertyUrl} className="agent-card__address" style={{ textDecoration: 'none', color: 'inherit' }}>{address}</Link>
+                    <Link
+                        href={propertyUrl}
+                        className="agent-card__address"
+                        style={{ textDecoration: 'none', color: 'inherit' }}
+                    >
+                        {address}
+                    </Link>
                 ) : (
                     <div className="agent-card__address">{address}</div>
                 )}

@@ -71,13 +71,22 @@ const TopBar = ({ onMobileMenuToggle }) => {
 
     return (
         <>
-            <header className="sticky top-0 z-[1020] h-[60px] flex items-center justify-between px-4 lg:px-6 bg-surface/80 backdrop-blur-md border-b border-border dark:border-border/50 transition-colors duration-200">
+            <header
+                className={[
+                    'sticky top-0 z-[1020] h-[60px] flex items-center justify-between',
+                    'px-4 lg:px-6 bg-surface/80 backdrop-blur-md border-b border-border',
+                    'dark:border-border/50 transition-colors duration-200',
+                ].join(' ')}
+            >
                 {/* ── Left: Hamburger + Search ──────────────────────── */}
                 <div className="flex items-center gap-3">
                     {/* Mobile hamburger */}
                     <button
                         onClick={onMobileMenuToggle}
-                        className="lg:hidden flex items-center justify-center text-foreground-muted hover:text-foreground transition-colors duration-150"
+                        className={[
+                            'lg:hidden flex items-center justify-center text-foreground-muted',
+                            'hover:text-foreground transition-colors duration-150',
+                        ].join(' ')}
                         aria-label="Toggle menu"
                     >
                         <i className="pi pi-bars text-xl" />
@@ -92,12 +101,21 @@ const TopBar = ({ onMobileMenuToggle }) => {
                     {/* Queue */}
                     <button
                         onClick={() => setShowQueueDialog(true)}
-                        className="flex relative items-center justify-center text-foreground-muted hover:text-foreground transition-colors duration-150"
+                        className={[
+                            'flex relative items-center justify-center text-foreground-muted',
+                            'hover:text-foreground transition-colors duration-150',
+                        ].join(' ')}
                         title="Property Queue"
                     >
                         <i className="pi pi-inbox text-xl" />
                         {queueCount > 0 && (
-                            <span className="absolute -top-2 -right-2.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-secondary text-secondary-foreground text-[10px] font-bold leading-none">
+                            <span
+                                className={[
+                                    'absolute -top-2 -right-2.5 flex items-center justify-center',
+                                    'min-w-[18px] h-[18px] px-1 rounded-full bg-secondary',
+                                    'text-secondary-foreground text-[10px] font-bold leading-none',
+                                ].join(' ')}
+                            >
                                 {queueCount}
                             </span>
                         )}
@@ -120,12 +138,25 @@ const TopBar = ({ onMobileMenuToggle }) => {
                                     src={agent.image}
                                     alt={agent?.name || 'Profile'}
                                     className="rounded-full object-cover"
-                                    style={{ width: '32px', height: '32px', minWidth: '32px', minHeight: '32px' }}
+                                    style={{
+                                        width: '32px',
+                                        height: '32px',
+                                        minWidth: '32px',
+                                        minHeight: '32px',
+                                    }}
                                 />
                             ) : (
                                 <div
-                                    className="rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-semibold"
-                                    style={{ width: '32px', height: '32px', minWidth: '32px', minHeight: '32px' }}
+                                    className={[
+                                        'rounded-full bg-primary flex items-center justify-center',
+                                        'text-primary-foreground text-xs font-semibold',
+                                    ].join(' ')}
+                                    style={{
+                                        width: '32px',
+                                        height: '32px',
+                                        minWidth: '32px',
+                                        minHeight: '32px',
+                                    }}
                                 >
                                     {getInitials()}
                                 </div>
@@ -134,7 +165,13 @@ const TopBar = ({ onMobileMenuToggle }) => {
 
                         {/* Dropdown */}
                         {profileOpen && (
-                            <div className="absolute right-0 top-full mt-2 w-56 py-1.5 bg-surface rounded-lg shadow-dropdown border border-border z-[1060] animate-slide-down">
+                            <div
+                                className={[
+                                    'absolute right-0 top-full mt-2 w-56 py-1.5 bg-surface',
+                                    'rounded-lg shadow-dropdown border border-border z-[1060]',
+                                    'animate-slide-down',
+                                ].join(' ')}
+                            >
                                 <div className="px-3 py-2.5 border-b border-border-subtle">
                                     <p className="text-sm font-semibold text-foreground truncate">
                                         {agent?.name}
@@ -149,7 +186,10 @@ const TopBar = ({ onMobileMenuToggle }) => {
                                             setProfileOpen(false);
                                             router.push('/profile');
                                         }}
-                                        className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-foreground hover:bg-accent transition-colors duration-100"
+                                        className={[
+                                            'w-full flex items-center gap-2.5 px-3 py-2 text-sm',
+                                            'text-foreground hover:bg-accent transition-colors duration-100',
+                                        ].join(' ')}
                                     >
                                         <i className="pi pi-user text-sm text-foreground-muted" />
                                         My Profile
@@ -158,7 +198,10 @@ const TopBar = ({ onMobileMenuToggle }) => {
                                 <div className="border-t border-border-subtle my-1" />
                                 <button
                                     onClick={handleSignOut}
-                                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-danger hover:bg-danger/10 transition-colors duration-100"
+                                    className={[
+                                        'w-full flex items-center gap-2.5 px-3 py-2 text-sm',
+                                        'text-danger hover:bg-danger/10 transition-colors duration-100',
+                                    ].join(' ')}
                                 >
                                     <i className="pi pi-sign-out text-sm" />
                                     Sign Out
@@ -173,12 +216,21 @@ const TopBar = ({ onMobileMenuToggle }) => {
                     {/* Theme toggle — desktop only (mobile toggle lives in sidebar) */}
                     <button
                         onClick={toggleTheme}
-                        className="hidden md:flex items-center justify-center text-foreground-muted hover:text-foreground transition-colors duration-150"
-                        title={mounted && theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+                        className={[
+                            'hidden md:flex items-center justify-center text-foreground-muted',
+                            'hover:text-foreground transition-colors duration-150',
+                        ].join(' ')}
+                        title={
+                            mounted && theme === 'dark'
+                                ? 'Switch to light mode'
+                                : 'Switch to dark mode'
+                        }
                         aria-label="Toggle theme"
                     >
                         {mounted && (
-                            <i className={`pi ${theme === 'dark' ? 'pi-sun' : 'pi-moon'} text-xl`} />
+                            <i
+                                className={`pi ${theme === 'dark' ? 'pi-sun' : 'pi-moon'} text-xl`}
+                            />
                         )}
                     </button>
                 </div>
@@ -190,10 +242,7 @@ const TopBar = ({ onMobileMenuToggle }) => {
                 onHide={() => setShowQueueDialog(false)}
                 onSendClick={handleSendClick}
             />
-            <SendToLeadDialog
-                visible={showSendDialog}
-                onHide={() => setShowSendDialog(false)}
-            />
+            <SendToLeadDialog visible={showSendDialog} onHide={() => setShowSendDialog(false)} />
         </>
     );
 };

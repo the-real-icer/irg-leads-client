@@ -4,7 +4,10 @@ import dynamic from 'next/dynamic';
 
 const Dialog = dynamic(() => import('primereact/dialog').then((mod) => mod.Dialog), { ssr: false });
 const Button = dynamic(() => import('primereact/button').then((mod) => mod.Button), { ssr: false });
-const InputTextarea = dynamic(() => import('primereact/inputtextarea').then((mod) => mod.InputTextarea), { ssr: false });
+const InputTextarea = dynamic(
+    () => import('primereact/inputtextarea').then((mod) => mod.InputTextarea),
+    { ssr: false },
+);
 
 import IrgApi from '../../assets/irgApi';
 import showToast from '../../utils/showToast';

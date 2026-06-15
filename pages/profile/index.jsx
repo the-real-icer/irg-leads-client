@@ -131,12 +131,14 @@ const Profile = () => {
             <div style={{ padding: '1.5rem', maxWidth: '1200px', margin: '0 auto' }}>
                 {/* Header */}
                 <div style={{ marginBottom: '2rem' }}>
-                    <h1 style={{
-                        fontSize: '2rem',
-                        fontWeight: '700',
-                        color: '#2c3e50',
-                        marginBottom: '0.5rem',
-                    }}>
+                    <h1
+                        style={{
+                            fontSize: '2rem',
+                            fontWeight: '700',
+                            color: '#2c3e50',
+                            marginBottom: '0.5rem',
+                        }}
+                    >
                         Agent Settings
                     </h1>
                     <p style={{ color: '#6c757d', fontSize: '0.95rem' }}>
@@ -145,76 +147,157 @@ const Profile = () => {
                 </div>
 
                 {/* Agent Info */}
-                <div style={{
-                    padding: '1.5rem',
-                    background: 'white',
-                    borderRadius: '8px',
-                    boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
-                    marginBottom: '1.5rem'
-                }}>
-                    <h3 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#2c3e50', marginBottom: '1rem' }}>
+                <div
+                    style={{
+                        padding: '1.5rem',
+                        background: 'white',
+                        borderRadius: '8px',
+                        boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
+                        marginBottom: '1.5rem',
+                    }}
+                >
+                    <h3
+                        style={{
+                            fontSize: '1.25rem',
+                            fontWeight: '600',
+                            color: '#2c3e50',
+                            marginBottom: '1rem',
+                        }}
+                    >
                         Profile Information
                     </h3>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
+                    <div
+                        style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                            gap: '1rem',
+                        }}
+                    >
                         <div>
-                            <div style={{ fontSize: '0.85rem', color: '#6c757d', marginBottom: '0.25rem' }}>Name</div>
-                            <div style={{ fontSize: '1rem', color: '#2c3e50', fontWeight: '600' }}>{agent?.name || 'N/A'}</div>
+                            <div
+                                style={{
+                                    fontSize: '0.85rem',
+                                    color: '#6c757d',
+                                    marginBottom: '0.25rem',
+                                }}
+                            >
+                                Name
+                            </div>
+                            <div style={{ fontSize: '1rem', color: '#2c3e50', fontWeight: '600' }}>
+                                {agent?.name || 'N/A'}
+                            </div>
                         </div>
                         <div>
-                            <div style={{ fontSize: '0.85rem', color: '#6c757d', marginBottom: '0.25rem' }}>Email</div>
-                            <div style={{ fontSize: '1rem', color: '#2c3e50', fontWeight: '600' }}>{agent?.email || 'N/A'}</div>
+                            <div
+                                style={{
+                                    fontSize: '0.85rem',
+                                    color: '#6c757d',
+                                    marginBottom: '0.25rem',
+                                }}
+                            >
+                                Email
+                            </div>
+                            <div style={{ fontSize: '1rem', color: '#2c3e50', fontWeight: '600' }}>
+                                {agent?.email || 'N/A'}
+                            </div>
                         </div>
                         <div>
-                            <div style={{ fontSize: '0.85rem', color: '#6c757d', marginBottom: '0.25rem' }}>Phone</div>
-                            <div style={{ fontSize: '1rem', color: '#2c3e50', fontWeight: '600' }}>{agent?.phone || 'N/A'}</div>
+                            <div
+                                style={{
+                                    fontSize: '0.85rem',
+                                    color: '#6c757d',
+                                    marginBottom: '0.25rem',
+                                }}
+                            >
+                                Phone
+                            </div>
+                            <div style={{ fontSize: '1rem', color: '#2c3e50', fontWeight: '600' }}>
+                                {agent?.phone || 'N/A'}
+                            </div>
                         </div>
                         <div>
-                            <div style={{ fontSize: '0.85rem', color: '#6c757d', marginBottom: '0.25rem' }}>DRE License</div>
-                            <div style={{ fontSize: '1rem', color: '#2c3e50', fontWeight: '600' }}>{agent?.dre_license || 'N/A'}</div>
+                            <div
+                                style={{
+                                    fontSize: '0.85rem',
+                                    color: '#6c757d',
+                                    marginBottom: '0.25rem',
+                                }}
+                            >
+                                DRE License
+                            </div>
+                            <div style={{ fontSize: '1rem', color: '#2c3e50', fontWeight: '600' }}>
+                                {agent?.dre_license || 'N/A'}
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 {/* Lead Settings */}
-                <div style={{
-                    padding: '1.5rem',
-                    background: 'white',
-                    borderRadius: '8px',
-                    boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
-                    marginBottom: '1.5rem'
-                }}>
-                    <h3 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#2c3e50', marginBottom: '0.25rem' }}>
+                <div
+                    style={{
+                        padding: '1.5rem',
+                        background: 'white',
+                        borderRadius: '8px',
+                        boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
+                        marginBottom: '1.5rem',
+                    }}
+                >
+                    <h3
+                        style={{
+                            fontSize: '1.25rem',
+                            fontWeight: '600',
+                            color: '#2c3e50',
+                            marginBottom: '0.25rem',
+                        }}
+                    >
                         Lead Settings
                     </h3>
                     <p style={{ fontSize: '0.85rem', color: '#6c757d', margin: 0 }}>
                         Control whether you receive new leads from the website.
                     </p>
 
-                    <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        marginTop: '1.25rem',
-                        padding: '1rem',
-                        borderRadius: '8px',
-                        background: '#f8f9fa',
-                        border: '1px solid #dee2e6',
-                    }}>
+                    <div
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            marginTop: '1.25rem',
+                            padding: '1rem',
+                            borderRadius: '8px',
+                            background: '#f8f9fa',
+                            border: '1px solid #dee2e6',
+                        }}
+                    >
                         <div>
-                            <div style={{ fontSize: '0.85rem', color: '#6c757d', marginBottom: '0.25rem' }}>
+                            <div
+                                style={{
+                                    fontSize: '0.85rem',
+                                    color: '#6c757d',
+                                    marginBottom: '0.25rem',
+                                }}
+                            >
                                 Receive New Leads
                             </div>
                             <div style={{ fontSize: '0.8rem', color: '#6c757d' }}>
-                                Turn off to pause lead assignments while you&apos;re away.
-                                Turn back on when you return.
+                                Turn off to pause lead assignments while you&apos;re away. Turn back
+                                on when you return.
                             </div>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginLeft: '1rem' }}>
-                            <span style={{
-                                fontSize: '13px',
-                                fontWeight: '500',
-                                color: inLeadRotation ? '#16a34a' : '#6c757d',
-                            }}>
+                        <div
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '10px',
+                                marginLeft: '1rem',
+                            }}
+                        >
+                            <span
+                                style={{
+                                    fontSize: '13px',
+                                    fontWeight: '500',
+                                    color: inLeadRotation ? '#16a34a' : '#6c757d',
+                                }}
+                            >
                                 {inLeadRotation ? 'On' : 'Off'}
                             </span>
                             <label
@@ -231,26 +314,35 @@ const Profile = () => {
                                     type="checkbox"
                                     checked={inLeadRotation}
                                     onChange={(e) => handleLeadRotationToggle(e.target.checked)}
-                                    style={{ opacity: 0, width: 0, height: 0, position: 'absolute' }}
-                                />
-                                <span style={{
-                                    position: 'absolute',
-                                    inset: 0,
-                                    borderRadius: '12px',
-                                    backgroundColor: inLeadRotation ? '#22c55e' : '#d1d5db',
-                                    transition: 'background-color 0.2s',
-                                }}>
-                                    <span style={{
+                                    style={{
+                                        opacity: 0,
+                                        width: 0,
+                                        height: 0,
                                         position: 'absolute',
-                                        left: inLeadRotation ? '22px' : '2px',
-                                        top: '2px',
-                                        width: '20px',
-                                        height: '20px',
-                                        borderRadius: '50%',
-                                        backgroundColor: '#fff',
-                                        transition: 'left 0.2s',
-                                        boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-                                    }} />
+                                    }}
+                                />
+                                <span
+                                    style={{
+                                        position: 'absolute',
+                                        inset: 0,
+                                        borderRadius: '12px',
+                                        backgroundColor: inLeadRotation ? '#22c55e' : '#d1d5db',
+                                        transition: 'background-color 0.2s',
+                                    }}
+                                >
+                                    <span
+                                        style={{
+                                            position: 'absolute',
+                                            left: inLeadRotation ? '22px' : '2px',
+                                            top: '2px',
+                                            width: '20px',
+                                            height: '20px',
+                                            borderRadius: '50%',
+                                            backgroundColor: '#fff',
+                                            transition: 'left 0.2s',
+                                            boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                                        }}
+                                    />
                                 </span>
                             </label>
                         </div>
@@ -258,27 +350,45 @@ const Profile = () => {
                 </div>
 
                 {/* Email Signature */}
-                <div style={{
-                    padding: '1.5rem',
-                    background: 'white',
-                    borderRadius: '8px',
-                    boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
-                    marginBottom: '1.5rem'
-                }}>
-                    <div style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'flex-start',
-                        flexWrap: 'wrap',
-                        gap: '0.75rem',
-                        marginBottom: '1rem'
-                    }}>
+                <div
+                    style={{
+                        padding: '1.5rem',
+                        background: 'white',
+                        borderRadius: '8px',
+                        boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
+                        marginBottom: '1.5rem',
+                    }}
+                >
+                    <div
+                        style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'flex-start',
+                            flexWrap: 'wrap',
+                            gap: '0.75rem',
+                            marginBottom: '1rem',
+                        }}
+                    >
                         <div style={{ flex: '1 1 200px', minWidth: 0 }}>
-                            <h3 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#2c3e50', margin: 0 }}>
+                            <h3
+                                style={{
+                                    fontSize: '1.25rem',
+                                    fontWeight: '600',
+                                    color: '#2c3e50',
+                                    margin: 0,
+                                }}
+                            >
                                 Email Signature
                             </h3>
-                            <p style={{ fontSize: '0.85rem', color: '#6c757d', margin: '0.25rem 0 0 0' }}>
-                                This signature will be included in drip campaign emails sent on your behalf
+                            <p
+                                style={{
+                                    fontSize: '0.85rem',
+                                    color: '#6c757d',
+                                    margin: '0.25rem 0 0 0',
+                                }}
+                            >
+                                This signature will be included in drip campaign emails sent on your
+                                behalf
                             </p>
                         </div>
                         <Button
@@ -287,7 +397,11 @@ const Profile = () => {
                             className="p-button-primary"
                             onClick={handleSaveSignature}
                             loading={savingSignature}
-                            style={{ padding: '0.6rem 1.25rem', fontWeight: '600', whiteSpace: 'nowrap' }}
+                            style={{
+                                padding: '0.6rem 1.25rem',
+                                fontWeight: '600',
+                                whiteSpace: 'nowrap',
+                            }}
                         />
                     </div>
 
@@ -304,14 +418,16 @@ const Profile = () => {
                     {/* Signature Preview */}
                     {emailSignature && emailSignature !== '<p><br></p>' && (
                         <div>
-                            <h4 style={{
-                                fontSize: '1rem',
-                                fontWeight: '600',
-                                color: '#495057',
-                                marginBottom: '0.75rem',
-                                borderTop: '1px solid #e2e8f0',
-                                paddingTop: '1rem'
-                            }}>
+                            <h4
+                                style={{
+                                    fontSize: '1rem',
+                                    fontWeight: '600',
+                                    color: '#495057',
+                                    marginBottom: '0.75rem',
+                                    borderTop: '1px solid #e2e8f0',
+                                    paddingTop: '1rem',
+                                }}
+                            >
                                 Preview
                             </h4>
                             <div
@@ -321,7 +437,11 @@ const Profile = () => {
                                     borderRadius: '8px',
                                     border: '1px solid #e2e8f0',
                                 }}
-                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(emailSignature, { ADD_DATA_URI_TAGS: ['img'] }) }}
+                                dangerouslySetInnerHTML={{
+                                    __html: DOMPurify.sanitize(emailSignature, {
+                                        ADD_DATA_URI_TAGS: ['img'],
+                                    }),
+                                }}
                             />
                         </div>
                     )}

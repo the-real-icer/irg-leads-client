@@ -101,17 +101,33 @@ const Agents = () => {
         e.preventDefault();
 
         // Validation
-        if (!formData.name || !formData.email || !formData.dre_license || !formData.password || !formData.display_email || !formData.title || !formData.image) {
+        if (
+            !formData.name ||
+            !formData.email ||
+            !formData.dre_license ||
+            !formData.password ||
+            !formData.display_email ||
+            !formData.title ||
+            !formData.image
+        ) {
             showToast('error', 'Please fill in all required fields', 'Validation Error');
             return;
         }
 
         // Commission split validation (optional field)
-        if (formData.commissionSplit !== '' && formData.commissionSplit !== null && formData.commissionSplit !== undefined) {
+        if (
+            formData.commissionSplit !== '' &&
+            formData.commissionSplit !== null &&
+            formData.commissionSplit !== undefined
+        ) {
             const splitVal = parseFloat(formData.commissionSplit);
             if (Number.isNaN(splitVal) || splitVal < 0 || splitVal > 100) {
                 setCommissionSplitError('Please enter a valid percentage between 0 and 100');
-                showToast('error', 'Commission split must be between 0 and 100', 'Validation Error');
+                showToast(
+                    'error',
+                    'Commission split must be between 0 and 100',
+                    'Validation Error',
+                );
                 return;
             }
             setCommissionSplitError('');
@@ -120,7 +136,11 @@ const Agents = () => {
         try {
             setSaving(true);
             const submitData = { ...formData };
-            if (submitData.commissionSplit !== '' && submitData.commissionSplit !== null && submitData.commissionSplit !== undefined) {
+            if (
+                submitData.commissionSplit !== '' &&
+                submitData.commissionSplit !== null &&
+                submitData.commissionSplit !== undefined
+            ) {
                 submitData.commissionSplit = parseFloat(submitData.commissionSplit);
             } else {
                 delete submitData.commissionSplit;
@@ -267,7 +287,15 @@ const Agents = () => {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                         {/* Name */}
                         <div>
-                            <label htmlFor="name" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: 'hsl(var(--foreground))' }}>
+                            <label
+                                htmlFor="name"
+                                style={{
+                                    display: 'block',
+                                    marginBottom: '0.5rem',
+                                    fontWeight: '600',
+                                    color: 'hsl(var(--foreground))',
+                                }}
+                            >
                                 Name *
                             </label>
                             <InputText
@@ -282,7 +310,15 @@ const Agents = () => {
 
                         {/* Email (Login) */}
                         <div>
-                            <label htmlFor="email" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: 'hsl(var(--foreground))' }}>
+                            <label
+                                htmlFor="email"
+                                style={{
+                                    display: 'block',
+                                    marginBottom: '0.5rem',
+                                    fontWeight: '600',
+                                    color: 'hsl(var(--foreground))',
+                                }}
+                            >
                                 Email (Login) *
                             </label>
                             <InputText
@@ -298,7 +334,15 @@ const Agents = () => {
 
                         {/* Display Email */}
                         <div>
-                            <label htmlFor="display_email" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: 'hsl(var(--foreground))' }}>
+                            <label
+                                htmlFor="display_email"
+                                style={{
+                                    display: 'block',
+                                    marginBottom: '0.5rem',
+                                    fontWeight: '600',
+                                    color: 'hsl(var(--foreground))',
+                                }}
+                            >
                                 Display Email *
                             </label>
                             <InputText
@@ -314,7 +358,15 @@ const Agents = () => {
 
                         {/* Phone */}
                         <div>
-                            <label htmlFor="phone" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: 'hsl(var(--foreground))' }}>
+                            <label
+                                htmlFor="phone"
+                                style={{
+                                    display: 'block',
+                                    marginBottom: '0.5rem',
+                                    fontWeight: '600',
+                                    color: 'hsl(var(--foreground))',
+                                }}
+                            >
                                 Phone
                             </label>
                             <InputText
@@ -328,7 +380,15 @@ const Agents = () => {
 
                         {/* Title */}
                         <div>
-                            <label htmlFor="title" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: 'hsl(var(--foreground))' }}>
+                            <label
+                                htmlFor="title"
+                                style={{
+                                    display: 'block',
+                                    marginBottom: '0.5rem',
+                                    fontWeight: '600',
+                                    color: 'hsl(var(--foreground))',
+                                }}
+                            >
                                 Title *
                             </label>
                             <InputText
@@ -343,7 +403,15 @@ const Agents = () => {
 
                         {/* DRE License */}
                         <div>
-                            <label htmlFor="dre_license" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: 'hsl(var(--foreground))' }}>
+                            <label
+                                htmlFor="dre_license"
+                                style={{
+                                    display: 'block',
+                                    marginBottom: '0.5rem',
+                                    fontWeight: '600',
+                                    color: 'hsl(var(--foreground))',
+                                }}
+                            >
                                 DRE License *
                             </label>
                             <InputText
@@ -358,7 +426,15 @@ const Agents = () => {
 
                         {/* Image URL */}
                         <div>
-                            <label htmlFor="image" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: 'hsl(var(--foreground))' }}>
+                            <label
+                                htmlFor="image"
+                                style={{
+                                    display: 'block',
+                                    marginBottom: '0.5rem',
+                                    fontWeight: '600',
+                                    color: 'hsl(var(--foreground))',
+                                }}
+                            >
                                 Image URL *
                             </label>
                             <InputText
@@ -373,7 +449,15 @@ const Agents = () => {
 
                         {/* Address */}
                         <div>
-                            <label htmlFor="address" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: 'hsl(var(--foreground))' }}>
+                            <label
+                                htmlFor="address"
+                                style={{
+                                    display: 'block',
+                                    marginBottom: '0.5rem',
+                                    fontWeight: '600',
+                                    color: 'hsl(var(--foreground))',
+                                }}
+                            >
                                 Address
                             </label>
                             <InputText
@@ -386,9 +470,23 @@ const Agents = () => {
                         </div>
 
                         {/* City, State, Zip */}
-                        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '1rem' }}>
+                        <div
+                            style={{
+                                display: 'grid',
+                                gridTemplateColumns: '2fr 1fr 1fr',
+                                gap: '1rem',
+                            }}
+                        >
                             <div>
-                                <label htmlFor="city" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: 'hsl(var(--foreground))' }}>
+                                <label
+                                    htmlFor="city"
+                                    style={{
+                                        display: 'block',
+                                        marginBottom: '0.5rem',
+                                        fontWeight: '600',
+                                        color: 'hsl(var(--foreground))',
+                                    }}
+                                >
                                     City
                                 </label>
                                 <InputText
@@ -400,7 +498,15 @@ const Agents = () => {
                                 />
                             </div>
                             <div>
-                                <label htmlFor="state" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: 'hsl(var(--foreground))' }}>
+                                <label
+                                    htmlFor="state"
+                                    style={{
+                                        display: 'block',
+                                        marginBottom: '0.5rem',
+                                        fontWeight: '600',
+                                        color: 'hsl(var(--foreground))',
+                                    }}
+                                >
                                     State
                                 </label>
                                 <InputText
@@ -412,7 +518,15 @@ const Agents = () => {
                                 />
                             </div>
                             <div>
-                                <label htmlFor="zip_code" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: 'hsl(var(--foreground))' }}>
+                                <label
+                                    htmlFor="zip_code"
+                                    style={{
+                                        display: 'block',
+                                        marginBottom: '0.5rem',
+                                        fontWeight: '600',
+                                        color: 'hsl(var(--foreground))',
+                                    }}
+                                >
                                     Zip
                                 </label>
                                 <InputText
@@ -427,7 +541,15 @@ const Agents = () => {
 
                         {/* Role */}
                         <div>
-                            <label htmlFor="role" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: 'hsl(var(--foreground))' }}>
+                            <label
+                                htmlFor="role"
+                                style={{
+                                    display: 'block',
+                                    marginBottom: '0.5rem',
+                                    fontWeight: '600',
+                                    color: 'hsl(var(--foreground))',
+                                }}
+                            >
                                 Role *
                             </label>
                             <Dropdown
@@ -443,7 +565,15 @@ const Agents = () => {
                         {/* Commission Split (admin only) */}
                         {isAdmin && (
                             <div>
-                                <label htmlFor="commissionSplit" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: 'hsl(var(--foreground))' }}>
+                                <label
+                                    htmlFor="commissionSplit"
+                                    style={{
+                                        display: 'block',
+                                        marginBottom: '0.5rem',
+                                        fontWeight: '600',
+                                        color: 'hsl(var(--foreground))',
+                                    }}
+                                >
                                     Commission Split
                                 </label>
                                 <div style={{ position: 'relative' }}>
@@ -460,19 +590,30 @@ const Agents = () => {
                                         className={commissionSplitError ? 'p-invalid' : ''}
                                     />
                                     {formData.commissionSplit && (
-                                        <span style={{
-                                            position: 'absolute',
-                                            right: '0.75rem',
-                                            top: '50%',
-                                            transform: 'translateY(-50%)',
-                                            color: 'hsl(var(--foreground-muted))',
-                                            fontSize: '0.9rem',
-                                            pointerEvents: 'none',
-                                        }}>%</span>
+                                        <span
+                                            style={{
+                                                position: 'absolute',
+                                                right: '0.75rem',
+                                                top: '50%',
+                                                transform: 'translateY(-50%)',
+                                                color: 'hsl(var(--foreground-muted))',
+                                                fontSize: '0.9rem',
+                                                pointerEvents: 'none',
+                                            }}
+                                        >
+                                            %
+                                        </span>
                                     )}
                                 </div>
                                 {commissionSplitError && (
-                                    <small style={{ color: 'hsl(var(--danger))', fontSize: '0.8rem', marginTop: '0.25rem', display: 'block' }}>
+                                    <small
+                                        style={{
+                                            color: 'hsl(var(--danger))',
+                                            fontSize: '0.8rem',
+                                            marginTop: '0.25rem',
+                                            display: 'block',
+                                        }}
+                                    >
                                         {commissionSplitError}
                                     </small>
                                 )}
@@ -481,7 +622,15 @@ const Agents = () => {
 
                         {/* Password */}
                         <div>
-                            <label htmlFor="password" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: 'hsl(var(--foreground))' }}>
+                            <label
+                                htmlFor="password"
+                                style={{
+                                    display: 'block',
+                                    marginBottom: '0.5rem',
+                                    fontWeight: '600',
+                                    color: 'hsl(var(--foreground))',
+                                }}
+                            >
                                 Password *
                             </label>
                             <InputText
@@ -496,7 +645,14 @@ const Agents = () => {
                         </div>
 
                         {/* Submit Buttons */}
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }}>
+                        <div
+                            style={{
+                                display: 'flex',
+                                justifyContent: 'flex-end',
+                                gap: '1rem',
+                                marginTop: '1rem',
+                            }}
+                        >
                             <Button
                                 label="Cancel"
                                 className="p-button-text"
@@ -517,14 +673,23 @@ const Agents = () => {
             {/* Main Content */}
             <div style={{ padding: '1.5rem', maxWidth: '1400px', margin: '0 auto' }}>
                 {/* Header */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                <div
+                    style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: '2rem',
+                    }}
+                >
                     <div>
-                        <h1 style={{
-                            fontSize: '2rem',
-                            fontWeight: '700',
-                            color: 'hsl(var(--foreground))',
-                            marginBottom: '0.5rem',
-                        }}>
+                        <h1
+                            style={{
+                                fontSize: '2rem',
+                                fontWeight: '700',
+                                color: 'hsl(var(--foreground))',
+                                marginBottom: '0.5rem',
+                            }}
+                        >
                             Agents
                         </h1>
                         <p style={{ color: 'hsl(var(--foreground-muted))', fontSize: '0.95rem' }}>
@@ -542,242 +707,416 @@ const Agents = () => {
 
                 {/* Agents Grid */}
                 {loading ? (
-                    <Card style={{ boxShadow: '0 2px 12px hsl(var(--shadow-color) / 0.08)', borderRadius: '12px' }}>
-                        <div style={{ textAlign: 'center', padding: '3rem', color: 'hsl(var(--foreground-muted))' }}>
+                    <Card
+                        style={{
+                            boxShadow: '0 2px 12px hsl(var(--shadow-color) / 0.08)',
+                            borderRadius: '12px',
+                        }}
+                    >
+                        <div
+                            style={{
+                                textAlign: 'center',
+                                padding: '3rem',
+                                color: 'hsl(var(--foreground-muted))',
+                            }}
+                        >
                             <i className="pi pi-spin pi-spinner" style={{ fontSize: '2rem' }}></i>
                             <p style={{ marginTop: '1rem' }}>Loading agents...</p>
                         </div>
                     </Card>
                 ) : agents.length === 0 ? (
-                    <Card style={{ boxShadow: '0 2px 12px hsl(var(--shadow-color) / 0.08)', borderRadius: '12px' }}>
-                        <div style={{ textAlign: 'center', padding: '3rem', color: 'hsl(var(--foreground-muted))' }}>
-                            <i className="pi pi-users" style={{ fontSize: '3rem', marginBottom: '1rem', display: 'block' }}></i>
-                            <p style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>No agents found</p>
-                            <p style={{ fontSize: '0.9rem' }}>Click "Add Agent" to create your first agent</p>
+                    <Card
+                        style={{
+                            boxShadow: '0 2px 12px hsl(var(--shadow-color) / 0.08)',
+                            borderRadius: '12px',
+                        }}
+                    >
+                        <div
+                            style={{
+                                textAlign: 'center',
+                                padding: '3rem',
+                                color: 'hsl(var(--foreground-muted))',
+                            }}
+                        >
+                            <i
+                                className="pi pi-users"
+                                style={{ fontSize: '3rem', marginBottom: '1rem', display: 'block' }}
+                            ></i>
+                            <p style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>
+                                No agents found
+                            </p>
+                            <p style={{ fontSize: '0.9rem' }}>
+                                Click "Add Agent" to create your first agent
+                            </p>
                         </div>
                     </Card>
                 ) : (
-                    <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-                        gap: '1.5rem',
-                    }}>
+                    <div
+                        style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+                            gap: '1.5rem',
+                        }}
+                    >
                         {agents.map((agent) => {
                             const lastLogin = formatAgentLastLogin(agent.last_successful_login_at);
 
                             return (
-                            <button
-                                key={agent._id}
-                                type="button"
-                                style={{
-                                    background: 'hsl(var(--surface))',
-                                    borderRadius: '12px',
-                                    boxShadow: '0 2px 12px hsl(var(--shadow-color) / 0.08)',
-                                    overflow: 'hidden',
-                                    cursor: 'pointer',
-                                    border: 'none',
-                                    textAlign: 'left',
-                                    transition: 'all 0.2s ease',
-                                }}
-                                onClick={() => handleAgentClick(agent._id)}
-                                onMouseEnter={(e) => {
-                                    e.currentTarget.style.transform = 'translateY(-4px)';
-                                    e.currentTarget.style.boxShadow = '0 6px 20px hsl(var(--shadow-color) / 0.12)';
-                                }}
-                                onMouseLeave={(e) => {
-                                    e.currentTarget.style.transform = 'translateY(0)';
-                                    e.currentTarget.style.boxShadow = '0 2px 12px hsl(var(--shadow-color) / 0.08)';
-                                }}
-                            >
-                                {/* Agent Photo */}
-                                <div style={{
-                                    width: '100%',
-                                    height: '280px',
-                                    backgroundColor: 'hsl(var(--muted))',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                }}>
-                                    {agent.image ? (
-                                        <img
-                                            src={agent.image}
-                                            alt={agent.name}
-                                            style={{
-                                                width: '100%',
-                                                height: '100%',
-                                                objectFit: 'contain',
-                                                objectPosition: 'center',
-                                            }}
-                                            onError={(e) => {
-                                                e.target.style.display = 'none';
-                                                e.target.parentElement.innerHTML = '<i class="pi pi-user" style="font-size: 4rem; color: hsl(var(--foreground-muted));"></i>';
-                                            }}
-                                        />
-                                    ) : (
-                                        <i className="pi pi-user" style={{ fontSize: '4rem', color: 'hsl(var(--foreground-muted))' }}></i>
-                                    )}
-                                </div>
-
-                                {/* Agent Info */}
-                                <div style={{ padding: '1.25rem' }}>
-                                    {/* Name */}
-                                    <h3 style={{
-                                        fontSize: '1.25rem',
-                                        fontWeight: '700',
-                                        color: 'hsl(var(--foreground))',
-                                        marginBottom: '0.25rem',
-                                    }}>
-                                        {agent.name}
-                                    </h3>
-
-                                    {/* Title */}
-                                    <div style={{
-                                        fontSize: '0.9rem',
-                                        color: 'hsl(var(--primary))',
-                                        fontWeight: '600',
-                                        marginBottom: '1rem',
-                                    }}>
-                                        {agent.title}
-                                    </div>
-
-                                    {/* Role Badge & Commission Split */}
-                                    <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                                        <span style={{
-                                            padding: '0.25rem 0.75rem',
-                                            borderRadius: '12px',
-                                            fontSize: '0.75rem',
-                                            fontWeight: '600',
-                                            backgroundColor: agent.role === 'admin' ? 'hsl(var(--primary) / 0.12)' : 'hsl(var(--success) / 0.12)',
-                                            color: agent.role === 'admin' ? 'hsl(var(--primary))' : 'hsl(var(--success))',
-                                        }}>
-                                            {agent.role.charAt(0).toUpperCase() + agent.role.slice(1)}
-                                        </span>
-                                        <span style={{
-                                            fontSize: '0.75rem',
-                                            fontWeight: '600',
-                                            color: agent.commissionSplit != null ? 'hsl(var(--foreground))' : 'hsl(var(--foreground-muted))',
-                                        }}>
-                                            {agent.commissionSplit != null
-                                                ? `${agent.commissionSplit}% / ${agent.brokerageCommissionSplit ?? (100 - agent.commissionSplit)}% (Agent / Brokerage)`
-                                                : 'Split not set'}
-                                        </span>
-                                    </div>
-
-                                    {/* Lead Rotation Toggle */}
+                                <button
+                                    key={agent._id}
+                                    type="button"
+                                    style={{
+                                        background: 'hsl(var(--surface))',
+                                        borderRadius: '12px',
+                                        boxShadow: '0 2px 12px hsl(var(--shadow-color) / 0.08)',
+                                        overflow: 'hidden',
+                                        cursor: 'pointer',
+                                        border: 'none',
+                                        textAlign: 'left',
+                                        transition: 'all 0.2s ease',
+                                    }}
+                                    onClick={() => handleAgentClick(agent._id)}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.transform = 'translateY(-4px)';
+                                        e.currentTarget.style.boxShadow =
+                                            '0 6px 20px hsl(var(--shadow-color) / 0.12)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.transform = 'translateY(0)';
+                                        e.currentTarget.style.boxShadow =
+                                            '0 2px 12px hsl(var(--shadow-color) / 0.08)';
+                                    }}
+                                >
+                                    {/* Agent Photo */}
                                     <div
                                         style={{
+                                            width: '100%',
+                                            height: '280px',
+                                            backgroundColor: 'hsl(var(--muted))',
                                             display: 'flex',
                                             alignItems: 'center',
-                                            gap: '0.5rem',
-                                            marginBottom: '1rem',
+                                            justifyContent: 'center',
                                         }}
-                                        onClick={(e) => e.stopPropagation()}
-                                        onKeyDown={(e) => { if (e.key === 'Enter') e.stopPropagation(); }}
-                                        role="presentation"
                                     >
-                                        <label
+                                        {agent.image ? (
+                                            <img
+                                                src={agent.image}
+                                                alt={agent.name}
+                                                style={{
+                                                    width: '100%',
+                                                    height: '100%',
+                                                    objectFit: 'contain',
+                                                    objectPosition: 'center',
+                                                }}
+                                                onError={(e) => {
+                                                    e.target.style.display = 'none';
+                                                    e.target.parentElement.innerHTML =
+                                                        '<i class="pi pi-user" ' +
+                                                        'style="font-size: 4rem; ' +
+                                                        'color: hsl(var(--foreground-muted));"></i>';
+                                                }}
+                                            />
+                                        ) : (
+                                            <i
+                                                className="pi pi-user"
+                                                style={{
+                                                    fontSize: '4rem',
+                                                    color: 'hsl(var(--foreground-muted))',
+                                                }}
+                                            ></i>
+                                        )}
+                                    </div>
+
+                                    {/* Agent Info */}
+                                    <div style={{ padding: '1.25rem' }}>
+                                        {/* Name */}
+                                        <h3
                                             style={{
-                                                position: 'relative',
-                                                display: 'inline-block',
-                                                width: '34px',
-                                                height: '18px',
-                                                flexShrink: 0,
-                                                cursor: 'pointer',
+                                                fontSize: '1.25rem',
+                                                fontWeight: '700',
+                                                color: 'hsl(var(--foreground))',
+                                                marginBottom: '0.25rem',
                                             }}
                                         >
-                                            <input
-                                                type="checkbox"
-                                                checked={agent.in_lead_rotation !== false}
-                                                onChange={(e) => handleLeadRotationToggle(agent._id, e.target.checked)}
-                                                style={{ opacity: 0, width: 0, height: 0, position: 'absolute' }}
-                                            />
-                                            <span style={{
-                                                position: 'absolute',
-                                                inset: 0,
-                                                borderRadius: '9px',
-                                                backgroundColor: agent.in_lead_rotation !== false ? '#22c55e' : '#d1d5db',
-                                                transition: 'background-color 0.2s',
-                                            }}>
-                                                <span style={{
-                                                    position: 'absolute',
-                                                    left: agent.in_lead_rotation !== false ? '17px' : '2px',
-                                                    top: '2px',
-                                                    width: '14px',
-                                                    height: '14px',
-                                                    borderRadius: '50%',
-                                                    backgroundColor: '#fff',
-                                                    transition: 'left 0.2s',
-                                                    boxShadow: '0 1px 2px rgba(0,0,0,0.2)',
-                                                }} />
-                                            </span>
-                                        </label>
-                                        <span style={{
-                                            fontSize: '0.75rem',
-                                            fontWeight: '600',
-                                            color: agent.in_lead_rotation !== false
-                                                ? 'hsl(var(--success))'
-                                                : 'hsl(var(--foreground-muted))',
-                                        }}>
-                                            {agent.in_lead_rotation !== false ? 'Leads On' : 'Leads Off'}
-                                        </span>
-                                    </div>
+                                            {agent.name}
+                                        </h3>
 
-                                    {/* Contact Info */}
-                                    <div style={{
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        gap: '0.5rem',
-                                        fontSize: '0.875rem',
-                                        paddingTop: '1rem',
-                                        borderTop: '1px solid hsl(var(--border))',
-                                    }}>
-                                        {/* Email */}
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                            <i className="pi pi-envelope" style={{ color: 'hsl(var(--foreground-muted))', fontSize: '0.875rem' }}></i>
-                                            <span style={{
-                                                color: 'hsl(var(--foreground))',
-                                                overflow: 'hidden',
-                                                textOverflow: 'ellipsis',
-                                                whiteSpace: 'nowrap',
-                                            }}>
-                                                {agent.display_email || agent.email}
+                                        {/* Title */}
+                                        <div
+                                            style={{
+                                                fontSize: '0.9rem',
+                                                color: 'hsl(var(--primary))',
+                                                fontWeight: '600',
+                                                marginBottom: '1rem',
+                                            }}
+                                        >
+                                            {agent.title}
+                                        </div>
+
+                                        {/* Role Badge & Commission Split */}
+                                        <div
+                                            style={{
+                                                marginBottom: '1rem',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '0.5rem',
+                                                flexWrap: 'wrap',
+                                            }}
+                                        >
+                                            <span
+                                                style={{
+                                                    padding: '0.25rem 0.75rem',
+                                                    borderRadius: '12px',
+                                                    fontSize: '0.75rem',
+                                                    fontWeight: '600',
+                                                    backgroundColor:
+                                                        agent.role === 'admin'
+                                                            ? 'hsl(var(--primary) / 0.12)'
+                                                            : 'hsl(var(--success) / 0.12)',
+                                                    color:
+                                                        agent.role === 'admin'
+                                                            ? 'hsl(var(--primary))'
+                                                            : 'hsl(var(--success))',
+                                                }}
+                                            >
+                                                {agent.role.charAt(0).toUpperCase() +
+                                                    agent.role.slice(1)}
+                                            </span>
+                                            <span
+                                                style={{
+                                                    fontSize: '0.75rem',
+                                                    fontWeight: '600',
+                                                    color:
+                                                        agent.commissionSplit != null
+                                                            ? 'hsl(var(--foreground))'
+                                                            : 'hsl(var(--foreground-muted))',
+                                                }}
+                                            >
+                                                {agent.commissionSplit != null
+                                                    ? `${agent.commissionSplit}% / ` +
+                                                      `${
+                                                          agent.brokerageCommissionSplit ??
+                                                          100 - agent.commissionSplit
+                                                      }% ` +
+                                                      '(Agent / Brokerage)'
+                                                    : 'Split not set'}
                                             </span>
                                         </div>
 
-                                        {/* Phone */}
-                                        {agent.phone && (
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                <i className="pi pi-phone" style={{ color: 'hsl(var(--foreground-muted))', fontSize: '0.875rem' }}></i>
-                                                <span style={{ color: 'hsl(var(--foreground))' }}>
-                                                    {agent.phone}
+                                        {/* Lead Rotation Toggle */}
+                                        <div
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '0.5rem',
+                                                marginBottom: '1rem',
+                                            }}
+                                            onClick={(e) => e.stopPropagation()}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') e.stopPropagation();
+                                            }}
+                                            role="presentation"
+                                        >
+                                            <label
+                                                style={{
+                                                    position: 'relative',
+                                                    display: 'inline-block',
+                                                    width: '34px',
+                                                    height: '18px',
+                                                    flexShrink: 0,
+                                                    cursor: 'pointer',
+                                                }}
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    checked={agent.in_lead_rotation !== false}
+                                                    onChange={(e) =>
+                                                        handleLeadRotationToggle(
+                                                            agent._id,
+                                                            e.target.checked,
+                                                        )
+                                                    }
+                                                    style={{
+                                                        opacity: 0,
+                                                        width: 0,
+                                                        height: 0,
+                                                        position: 'absolute',
+                                                    }}
+                                                />
+                                                <span
+                                                    style={{
+                                                        position: 'absolute',
+                                                        inset: 0,
+                                                        borderRadius: '9px',
+                                                        backgroundColor:
+                                                            agent.in_lead_rotation !== false
+                                                                ? '#22c55e'
+                                                                : '#d1d5db',
+                                                        transition: 'background-color 0.2s',
+                                                    }}
+                                                >
+                                                    <span
+                                                        style={{
+                                                            position: 'absolute',
+                                                            left:
+                                                                agent.in_lead_rotation !== false
+                                                                    ? '17px'
+                                                                    : '2px',
+                                                            top: '2px',
+                                                            width: '14px',
+                                                            height: '14px',
+                                                            borderRadius: '50%',
+                                                            backgroundColor: '#fff',
+                                                            transition: 'left 0.2s',
+                                                            boxShadow: '0 1px 2px rgba(0,0,0,0.2)',
+                                                        }}
+                                                    />
+                                                </span>
+                                            </label>
+                                            <span
+                                                style={{
+                                                    fontSize: '0.75rem',
+                                                    fontWeight: '600',
+                                                    color:
+                                                        agent.in_lead_rotation !== false
+                                                            ? 'hsl(var(--success))'
+                                                            : 'hsl(var(--foreground-muted))',
+                                                }}
+                                            >
+                                                {agent.in_lead_rotation !== false
+                                                    ? 'Leads On'
+                                                    : 'Leads Off'}
+                                            </span>
+                                        </div>
+
+                                        {/* Contact Info */}
+                                        <div
+                                            style={{
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                gap: '0.5rem',
+                                                fontSize: '0.875rem',
+                                                paddingTop: '1rem',
+                                                borderTop: '1px solid hsl(var(--border))',
+                                            }}
+                                        >
+                                            {/* Email */}
+                                            <div
+                                                style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '0.5rem',
+                                                }}
+                                            >
+                                                <i
+                                                    className="pi pi-envelope"
+                                                    style={{
+                                                        color: 'hsl(var(--foreground-muted))',
+                                                        fontSize: '0.875rem',
+                                                    }}
+                                                ></i>
+                                                <span
+                                                    style={{
+                                                        color: 'hsl(var(--foreground))',
+                                                        overflow: 'hidden',
+                                                        textOverflow: 'ellipsis',
+                                                        whiteSpace: 'nowrap',
+                                                    }}
+                                                >
+                                                    {agent.display_email || agent.email}
                                                 </span>
                                             </div>
-                                        )}
 
-                                        {/* DRE License */}
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                            <i className="pi pi-id-card" style={{ color: 'hsl(var(--foreground-muted))', fontSize: '0.875rem' }}></i>
-                                            <span style={{ color: 'hsl(var(--foreground))', fontFamily: 'monospace' }}>
-                                                {agent.dre_license}
-                                            </span>
-                                        </div>
-
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                            <i className="pi pi-clock" style={{ color: 'hsl(var(--foreground-muted))', fontSize: '0.875rem' }}></i>
-                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.125rem' }}>
-                                                <span style={{ color: 'hsl(var(--foreground))' }}>
-                                                    Last login: {lastLogin.primary}
-                                                </span>
-                                                {lastLogin.secondary && (
-                                                    <span style={{ color: 'hsl(var(--foreground-muted))', fontSize: '0.75rem' }}>
-                                                        {lastLogin.secondary}
+                                            {/* Phone */}
+                                            {agent.phone && (
+                                                <div
+                                                    style={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '0.5rem',
+                                                    }}
+                                                >
+                                                    <i
+                                                        className="pi pi-phone"
+                                                        style={{
+                                                            color: 'hsl(var(--foreground-muted))',
+                                                            fontSize: '0.875rem',
+                                                        }}
+                                                    ></i>
+                                                    <span
+                                                        style={{ color: 'hsl(var(--foreground))' }}
+                                                    >
+                                                        {agent.phone}
                                                     </span>
-                                                )}
+                                                </div>
+                                            )}
+
+                                            {/* DRE License */}
+                                            <div
+                                                style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '0.5rem',
+                                                }}
+                                            >
+                                                <i
+                                                    className="pi pi-id-card"
+                                                    style={{
+                                                        color: 'hsl(var(--foreground-muted))',
+                                                        fontSize: '0.875rem',
+                                                    }}
+                                                ></i>
+                                                <span
+                                                    style={{
+                                                        color: 'hsl(var(--foreground))',
+                                                        fontFamily: 'monospace',
+                                                    }}
+                                                >
+                                                    {agent.dre_license}
+                                                </span>
+                                            </div>
+
+                                            <div
+                                                style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '0.5rem',
+                                                }}
+                                            >
+                                                <i
+                                                    className="pi pi-clock"
+                                                    style={{
+                                                        color: 'hsl(var(--foreground-muted))',
+                                                        fontSize: '0.875rem',
+                                                    }}
+                                                ></i>
+                                                <div
+                                                    style={{
+                                                        display: 'flex',
+                                                        flexDirection: 'column',
+                                                        gap: '0.125rem',
+                                                    }}
+                                                >
+                                                    <span
+                                                        style={{ color: 'hsl(var(--foreground))' }}
+                                                    >
+                                                        Last login: {lastLogin.primary}
+                                                    </span>
+                                                    {lastLogin.secondary && (
+                                                        <span
+                                                            style={{
+                                                                color: 'hsl(var(--foreground-muted))',
+                                                                fontSize: '0.75rem',
+                                                            }}
+                                                        >
+                                                            {lastLogin.secondary}
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            </button>
+                                </button>
                             );
                         })}
                     </div>

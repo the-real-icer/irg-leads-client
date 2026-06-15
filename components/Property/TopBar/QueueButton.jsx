@@ -23,7 +23,10 @@ const QueueButton = ({ property }) => {
 
     return (
         <button
-            className={`property__action-btn ${isQueued ? 'property__action-btn--warning' : 'property__action-btn--primary-outline'}`}
+            className={[
+                'property__action-btn',
+                isQueued ? 'property__action-btn--warning' : 'property__action-btn--primary-outline',
+            ].join(' ')}
             onClick={handleQueueToggle}
             type="button"
         >

@@ -13,17 +13,36 @@ const ProductionCard = ({ icon, value, label, format }) => {
     return (
         <div
             className="production-card"
-            onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'hsl(var(--primary) / 0.4)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.borderColor = ''; }}
+            onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = 'hsl(var(--primary) / 0.4)';
+            }}
+            onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = '';
+            }}
         >
             <div style={{ fontSize: '22px', lineHeight: 1, marginTop: '2px', flexShrink: 0 }}>
                 {icon}
             </div>
             <div>
-                <div style={{ fontSize: '22px', fontWeight: '700', color: 'hsl(var(--foreground))', lineHeight: 1.2, letterSpacing: '-0.02em' }}>
+                <div
+                    style={{
+                        fontSize: '22px',
+                        fontWeight: '700',
+                        color: 'hsl(var(--foreground))',
+                        lineHeight: 1.2,
+                        letterSpacing: '-0.02em',
+                    }}
+                >
                     {displayValue()}
                 </div>
-                <div style={{ fontSize: '13px', color: 'hsl(var(--muted-foreground))', marginTop: '5px', lineHeight: 1.3 }}>
+                <div
+                    style={{
+                        fontSize: '13px',
+                        color: 'hsl(var(--muted-foreground))',
+                        marginTop: '5px',
+                        lineHeight: 1.3,
+                    }}
+                >
                     {label}
                 </div>
             </div>
